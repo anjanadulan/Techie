@@ -10,7 +10,7 @@ Developed as part of the **Higher National Diploma in Software Engineering (HNDS
 
 ---
 
-## 📸 Key Features & UI Screens
+## 📸 Key Features & UI Screens (Still Developing)
 
 ### 1. 🎬 Splash & Loading Screen (`MainActivity`)
 - Vibrant blue fluid gradient background with ambient floating bubble graphics.
@@ -79,13 +79,4 @@ Developed as part of the **Higher National Diploma in Software Engineering (HNDS
 
 ---
 
-## 📄 Coursework Metadata
-
-* **Institute:** National Institute of Business Management (NIBM)
-* **Course:** Higher National Diploma in Software Engineering (HNDSE)
-* **Module:** Mobile Application Development
-* **Assessment:** CW1 (Group Project)
-* **GitHub Repository:** [https://github.com/anjanadulan/Techie.git](https://github.com/anjanadulan/Techie.git)
-
----
 *Created with ❤️ for Techie Repair Services.*
