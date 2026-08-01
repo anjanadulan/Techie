@@ -575,7 +575,8 @@ public final class ManagementRepository implements AutoCloseable {
         TechFixDatabaseHelper.APPOINTMENT_AT + ",s." +
         TechFixDatabaseHelper.NAME + ",b." + TechFixDatabaseHelper.NAME +
         ",COALESCE(t." + TechFixDatabaseHelper.FULL_NAME +
-        ",'Unassigned') FROM " + TechFixDatabaseHelper.TABLE_APPOINTMENTS +
+        ",'Unassigned'),COALESCE(u." + TechFixDatabaseHelper.EMAIL +
+        ",'Customer account') FROM " + TechFixDatabaseHelper.TABLE_APPOINTMENTS +
         " a JOIN " + TechFixDatabaseHelper.TABLE_REPAIR_SERVICES +
         " s ON s." + TechFixDatabaseHelper.ID + "=a." +
         TechFixDatabaseHelper.SERVICE_ID + " LEFT JOIN " +
@@ -583,6 +584,8 @@ public final class ManagementRepository implements AutoCloseable {
         TechFixDatabaseHelper.ID + "=a." + TechFixDatabaseHelper.BRANCH_ID +
         " LEFT JOIN " + TechFixDatabaseHelper.TABLE_TECHNICIANS + " t ON t." +
         TechFixDatabaseHelper.ID + "=a." + TechFixDatabaseHelper.TECHNICIAN_ID +
+        " LEFT JOIN " + TechFixDatabaseHelper.TABLE_USERS + " u ON u." +
+        TechFixDatabaseHelper.ID + "=a." + TechFixDatabaseHelper.USER_ID +
         " WHERE 1=1" +
         (activeOnly ? " AND a." + TechFixDatabaseHelper.STATUS + " IN " +
                           ACTIVE_APPOINTMENTS
@@ -601,7 +604,8 @@ public final class ManagementRepository implements AutoCloseable {
             cursor.getString(2) + " · " + cursor.getString(5),
             branchName + " · " + cursor.getString(7) + " · " +
                 formatDateTime(cursor.getLong(4)),
-            cursor.getString(3), "MANAGE", branchName, null));
+            cursor.getString(8) + " · " + cursor.getString(3), "MANAGE",
+            branchName, null));
       }
     }
     return records;

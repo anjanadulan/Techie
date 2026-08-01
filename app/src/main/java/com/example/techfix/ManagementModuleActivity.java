@@ -182,6 +182,11 @@ public class ManagementModuleActivity extends ManagementScreen {
       action.setText(item.action);
       View.OnClickListener listener = view -> handleItemAction(item);
       action.setOnClickListener(listener);
+      TextView statusAction = card.findViewById(R.id.btnManagementItemStatus);
+      if (APPOINTMENTS.equals(module) || STATUSES.equals(module)) {
+        statusAction.setVisibility(View.VISIBLE);
+        statusAction.setOnClickListener(view -> showStatusPicker(item.id));
+      }
       card.setOnClickListener(listener);
       container.addView(card);
     }

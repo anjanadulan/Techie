@@ -113,6 +113,22 @@
             tools:text="Due in 45 minutes"
         />
         <TextView
+            android:id="@+id/btnManagementItemStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="34dp"
+            android:layout_marginEnd="7dp"
+            android:background="@drawable/bg_management_chip_active"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:paddingHorizontal="11dp"
+            android:text="STATUS"
+            android:textColor="@color/management_cyan"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+        />
+        <TextView
             android:id="@+id/btnManagementItemAction"
             android:layout_width="wrap_content"
             android:layout_height="34dp"
