@@ -11,6 +11,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 public class AccountActivity extends AppCompatActivity {
   private SessionManager sessionManager;
+  private CustomerRepository customerRepository;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -24,6 +25,7 @@ public class AccountActivity extends AppCompatActivity {
 
     EdgeToEdge.enable(this);
     setContentView(R.layout.activity_account);
+    customerRepository = new CustomerRepository(this);
 
     ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (view, insets) -> {
       Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -41,6 +43,28 @@ public class AccountActivity extends AppCompatActivity {
       openAuthentication();
     });
     CustomerNavigation.bind(this, CustomerNavigation.PROFILE);
+  }
+
+  @Override
+  protected void onResume() {
+    super.onResume();
+    if (customerRepository == null || sessionManager == null)
+      return;
+    ((TextView) findViewById(R.id.tvActiveCount))
+        .setText(String.format(java.util.Locale.US, "%02d",
+            customerRepository.countActiveAppointments(sessionManager.getUserId())));
+    ((TextView) findViewById(R.id.tvCompletedCount))
+        .setText(String.format(java.util.Locale.US, "%02d",
+            customerRepository.countCompletedAppointments(sessionManager.getUserId())));
+    ((TextView) findViewById(R.id.tvSavedDeviceCount))
+        .setText(customerRepository.countDistinctDevices(sessionManager.getUserId()) + "  ›");
+  }
+
+  @Override
+  protected void onDestroy() {
+    if (customerRepository != null)
+      customerRepository.close();
+    super.onDestroy();
   }
 
   private void openAuthentication() {

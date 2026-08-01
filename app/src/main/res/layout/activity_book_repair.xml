@@ -110,16 +110,19 @@
                 android:text="@string/device"
             />
             <TextView
+                android:id="@+id/pickerDevice"
                 style="@style/CustomerPicker"
                 android:text="Samsung Galaxy S23                                      ⌄"
             />
             <TextView style="@style/CustomerFieldLabel" android:text="@string/service" />
             <TextView
+                android:id="@+id/pickerService"
                 style="@style/CustomerPicker"
                 android:text="Screen replacement                                      ⌄"
             />
             <TextView style="@style/CustomerFieldLabel" android:text="@string/preferred_branch" />
             <TextView
+                android:id="@+id/pickerBranch"
                 style="@style/CustomerPicker"
                 android:text="Colombo branch · 2.4 km                              ⌄"
             />
@@ -136,7 +139,11 @@
                     android:orientation="vertical"
                 >
                     <TextView style="@style/CustomerFieldLabel" android:text="@string/visit_date" />
-                    <TextView style="@style/CustomerPicker" android:text="04 Aug 2026" />
+                    <TextView
+                        android:id="@+id/pickerDate"
+                        style="@style/CustomerPicker"
+                        android:text="04 Aug 2026"
+                    />
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="0dp"
@@ -146,11 +153,16 @@
                     android:orientation="vertical"
                 >
                     <TextView style="@style/CustomerFieldLabel" android:text="@string/visit_time" />
-                    <TextView style="@style/CustomerPicker" android:text="10:30 AM" />
+                    <TextView
+                        android:id="@+id/pickerTime"
+                        style="@style/CustomerPicker"
+                        android:text="10:30 AM"
+                    />
                 </LinearLayout>
             </LinearLayout>
             <TextView style="@style/CustomerFieldLabel" android:text="@string/issue_description" />
             <EditText
+                android:id="@+id/etIssueDescription"
                 android:layout_width="match_parent"
                 android:layout_height="112dp"
                 android:background="@drawable/bg_customer_input"
@@ -163,6 +175,7 @@
                 android:textSize="13sp"
             />
             <LinearLayout
+                android:id="@+id/addPhotoCard"
                 android:layout_width="match_parent"
                 android:layout_height="84dp"
                 android:layout_marginTop="16dp"
@@ -171,6 +184,7 @@
                 android:orientation="vertical"
             >
                 <TextView
+                    android:id="@+id/tvPhotoStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="＋"

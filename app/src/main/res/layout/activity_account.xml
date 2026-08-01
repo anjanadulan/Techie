@@ -100,6 +100,7 @@
                     android:orientation="vertical"
                 >
                     <TextView
+                        android:id="@+id/tvActiveCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="01"
@@ -108,6 +109,7 @@
                         android:textStyle="bold"
                     />
                     <TextView
+                        android:id="@+id/tvCompletedCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Active"
@@ -160,6 +162,7 @@
                     android:textStyle="bold"
                 />
                 <TextView
+                    android:id="@+id/tvSavedDeviceCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="3  ›"

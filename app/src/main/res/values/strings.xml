@@ -29,10 +29,14 @@
     <string name="login_failed">Unable to log in. Please try again.</string>
     <string name="welcome_name">Welcome, %1$s</string>
     <string name="account_title">You\'re signed in</string>
-    <string name="account_subtitle">Your TechFix account is ready for future bookings and repair updates.</string>
+    <string name="account_subtitle">
+        Your TechFix account is ready for future bookings and repair updates.
+    </string>
     <string name="logout">Log out</string>
 
     <string name="booking_frontend_message">Repair booking submitted successfully.</string>
+    <string name="booking_created">Repair appointment created.</string>
+    <string name="booking_failed">Unable to create the appointment. Please try again.</string>
     <string name="profile_title">Profile Settings</string>
     <string name="profile_subtitle">Manage your personal information</string>
 
@@ -44,7 +48,9 @@
     <string name="visit_date">Visit Date</string>
     <string name="visit_time">Visit Time</string>
     <string name="issue_description">Issue Description</string>
-    <string name="issue_hint">Describe the problem with your device&#8230;</string>
+    <string name="issue_hint">
+        Describe the problem with your device &#8230;
+    </string>
     <string name="add_device_photo">Add Device Photo</string>
     <string name="continue_label">Continue</string>
     <string name="customer_greeting">Hello, Tech Enthusiast!</string>
@@ -54,12 +60,14 @@
     <string name="view_all">View All</string>
     <string name="phone">Phone</string>
     <string name="laptop">Laptop</string>
-
     <string name="tablet">Tablet</string>
+    <string name="desktop">Desktop</string>
     <string name="active_repair">Active Repair</string>
     <string name="repair_id">Repair ID: %1$s</string>
     <string name="repair_in_progress">In Progress</string>
-    <string name="repair_active_summary">Our technicians are currently working on your device.</string>
+    <string name="repair_active_summary">
+        Our technicians are currently working on your device.
+    </string>
     <string name="view_details">View Details</string>
     <string name="popular_services">Popular Services</string>
     <string name="screen_replacement">Screen Replacement</string>
@@ -69,10 +77,13 @@
     <string name="estimated_ready">Estimated Ready: %1$s</string>
     <string name="repair_progress">Repair Progress</string>
     <string name="service_detail">Service Detail</string>
-
-    <string name="screen_replacement_description">Professional screen replacement for all major device models using high-quality parts.</string>
+    <string name="screen_replacement_description">
+        Professional screen replacement for all major device models using high-quality parts.
+    </string>
     <string name="starting_price">Starting from $49</string>
-    <string name="repair_time">Repair Time: 1&#8211;2 hours</string>
+    <string name="repair_time">
+        Repair Time: 1 &#8211; 2 hours
+    </string>
     <string name="warranty">Warranty: 90 Days</string>
     <string name="service_includes">Service Includes:</string>
     <string name="book_repair">Book Repair Now</string>
@@ -82,4 +93,5 @@
     <string name="nav_services">Services</string>
     <string name="nav_bookings">Bookings</string>
     <string name="nav_profile">Profile</string>
+    <string name="back">Back</string>
 </resources>

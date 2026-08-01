@@ -54,10 +54,14 @@
                     android:layout_height="22dp"
                     android:src="@drawable/ic_customer_search"
                 />
-                <TextView
+                <EditText
+                    android:id="@+id/etServiceSearch"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
+                    android:background="@null"
+                    android:inputType="text"
+                    android:singleLine="true"
                     android:text="@string/search_services"
                     android:textColor="@color/customer_muted"
                 />
@@ -74,6 +78,7 @@
                     android:orientation="horizontal"
                 >
                     <TextView
+                        android:id="@+id/filterAll"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="@drawable/bg_customer_chip_selected"
@@ -82,6 +87,7 @@
                         android:textStyle="bold"
                     />
                     <TextView
+                        android:id="@+id/filterPhone"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
@@ -90,6 +96,7 @@
                         android:textColor="@color/customer_text"
                     />
                     <TextView
+                        android:id="@+id/filterLaptop"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
@@ -98,6 +105,7 @@
                         android:textColor="@color/customer_text"
                     />
                     <TextView
+                        android:id="@+id/filterTablet"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
