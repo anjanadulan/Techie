@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Tech-Precision Hybrid Color Palette -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="primary_blue">#3562D7</color>
@@ -20,4 +21,16 @@
     <color name="auth_border">#D9DDE2</color>
     <color name="auth_button">#050505</color>
     <color name="auth_cloud">#8FFFFFFF</color>
+
+    <color name="bg_charcoal">#1A1A2E</color>
+    <color name="bg_card_dark">#22223B</color>
+    <color name="bg_card_header">#16162A</color>
+    <color name="platinum_silver">#E0E1DD</color>
+    <color name="electric_purple">#7209B7</color>
+    <color name="electric_purple_dark">#560BAD</color>
+    <color name="electric_purple_light">#307209B7</color>
+    <color name="success_green">#4CAF50</color>
+    <color name="subtle_green">#2E4F4F</color>
+    <color name="warning_amber">#FFB703</color>
+    <color name="input_bg">#2C2C44</color>
 </resources>

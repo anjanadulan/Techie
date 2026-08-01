@@ -150,6 +150,7 @@
                     android:textSize="14sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
+
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnSignUpSubmit"
                 android:layout_width="match_parent"
@@ -182,6 +183,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_marginStart="5dp"
+                    android:text="@string/log_in"
+                    android:textColor="@color/auth_link"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center"

@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.techie"
+    namespace = "com.example.techfix"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -11,7 +11,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.techie"
+        applicationId = "com.example.techfix"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
