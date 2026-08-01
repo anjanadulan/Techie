@@ -118,8 +118,12 @@ public class ManagementModuleActivity extends ManagementScreen {
       ImageView preview = card.findViewById(R.id.ivManagementItemPreview);
       if (IMAGES.equals(module)) {
         preview.setVisibility(View.VISIBLE);
-        if (item.imagePath != null)
-          preview.setImageURI(Uri.parse(item.imagePath));
+        if (item.imagePath != null) {
+          if (item.imagePath.startsWith("https://") || item.imagePath.startsWith("http://"))
+            RemoteImageLoader.load(preview, item.imagePath);
+          else
+            preview.setImageURI(Uri.parse(item.imagePath));
+        }
       }
       ((TextView) card.findViewById(R.id.tvManagementItemTitle)).setText(item.title);
       ((TextView) card.findViewById(R.id.tvManagementItemMeta)).setText(item.meta);

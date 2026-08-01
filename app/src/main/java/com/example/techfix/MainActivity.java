@@ -7,13 +7,18 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class MainActivity extends AppCompatActivity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    if (new SessionManager(this).isLoggedIn()) {
+    if (new SessionManager(this).isLoggedIn() &&
+        FirebaseAuth.getInstance().getCurrentUser() != null) {
+      FirebaseRealtimeSync.start(this);
+      FirebaseSyncScheduler.enqueueNow(this);
+      FirebaseSyncScheduler.schedulePeriodic(this);
       startActivity(new Intent(this, CustomerHomeActivity.class));
       finish();
       return;
@@ -22,11 +27,13 @@ public class MainActivity extends AppCompatActivity {
     EdgeToEdge.enable(this);
     setContentView(R.layout.activity_main);
 
-    ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-      Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-      v.setPadding(0, systemBars.top, 0, systemBars.bottom);
-      return insets;
-    });
+    ViewCompat.setOnApplyWindowInsetsListener(
+        findViewById(R.id.main), (v, insets) -> {
+          Insets systemBars =
+              insets.getInsets(WindowInsetsCompat.Type.systemBars());
+          v.setPadding(0, systemBars.top, 0, systemBars.bottom);
+          return insets;
+        });
 
     // Navigate to Sign In Activity
     findViewById(R.id.btnSplashSignIn).setOnClickListener(v -> {

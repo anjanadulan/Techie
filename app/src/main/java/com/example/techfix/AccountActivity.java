@@ -2,12 +2,15 @@ package com.example.techfix;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class AccountActivity extends AppCompatActivity {
   private SessionManager sessionManager;
@@ -18,7 +21,8 @@ public class AccountActivity extends AppCompatActivity {
     super.onCreate(savedInstanceState);
     sessionManager = new SessionManager(this);
 
-    if (!sessionManager.isLoggedIn()) {
+    if (!sessionManager.isLoggedIn() ||
+        FirebaseAuth.getInstance().getCurrentUser() == null) {
       openAuthentication();
       return;
     }
@@ -27,21 +31,38 @@ public class AccountActivity extends AppCompatActivity {
     setContentView(R.layout.activity_account);
     customerRepository = new CustomerRepository(this);
 
-    ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (view, insets) -> {
-      Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-      view.setPadding(0, systemBars.top, 0, systemBars.bottom);
-      return insets;
-    });
+    ViewCompat.setOnApplyWindowInsetsListener(
+        findViewById(R.id.main), (view, insets) -> {
+          Insets systemBars =
+              insets.getInsets(WindowInsetsCompat.Type.systemBars());
+          view.setPadding(0, systemBars.top, 0, systemBars.bottom);
+          return insets;
+        });
 
     TextView accountName = findViewById(R.id.tvAccountName);
     TextView accountEmail = findViewById(R.id.tvAccountEmail);
     accountName.setText(sessionManager.getFullName());
     accountEmail.setText(sessionManager.getEmail());
 
-    findViewById(R.id.btnManagementWorkspace)
-        .setOnClickListener(
-            view -> startActivity(new Intent(this, ManagementDashboardActivity.class)));
+    View managementWorkspace = findViewById(R.id.btnManagementWorkspace);
+    managementWorkspace.setVisibility(View.GONE);
+    FirebaseFirestore.getInstance()
+        .collection("users")
+        .document(FirebaseAuth.getInstance().getCurrentUser().getUid())
+        .get()
+        .addOnSuccessListener(profile -> {
+          if ("manager".equals(profile.getString("role"))) {
+            managementWorkspace.setVisibility(View.VISIBLE);
+            managementWorkspace.setOnClickListener(
+                view
+                -> startActivity(
+                    new Intent(this, ManagementDashboardActivity.class)));
+          }
+        });
     findViewById(R.id.btnLogout).setOnClickListener(view -> {
+      FirebaseRealtimeSync.stop();
+      FirebaseSyncScheduler.cancel(this);
+      FirebaseAuth.getInstance().signOut();
       sessionManager.clearSession();
       openAuthentication();
     });
@@ -53,14 +74,18 @@ public class AccountActivity extends AppCompatActivity {
     super.onResume();
     if (customerRepository == null || sessionManager == null)
       return;
-    ((TextView) findViewById(R.id.tvActiveCount))
+    ((TextView)findViewById(R.id.tvActiveCount))
         .setText(String.format(java.util.Locale.US, "%02d",
-            customerRepository.countActiveAppointments(sessionManager.getUserId())));
-    ((TextView) findViewById(R.id.tvCompletedCount))
+                               customerRepository.countActiveAppointments(
+                                   sessionManager.getUserId())));
+    ((TextView)findViewById(R.id.tvCompletedCount))
         .setText(String.format(java.util.Locale.US, "%02d",
-            customerRepository.countCompletedAppointments(sessionManager.getUserId())));
-    ((TextView) findViewById(R.id.tvSavedDeviceCount))
-        .setText(customerRepository.countDistinctDevices(sessionManager.getUserId()) + "  ›");
+                               customerRepository.countCompletedAppointments(
+                                   sessionManager.getUserId())));
+    ((TextView)findViewById(R.id.tvSavedDeviceCount))
+        .setText(customerRepository.countDistinctDevices(
+                     sessionManager.getUserId()) +
+                 "  ›");
   }
 
   @Override
@@ -72,7 +97,8 @@ public class AccountActivity extends AppCompatActivity {
 
   private void openAuthentication() {
     Intent intent = new Intent(this, MainActivity.class);
-    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
+                    Intent.FLAG_ACTIVITY_CLEAR_TASK);
     startActivity(intent);
     finish();
   }
