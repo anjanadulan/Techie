@@ -8,9 +8,11 @@ import android.os.Bundle;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
@@ -32,10 +34,16 @@ public class ManagementModuleActivity extends ManagementScreen {
   private static final String EXTRA_MODULE = "management_module";
 
   private ManagementRepository repository;
+  private FirebaseManagementApi managementApi;
   private String module;
   private ModuleInfo moduleInfo;
   private String selectedBranch = "All";
   private Long pendingImageAppointmentId;
+  private final FirebaseRealtimeSync.DataObserver dataObserver =
+      () -> runOnUiThread(() -> {
+        if (repository != null)
+          reloadModule();
+      });
 
   private final ActivityResultLauncher<String[]> imagePicker =
       registerForActivityResult(new ActivityResultContracts.OpenDocument(),
@@ -70,8 +78,10 @@ public class ManagementModuleActivity extends ManagementScreen {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    showManagementLayout(R.layout.activity_management_module);
+    if (!showManagementLayout(R.layout.activity_management_module))
+      return;
     repository = new ManagementRepository(this);
+    managementApi = new FirebaseManagementApi();
     module = getIntent().getStringExtra(EXTRA_MODULE);
     if (module == null)
       module = APPOINTMENTS;
@@ -85,6 +95,7 @@ public class ManagementModuleActivity extends ManagementScreen {
     bindFilter(R.id.filterAll, "All");
     bindFilter(R.id.filterColombo, "Colombo");
     bindFilter(R.id.filterGalle, "Galle");
+    FirebaseRealtimeSync.addObserver(dataObserver);
     reloadModule();
   }
 
@@ -93,6 +104,14 @@ public class ManagementModuleActivity extends ManagementScreen {
     super.onResume();
     if (repository != null)
       reloadModule();
+  }
+
+  @Override
+  protected void onDestroy() {
+    FirebaseRealtimeSync.removeObserver(dataObserver);
+    if (repository != null)
+      repository.close();
+    super.onDestroy();
   }
 
   private void bindFilter(int viewId, String branch) {
@@ -194,6 +213,8 @@ public class ManagementModuleActivity extends ManagementScreen {
         reloadModule();
         break;
       case APPOINTMENTS:
+        showAppointmentActions(item.id);
+        break;
       case STATUSES:
         showStatusPicker(item.id);
         break;
@@ -223,7 +244,10 @@ public class ManagementModuleActivity extends ManagementScreen {
               .show();
         } else {
           repository.markPaymentPaid(item.id);
-          reloadModule();
+          Toast.makeText(this,
+                         "Cash payment submitted for server confirmation.",
+                         Toast.LENGTH_SHORT)
+              .show();
         }
         break;
       default:
@@ -232,6 +256,61 @@ public class ManagementModuleActivity extends ManagementScreen {
     } catch (RuntimeException exception) {
       showError(exception);
     }
+  }
+
+  private void showAppointmentActions(long appointmentId) {
+    String[] actions = {"Auto-assign best technician",
+                        "Choose or change technician", "Update repair status"};
+    new AlertDialog.Builder(this)
+        .setTitle("Manage appointment")
+        .setItems(actions, (dialog, index) -> {
+          if (index == 0) {
+            try {
+              String remoteId =
+                  repository.getAppointmentRemoteId(appointmentId);
+              managementApi.autoAssignAppointment(
+                  remoteId,
+                  cloudCallback(
+                      "Auto-assignment requested. Waiting for live confirmation."));
+            } catch (RuntimeException exception) {
+              showError(exception);
+            }
+          } else if (index == 1) {
+            showTechnicianPicker(appointmentId);
+          } else {
+            showStatusPicker(appointmentId);
+          }
+        })
+        .show();
+  }
+
+  private void showTechnicianPicker(long appointmentId) {
+    List<ManagementRepository.TechnicianChoice> technicians =
+        repository.getAvailableTechnicians(appointmentId);
+    if (technicians.isEmpty()) {
+      Toast.makeText(this,
+                     "No active technician is available at this branch.",
+                     Toast.LENGTH_SHORT)
+          .show();
+      return;
+    }
+    String[] labels = new String[technicians.size()];
+    for (int index = 0; index < technicians.size(); index++)
+      labels[index] = technicians.get(index).label();
+    new AlertDialog.Builder(this)
+        .setTitle("Assign technician")
+        .setItems(labels, (dialog, index) -> {
+          try {
+            String remoteId = repository.getAppointmentRemoteId(appointmentId);
+            managementApi.reassignAppointment(
+                remoteId, technicians.get(index).id,
+                cloudCallback(
+                    "Technician change requested. Waiting for live confirmation."));
+          } catch (RuntimeException exception) {
+            showError(exception);
+          }
+        })
+        .show();
   }
 
   private void showStatusPicker(long appointmentId) {
@@ -249,9 +328,15 @@ public class ManagementModuleActivity extends ManagementScreen {
         .setItems(labels,
                   (dialog, index) -> {
                     try {
-                      repository.updateAppointmentStatus(appointmentId,
-                                                         statuses[index]);
-                      reloadModule();
+                      AppointmentStatus status = statuses[index];
+                      String remoteId =
+                          repository.getAppointmentRemoteId(appointmentId);
+                      managementApi.updateRepairStatus(
+                          remoteId, status,
+                          "Repair status updated by management to " +
+                              ManagementRepository.statusLabel(status) + ".",
+                          cloudCallback(
+                              "Status update requested. Waiting for live confirmation."));
                     } catch (RuntimeException exception) {
                       showError(exception);
                     }
@@ -316,8 +401,84 @@ public class ManagementModuleActivity extends ManagementScreen {
       chooseAppointment("Choose repair to update",
                         choice -> showStatusPicker(choice.id));
       return;
+    case APPOINTMENTS:
+      showAppointmentDialog();
+      return;
     default:
       showCreateDialog();
+    }
+  }
+
+  private void showAppointmentDialog() {
+    if ("All".equals(selectedBranch)) {
+      Toast.makeText(this,
+                     "Select the Colombo or Galle branch before creating an appointment.",
+                     Toast.LENGTH_LONG)
+          .show();
+      return;
+    }
+    try {
+      List<ManagementRepository.ServiceChoice> services =
+          repository.getActiveServiceChoices();
+      if (services.isEmpty()) {
+        Toast.makeText(this, "No active repair services are available.",
+                       Toast.LENGTH_LONG)
+            .show();
+        return;
+      }
+
+      LinearLayout form = dialogForm();
+      TextView branch = new TextView(this);
+      branch.setText("Request location · " + selectedBranch + " branch");
+      branch.setTextColor(getColor(R.color.management_muted));
+      branch.setPadding(0, dp(8), 0, dp(8));
+      form.addView(branch);
+      EditText customerEmail = formField(
+          form, "Customer email",
+          InputType.TYPE_CLASS_TEXT |
+              InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+      EditText device = formField(
+          form, "Device details",
+          InputType.TYPE_CLASS_TEXT |
+              InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+      EditText problem = formField(
+          form, "Problem description",
+          InputType.TYPE_CLASS_TEXT |
+              InputType.TYPE_TEXT_FLAG_CAP_SENTENCES |
+              InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+
+      TextView serviceLabel = new TextView(this);
+      serviceLabel.setText("Repair service");
+      serviceLabel.setTextColor(getColor(R.color.management_muted));
+      serviceLabel.setPadding(0, dp(12), 0, 0);
+      form.addView(serviceLabel);
+      Spinner servicePicker = new Spinner(this);
+      String[] labels = new String[services.size()];
+      for (int index = 0; index < services.size(); index++)
+        labels[index] = services.get(index).label();
+      ArrayAdapter<String> adapter = new ArrayAdapter<>(
+          this, android.R.layout.simple_spinner_item, labels);
+      adapter.setDropDownViewResource(
+          android.R.layout.simple_spinner_dropdown_item);
+      servicePicker.setAdapter(adapter);
+      form.addView(servicePicker, new LinearLayout.LayoutParams(
+                                      LinearLayout.LayoutParams.MATCH_PARENT,
+                                      LinearLayout.LayoutParams.WRAP_CONTENT));
+
+      showFormDialog(
+          "Create customer appointment", form,
+          () -> {
+            int serviceIndex = servicePicker.getSelectedItemPosition();
+            if (serviceIndex < 0 || serviceIndex >= services.size())
+              throw new IllegalArgumentException(
+                  "Choose an active repair service.");
+            repository.createCustomerAppointment(
+                customerEmail.getText().toString(),
+                services.get(serviceIndex).id, device.getText().toString(),
+                problem.getText().toString(), selectedBranch);
+          });
+    } catch (RuntimeException exception) {
+      showError(exception);
     }
   }
 
@@ -343,9 +504,6 @@ public class ManagementModuleActivity extends ManagementScreen {
                  }
                  try {
                    switch (module) {
-                   case APPOINTMENTS:
-                     repository.createWalkInAppointment(value, selectedBranch);
-                     break;
                    case TECHNICIANS:
                      repository.addTechnician(value, selectedBranch);
                      break;
@@ -527,6 +685,37 @@ public class ManagementModuleActivity extends ManagementScreen {
     Toast.makeText(this, message(exception), Toast.LENGTH_LONG).show();
   }
 
+  private FirebaseManagementApi.Callback cloudCallback(
+      String acceptedMessage) {
+    return new FirebaseManagementApi.Callback() {
+      @Override
+      public void onSuccess() {
+        if (canShowCloudResult())
+          Toast.makeText(ManagementModuleActivity.this, acceptedMessage,
+                         Toast.LENGTH_SHORT)
+              .show();
+      }
+
+      @Override
+      public void onFailure(Exception error) {
+        if (!canShowCloudResult())
+          return;
+        String errorMessage = error == null ? null : error.getMessage();
+        Toast.makeText(
+                 ManagementModuleActivity.this,
+                 errorMessage == null || errorMessage.trim().isEmpty()
+                     ? "Unable to complete the Firebase management action."
+                     : errorMessage,
+                 Toast.LENGTH_LONG)
+            .show();
+      }
+    };
+  }
+
+  private boolean canShowCloudResult() {
+    return !isFinishing() && !isDestroyed();
+  }
+
   private String message(RuntimeException exception) {
     return exception.getMessage() == null
         ? "Unable to complete the management action."
@@ -569,13 +758,6 @@ public class ManagementModuleActivity extends ManagementScreen {
       return new ModuleInfo("BOOKING DESK", "Appointments", "Repair queue",
                             "Create appointment", "Customer device");
     }
-  }
-
-  @Override
-  protected void onDestroy() {
-    if (repository != null)
-      repository.close();
-    super.onDestroy();
   }
 
   private interface NumberAction {

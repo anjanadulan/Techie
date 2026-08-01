@@ -109,8 +109,12 @@ public class Signin extends AppCompatActivity {
               .document(firebaseUser.getUid())
               .get()
               .continueWithTask(profileTask -> {
-                if (!profileTask.getResult().exists())
-                  profile.put("role", "customer");
+                String role = profileTask.getResult().exists()
+                                  ? profileTask.getResult().getString("role")
+                                  : SessionManager.ROLE_CUSTOMER;
+                profile.put("role", SessionManager.ROLE_MANAGER.equals(role)
+                                        ? SessionManager.ROLE_MANAGER
+                                        : SessionManager.ROLE_CUSTOMER);
                 return FirebaseFirestore.getInstance()
                     .collection("users")
                     .document(firebaseUser.getUid())
@@ -124,16 +128,33 @@ public class Signin extends AppCompatActivity {
                       .show();
                   return;
                 }
-                completeLogin(firebaseUser, resolvedName, email);
+                FirebaseFirestore.getInstance()
+                    .collection("users")
+                    .document(firebaseUser.getUid())
+                    .get()
+                    .addOnSuccessListener(savedProfile
+                                          -> completeLogin(
+                                              firebaseUser, resolvedName, email,
+                                              savedProfile.getString("role")))
+                    .addOnFailureListener(error -> {
+                      firebaseAuth.signOut();
+                      Toast.makeText(this, R.string.login_failed,
+                                     Toast.LENGTH_SHORT)
+                          .show();
+                    });
               });
         });
   }
 
   private void completeLogin(FirebaseUser firebaseUser, String fullName,
-                             String email) {
+                             String email, String role) {
     try {
-      User user = databaseHelper.getOrCreateFirebaseUser(fullName, email);
-      new SessionManager(this).startSession(user);
+      User user = databaseHelper.getOrCreateFirebaseUser(
+          fullName, email, firebaseUser.getUid());
+      String resolvedRole = SessionManager.ROLE_MANAGER.equals(role)
+                                ? SessionManager.ROLE_MANAGER
+                                : SessionManager.ROLE_CUSTOMER;
+      new SessionManager(this).startSession(user, resolvedRole);
       FirebaseSyncScheduler.enqueueNow(this);
       FirebaseSyncScheduler.schedulePeriodic(this);
       FirebaseRealtimeSync.start(this);
@@ -141,7 +162,7 @@ public class Signin extends AppCompatActivity {
           .makeText(this, getString(R.string.welcome_name, user.getFullName()),
                     Toast.LENGTH_SHORT)
           .show();
-      openAccount();
+      openAccount(resolvedRole);
     } catch (RuntimeException exception) {
       firebaseAuth.signOut();
       Toast.makeText(this, R.string.login_failed, Toast.LENGTH_SHORT).show();
@@ -152,8 +173,11 @@ public class Signin extends AppCompatActivity {
     return input.getText() == null ? "" : input.getText().toString().trim();
   }
 
-  private void openAccount() {
-    Intent intent = new Intent(this, CustomerHomeActivity.class);
+  private void openAccount(String role) {
+    Class<?> destination = SessionManager.ROLE_MANAGER.equals(role)
+                               ? ManagementDashboardActivity.class
+                               : CustomerHomeActivity.class;
+    Intent intent = new Intent(this, destination);
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
                     Intent.FLAG_ACTIVITY_CLEAR_TASK);
     startActivity(intent);

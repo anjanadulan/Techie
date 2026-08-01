@@ -11,6 +11,12 @@ public class RepairTrackingActivity extends CustomerScreen {
   public static final String EXTRA_APPOINTMENT_ID = "appointment_id";
   private CustomerRepository repository;
   private SessionManager sessionManager;
+  private boolean observingRealtime;
+  private final FirebaseRealtimeSync.DataObserver dataObserver =
+      () -> runOnUiThread(() -> {
+        if (observingRealtime && repository != null && !isFinishing())
+          bindAppointment();
+      });
 
   public static void open(Activity activity, long appointmentId) {
     Intent intent = new Intent(activity, RepairTrackingActivity.class);
@@ -26,6 +32,24 @@ public class RepairTrackingActivity extends CustomerScreen {
     sessionManager = new SessionManager(this);
     findViewById(R.id.btnBack).setOnClickListener(v -> finish());
     bindAppointment();
+  }
+
+  @Override
+  protected void onStart() {
+    super.onStart();
+    if (!observingRealtime) {
+      FirebaseRealtimeSync.addObserver(dataObserver);
+      observingRealtime = true;
+    }
+  }
+
+  @Override
+  protected void onStop() {
+    if (observingRealtime) {
+      FirebaseRealtimeSync.removeObserver(dataObserver);
+      observingRealtime = false;
+    }
+    super.onStop();
   }
 
   private void bindAppointment() {

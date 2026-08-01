@@ -61,12 +61,15 @@
         </LinearLayout>
 
         <TextView
+            android:id="@+id/btnAdminAccount"
             android:layout_width="wrap_content"
             android:layout_height="38dp"
             android:background="@drawable/bg_management_chip"
+            android:clickable="true"
+            android:focusable="true"
             android:gravity="center"
             android:paddingHorizontal="14dp"
-            android:text="All branches  ▾"
+            android:text="Admin profile"
             android:textColor="@color/management_text"
             android:textSize="12sp"
         />

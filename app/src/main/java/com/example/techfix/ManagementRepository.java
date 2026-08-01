@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Patterns;
 import com.example.techfix.data.model.AppointmentStatus;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -115,14 +116,33 @@ public final class ManagementRepository implements AutoCloseable {
                               getRecentActivity());
   }
 
+  public String getAppointmentRemoteId(long appointmentId) {
+    try (Cursor cursor = helper.getReadableDatabase().query(
+             TechFixDatabaseHelper.TABLE_APPOINTMENTS,
+             new String[] {TechFixDatabaseHelper.REMOTE_ID},
+             TechFixDatabaseHelper.ID + "=?",
+             new String[] {String.valueOf(appointmentId)}, null, null, null,
+             "1")) {
+      if (!cursor.moveToFirst())
+        throw new IllegalArgumentException("Appointment not found.");
+      String remoteId = cursor.getString(0);
+      if (remoteId == null || remoteId.trim().isEmpty())
+        throw new IllegalStateException(
+            "This appointment has not synchronized with Firebase yet.");
+      return remoteId.trim();
+    }
+  }
+
   public boolean updateAppointmentStatus(long appointmentId,
                                          AppointmentStatus status) {
     SQLiteDatabase database = helper.getWritableDatabase();
     boolean changed = false;
     database.beginTransaction();
     try {
+      long updatedAt = System.currentTimeMillis();
       ContentValues appointment = new ContentValues();
       appointment.put(TechFixDatabaseHelper.STATUS, status.name());
+      LocalSyncState.markDirty(appointment, updatedAt);
       int updated =
           database.update(TechFixDatabaseHelper.TABLE_APPOINTMENTS, appointment,
                           TechFixDatabaseHelper.ID + "=?",
@@ -137,7 +157,113 @@ public final class ManagementRepository implements AutoCloseable {
                       ".");
       history.putNull(TechFixDatabaseHelper.IMAGE_PATH);
       history.put(TechFixDatabaseHelper.RECORDED_AT,
-                  System.currentTimeMillis());
+                  updatedAt);
+      LocalSyncState.prepareNew(history, updatedAt);
+      database.insertOrThrow(TechFixDatabaseHelper.TABLE_REPAIR_HISTORY, null,
+                             history);
+      database.setTransactionSuccessful();
+      changed = true;
+    } finally {
+      database.endTransaction();
+    }
+    if (changed)
+      FirebaseSyncScheduler.enqueueNow(appContext);
+    return changed;
+  }
+
+  public List<TechnicianChoice> getAvailableTechnicians(long appointmentId) {
+    List<TechnicianChoice> choices = new ArrayList<>();
+    String sql =
+        "SELECT t." + TechFixDatabaseHelper.ID + ",t." +
+        TechFixDatabaseHelper.FULL_NAME + ",b." + TechFixDatabaseHelper.NAME +
+        ",(SELECT COUNT(*) FROM " +
+        TechFixDatabaseHelper.TABLE_APPOINTMENTS + " workload WHERE workload." +
+        TechFixDatabaseHelper.TECHNICIAN_ID + "=t." +
+        TechFixDatabaseHelper.ID + " AND workload." +
+        TechFixDatabaseHelper.STATUS + " IN " + ACTIVE_APPOINTMENTS +
+        ") FROM " + TechFixDatabaseHelper.TABLE_TECHNICIANS + " t JOIN " +
+        TechFixDatabaseHelper.TABLE_BRANCHES + " b ON b." +
+        TechFixDatabaseHelper.ID + "=t." + TechFixDatabaseHelper.BRANCH_ID +
+        " JOIN " + TechFixDatabaseHelper.TABLE_APPOINTMENTS + " requested ON " +
+        "requested." + TechFixDatabaseHelper.BRANCH_ID + "=t." +
+        TechFixDatabaseHelper.BRANCH_ID + " WHERE requested." +
+        TechFixDatabaseHelper.ID + "=? AND t." +
+        TechFixDatabaseHelper.ACTIVE + "=1 ORDER BY 4,t." +
+        TechFixDatabaseHelper.FULL_NAME;
+    try (Cursor cursor = helper.getReadableDatabase().rawQuery(
+             sql, new String[] {String.valueOf(appointmentId)})) {
+      while (cursor.moveToNext()) {
+        choices.add(new TechnicianChoice(
+            cursor.getLong(0), cursor.getString(1), cursor.getString(2),
+            cursor.getInt(3)));
+      }
+    }
+    return choices;
+  }
+
+  public boolean autoAssignTechnician(long appointmentId) {
+    List<TechnicianChoice> technicians =
+        getAvailableTechnicians(appointmentId);
+    if (technicians.isEmpty())
+      throw new IllegalStateException(
+          "No active technician is available at the assigned branch.");
+    return assignTechnician(appointmentId, technicians.get(0).id);
+  }
+
+  public boolean assignTechnician(long appointmentId, long technicianId) {
+    SQLiteDatabase database = helper.getWritableDatabase();
+    String validationSql =
+        "SELECT t." + TechFixDatabaseHelper.FULL_NAME + ",a." +
+        TechFixDatabaseHelper.STATUS + " FROM " +
+        TechFixDatabaseHelper.TABLE_TECHNICIANS + " t JOIN " +
+        TechFixDatabaseHelper.TABLE_APPOINTMENTS + " a ON a." +
+        TechFixDatabaseHelper.BRANCH_ID + "=t." +
+        TechFixDatabaseHelper.BRANCH_ID + " WHERE a." +
+        TechFixDatabaseHelper.ID + "=? AND t." + TechFixDatabaseHelper.ID +
+        "=? AND t." + TechFixDatabaseHelper.ACTIVE + "=1";
+    String technicianName;
+    AppointmentStatus currentStatus;
+    try (Cursor cursor = database.rawQuery(
+             validationSql,
+             new String[] {String.valueOf(appointmentId),
+                           String.valueOf(technicianId)})) {
+      if (!cursor.moveToFirst())
+        throw new IllegalArgumentException(
+            "Choose an active technician from the assigned branch.");
+      technicianName = cursor.getString(0);
+      currentStatus = AppointmentStatus.valueOf(cursor.getString(1));
+    }
+
+    boolean changed = false;
+    database.beginTransaction();
+    try {
+      long updatedAt = System.currentTimeMillis();
+      ContentValues appointment = new ContentValues();
+      appointment.put(TechFixDatabaseHelper.TECHNICIAN_ID, technicianId);
+      if (AppointmentStatus.PENDING == currentStatus)
+        appointment.put(TechFixDatabaseHelper.STATUS,
+                        AppointmentStatus.ASSIGNED.name());
+      LocalSyncState.markDirty(appointment, updatedAt);
+      int updated = database.update(
+          TechFixDatabaseHelper.TABLE_APPOINTMENTS, appointment,
+          TechFixDatabaseHelper.ID + "=?",
+          new String[] {String.valueOf(appointmentId)});
+      if (updated != 1)
+        return false;
+
+      ContentValues history = new ContentValues();
+      history.put(TechFixDatabaseHelper.APPOINTMENT_ID, appointmentId);
+      history.put(TechFixDatabaseHelper.STATUS,
+                  AppointmentStatus.PENDING == currentStatus
+                      ? AppointmentStatus.ASSIGNED.name()
+                      : currentStatus.name());
+      history.put(TechFixDatabaseHelper.NOTES,
+                  "Technician assigned by management: " + technicianName +
+                      ".");
+      history.putNull(TechFixDatabaseHelper.IMAGE_PATH);
+      history.put(TechFixDatabaseHelper.RECORDED_AT,
+                  updatedAt);
+      LocalSyncState.prepareNew(history, updatedAt);
       database.insertOrThrow(TechFixDatabaseHelper.TABLE_REPAIR_HISTORY, null,
                              history);
       database.setTransactionSuccessful();
@@ -192,15 +318,17 @@ public final class ManagementRepository implements AutoCloseable {
 
   public boolean markPaymentPaid(long paymentId) {
     ContentValues values = new ContentValues();
-    values.put(TechFixDatabaseHelper.STATUS, "PAID");
-    values.put(TechFixDatabaseHelper.PAID_AT, System.currentTimeMillis());
+    values.put(TechFixDatabaseHelper.METHOD, "CASH");
+    values.put(TechFixDatabaseHelper.STATUS, "PENDING");
+    values.putNull(TechFixDatabaseHelper.REFERENCE);
+    values.putNull(TechFixDatabaseHelper.PAID_AT);
     return updateById(TechFixDatabaseHelper.TABLE_PAYMENTS, paymentId,
                       values) == 1;
   }
 
   public boolean featureRepairImage(long historyId) {
     ContentValues values = new ContentValues();
-    values.put(TechFixDatabaseHelper.NOTES, "Featured repair image");
+    values.put(TechFixDatabaseHelper.FEATURED, 1);
     return updateById(TechFixDatabaseHelper.TABLE_REPAIR_HISTORY, historyId,
                       values) == 1;
   }
@@ -219,35 +347,65 @@ public final class ManagementRepository implements AutoCloseable {
     return insertAndSync(TechFixDatabaseHelper.TABLE_REPAIR_HISTORY, values);
   }
 
-  public long createWalkInAppointment(String deviceDetails, String branchName) {
+  public List<ServiceChoice> getActiveServiceChoices() {
+    List<ServiceChoice> choices = new ArrayList<>();
+    String sql =
+        "SELECT s." + TechFixDatabaseHelper.ID + ",s." +
+        TechFixDatabaseHelper.NAME + ",c." + TechFixDatabaseHelper.NAME +
+        ",s." + TechFixDatabaseHelper.BASE_PRICE_CENTS + " FROM " +
+        TechFixDatabaseHelper.TABLE_REPAIR_SERVICES + " s JOIN " +
+        TechFixDatabaseHelper.TABLE_DEVICE_CATEGORIES + " c ON c." +
+        TechFixDatabaseHelper.ID + "=s." +
+        TechFixDatabaseHelper.CATEGORY_ID + " WHERE s." +
+        TechFixDatabaseHelper.ACTIVE + "=1 AND c." +
+        TechFixDatabaseHelper.ACTIVE + "=1 ORDER BY c." +
+        TechFixDatabaseHelper.NAME + ",s." + TechFixDatabaseHelper.NAME;
+    try (Cursor cursor = helper.getReadableDatabase().rawQuery(sql, null)) {
+      while (cursor.moveToNext())
+        choices.add(new ServiceChoice(cursor.getLong(0), cursor.getString(1),
+                                      cursor.getString(2), cursor.getLong(3)));
+    }
+    return choices;
+  }
+
+  public long createCustomerAppointment(String customerEmail, long serviceId,
+                                        String deviceDetails,
+                                        String problemDescription,
+                                        String requestBranchName) {
+    String email = normalizeCustomerEmail(customerEmail);
     String device = requireText(deviceDetails, "Device details");
+    String problem = requireText(problemDescription, "Problem description");
+    if (email.equalsIgnoreCase(new SessionManager(appContext).getEmail()))
+      throw new IllegalArgumentException(
+          "Choose a customer account, not the signed-in manager account.");
+
     SQLiteDatabase database = helper.getWritableDatabase();
-    long userId = firstId(database, TechFixDatabaseHelper.TABLE_USERS);
-    long serviceId =
-        firstId(database, TechFixDatabaseHelper.TABLE_REPAIR_SERVICES);
-    long branchId = findBranchId(database, branchName);
-    if (userId <= 0)
-      throw new IllegalStateException(
-          "Create a customer account before adding an appointment.");
-    if (serviceId <= 0 || branchId <= 0)
-      throw new IllegalStateException(
-          "Service and branch reference data is unavailable.");
+    CustomerIdentity customer = findFirebaseCustomer(database, email);
+    requireActiveService(database, serviceId);
+    RequestLocation requestLocation =
+        findRequestLocation(database, requestBranchName);
     long appointmentId;
     database.beginTransaction();
     try {
       long now = System.currentTimeMillis();
       ContentValues appointment = new ContentValues();
-      appointment.put(TechFixDatabaseHelper.USER_ID, userId);
-      appointment.put(TechFixDatabaseHelper.BRANCH_ID, branchId);
+      appointment.put(TechFixDatabaseHelper.USER_ID, customer.localUserId);
+      appointment.put(TechFixDatabaseHelper.CUSTOMER_UID,
+                      customer.firebaseUid);
+      appointment.putNull(TechFixDatabaseHelper.BRANCH_ID);
       appointment.putNull(TechFixDatabaseHelper.TECHNICIAN_ID);
       appointment.put(TechFixDatabaseHelper.SERVICE_ID, serviceId);
       appointment.put(TechFixDatabaseHelper.DEVICE_DETAILS, device);
-      appointment.put(TechFixDatabaseHelper.PROBLEM_DESCRIPTION,
-                      "Walk-in repair request");
+      appointment.put(TechFixDatabaseHelper.PROBLEM_DESCRIPTION, problem);
       appointment.put(TechFixDatabaseHelper.STATUS,
                       AppointmentStatus.PENDING.name());
       appointment.put(TechFixDatabaseHelper.APPOINTMENT_AT, now + 60 * 60_000L);
+      appointment.put(TechFixDatabaseHelper.REQUEST_LATITUDE,
+                      requestLocation.latitude);
+      appointment.put(TechFixDatabaseHelper.REQUEST_LONGITUDE,
+                      requestLocation.longitude);
       appointment.put(TechFixDatabaseHelper.CREATED_AT, now);
+      LocalSyncState.prepareNew(appointment, now);
       appointmentId = database.insertOrThrow(
           TechFixDatabaseHelper.TABLE_APPOINTMENTS, null, appointment);
       ContentValues history = new ContentValues();
@@ -255,9 +413,11 @@ public final class ManagementRepository implements AutoCloseable {
       history.put(TechFixDatabaseHelper.STATUS,
                   AppointmentStatus.PENDING.name());
       history.put(TechFixDatabaseHelper.NOTES,
-                  "Walk-in appointment created by management.");
+                  "Appointment created by management for " + email +
+                      "; awaiting automatic assignment.");
       history.putNull(TechFixDatabaseHelper.IMAGE_PATH);
       history.put(TechFixDatabaseHelper.RECORDED_AT, now);
+      LocalSyncState.prepareNew(history, now);
       database.insertOrThrow(TechFixDatabaseHelper.TABLE_REPAIR_HISTORY, null,
                              history);
       database.setTransactionSuccessful();
@@ -355,6 +515,7 @@ public final class ManagementRepository implements AutoCloseable {
         throw new IllegalArgumentException("Appointment not found.");
       amount = cursor.getLong(0);
     }
+    long now = System.currentTimeMillis();
     ContentValues values = new ContentValues();
     values.put(TechFixDatabaseHelper.APPOINTMENT_ID, appointmentId);
     values.put(TechFixDatabaseHelper.AMOUNT_CENTS, amount);
@@ -362,7 +523,26 @@ public final class ManagementRepository implements AutoCloseable {
     values.put(TechFixDatabaseHelper.STATUS, "PENDING");
     values.putNull(TechFixDatabaseHelper.REFERENCE);
     values.putNull(TechFixDatabaseHelper.PAID_AT);
-    values.put(TechFixDatabaseHelper.CREATED_AT, System.currentTimeMillis());
+    values.put(TechFixDatabaseHelper.CREATED_AT, now);
+    try (Cursor existing = database.query(
+             TechFixDatabaseHelper.TABLE_PAYMENTS,
+             new String[] {TechFixDatabaseHelper.ID,
+                           TechFixDatabaseHelper.STATUS},
+             TechFixDatabaseHelper.APPOINTMENT_ID + "=?",
+             new String[] {String.valueOf(appointmentId)}, null, null, null,
+             "1")) {
+      if (existing.moveToFirst()) {
+        long paymentId = existing.getLong(0);
+        if ("PAID".equals(existing.getString(1)))
+          return paymentId;
+        LocalSyncState.markDirty(values, now);
+        database.update(TechFixDatabaseHelper.TABLE_PAYMENTS, values,
+                        TechFixDatabaseHelper.ID + "=?",
+                        new String[] {String.valueOf(paymentId)});
+        FirebaseSyncScheduler.enqueueNow(appContext);
+        return paymentId;
+      }
+    }
     return insertAndSync(TechFixDatabaseHelper.TABLE_PAYMENTS, values);
   }
 
@@ -421,7 +601,7 @@ public final class ManagementRepository implements AutoCloseable {
             cursor.getString(2) + " · " + cursor.getString(5),
             branchName + " · " + cursor.getString(7) + " · " +
                 formatDateTime(cursor.getLong(4)),
-            cursor.getString(3), "UPDATE", branchName, null));
+            cursor.getString(3), "MANAGE", branchName, null));
       }
     }
     return records;
@@ -571,7 +751,7 @@ public final class ManagementRepository implements AutoCloseable {
     List<ManagementRecord> records = new ArrayList<>();
     String sql =
         "SELECT h." + TechFixDatabaseHelper.ID + ",h." +
-        TechFixDatabaseHelper.NOTES + ",h." + TechFixDatabaseHelper.IMAGE_PATH +
+        TechFixDatabaseHelper.FEATURED + ",h." + TechFixDatabaseHelper.IMAGE_PATH +
         ",h." + TechFixDatabaseHelper.RECORDED_AT + ",a." +
         TechFixDatabaseHelper.ID + ",a." +
         TechFixDatabaseHelper.DEVICE_DETAILS + ",s." +
@@ -591,8 +771,7 @@ public final class ManagementRepository implements AutoCloseable {
     try (Cursor cursor =
              helper.getReadableDatabase().rawQuery(sql, branchArgs(branch))) {
       while (cursor.moveToNext()) {
-        boolean featured =
-            cursor.getString(1).toLowerCase(Locale.US).contains("featured");
+        boolean featured = cursor.getInt(1) == 1;
         records.add(new ManagementRecord(
             cursor.getLong(0), "#TF-" + (1000 + cursor.getLong(4)),
             featured ? "FEATURED" : "PUBLISHED",
@@ -704,6 +883,8 @@ public final class ManagementRepository implements AutoCloseable {
   }
 
   private int updateById(String table, long id, ContentValues values) {
+    if (isSyncedTable(table))
+      LocalSyncState.markDirty(values, System.currentTimeMillis());
     int updated = helper.getWritableDatabase().update(
         table, values, TechFixDatabaseHelper.ID + "=?",
         new String[] {String.valueOf(id)});
@@ -713,6 +894,8 @@ public final class ManagementRepository implements AutoCloseable {
   }
 
   private long insertAndSync(String table, ContentValues values) {
+    if (isSyncedTable(table))
+      LocalSyncState.prepareNew(values, System.currentTimeMillis());
     long id = helper.getWritableDatabase().insertOrThrow(table, null, values);
     FirebaseSyncScheduler.enqueueNow(appContext);
     return id;
@@ -738,6 +921,75 @@ public final class ManagementRepository implements AutoCloseable {
              null, TechFixDatabaseHelper.ID, "1")) {
       return cursor.moveToFirst() ? cursor.getLong(0) : -1;
     }
+  }
+
+  private CustomerIdentity findFirebaseCustomer(SQLiteDatabase database,
+                                                String normalizedEmail) {
+    try (Cursor cursor = database.query(
+             TechFixDatabaseHelper.TABLE_USERS,
+             new String[] {TechFixDatabaseHelper.ID,
+                           TechFixDatabaseHelper.FIREBASE_UID},
+             TechFixDatabaseHelper.EMAIL + "=? AND " +
+                 TechFixDatabaseHelper.FIREBASE_UID +
+                 " IS NOT NULL AND TRIM(" +
+                 TechFixDatabaseHelper.FIREBASE_UID + ")<>''",
+             new String[] {normalizedEmail}, null, null, null, "1")) {
+      if (!cursor.moveToFirst())
+        throw new IllegalArgumentException(
+            "No Firebase-linked customer was found for this email.");
+      return new CustomerIdentity(cursor.getLong(0), cursor.getString(1));
+    }
+  }
+
+  private void requireActiveService(SQLiteDatabase database, long serviceId) {
+    try (Cursor cursor = database.query(
+             TechFixDatabaseHelper.TABLE_REPAIR_SERVICES,
+             new String[] {TechFixDatabaseHelper.ID},
+             TechFixDatabaseHelper.ID + "=? AND " +
+                 TechFixDatabaseHelper.ACTIVE + "=1",
+             new String[] {String.valueOf(serviceId)}, null, null, null, "1")) {
+      if (!cursor.moveToFirst())
+        throw new IllegalArgumentException(
+            "Choose an active repair service.");
+    }
+  }
+
+  private RequestLocation findRequestLocation(SQLiteDatabase database,
+                                              String branchName) {
+    if (branchName == null || "All".equals(branchName))
+      throw new IllegalArgumentException(
+          "Select the Colombo or Galle branch first.");
+    try (Cursor cursor = database.query(
+             TechFixDatabaseHelper.TABLE_BRANCHES,
+             new String[] {TechFixDatabaseHelper.LATITUDE,
+                           TechFixDatabaseHelper.LONGITUDE},
+             TechFixDatabaseHelper.NAME + "=? AND " +
+                 TechFixDatabaseHelper.ACTIVE + "=1",
+             new String[] {branchName.trim()}, null, null, null, "1")) {
+      if (!cursor.moveToFirst())
+        throw new IllegalArgumentException(
+            "The selected request branch is unavailable.");
+      return new RequestLocation(cursor.getDouble(0), cursor.getDouble(1));
+    }
+  }
+
+  private String normalizeCustomerEmail(String email) {
+    String normalized = requireText(email, "Customer email")
+                            .toLowerCase(Locale.ROOT);
+    if (!Patterns.EMAIL_ADDRESS.matcher(normalized).matches())
+      throw new IllegalArgumentException("Enter a valid customer email.");
+    return normalized;
+  }
+
+  private boolean isSyncedTable(String table) {
+    return TechFixDatabaseHelper.TABLE_APPOINTMENTS.equals(table) ||
+        TechFixDatabaseHelper.TABLE_PAYMENTS.equals(table) ||
+        TechFixDatabaseHelper.TABLE_REPAIR_HISTORY.equals(table) ||
+        TechFixDatabaseHelper.TABLE_BRANCHES.equals(table) ||
+        TechFixDatabaseHelper.TABLE_DEVICE_CATEGORIES.equals(table) ||
+        TechFixDatabaseHelper.TABLE_REPAIR_SERVICES.equals(table) ||
+        TechFixDatabaseHelper.TABLE_TECHNICIANS.equals(table) ||
+        TechFixDatabaseHelper.TABLE_SPARE_PARTS.equals(table);
   }
 
   private String requireText(String value, String label) {
@@ -856,6 +1108,62 @@ public final class ManagementRepository implements AutoCloseable {
       this.id = id;
       this.label = label;
       this.status = status;
+    }
+  }
+
+  public static final class ServiceChoice {
+    public final long id;
+    public final String name;
+    public final String category;
+    public final long priceCents;
+
+    ServiceChoice(long id, String name, String category, long priceCents) {
+      this.id = id;
+      this.name = name;
+      this.category = category;
+      this.priceCents = priceCents;
+    }
+
+    public String label() {
+      return name + " · " + category + " · " + formatPrice(priceCents);
+    }
+  }
+
+  public static final class TechnicianChoice {
+    public final long id;
+    public final String name;
+    public final String branch;
+    public final int activeJobs;
+
+    TechnicianChoice(long id, String name, String branch, int activeJobs) {
+      this.id = id;
+      this.name = name;
+      this.branch = branch;
+      this.activeJobs = activeJobs;
+    }
+
+    public String label() {
+      return name + " · " + branch + " · " + activeJobs + " active";
+    }
+  }
+
+  private static final class CustomerIdentity {
+    final long localUserId;
+    final String firebaseUid;
+
+    CustomerIdentity(long localUserId, String firebaseUid) {
+      this.localUserId = localUserId;
+      this.firebaseUid = firebaseUid;
+    }
+  }
+
+  private static final class RequestLocation {
+    final double latitude;
+    final double longitude;
+
+    RequestLocation(double latitude, double longitude) {
+      this.latitude = latitude;
+      this.longitude = longitude;
     }
   }
 }

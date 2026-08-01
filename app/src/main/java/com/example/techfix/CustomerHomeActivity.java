@@ -8,6 +8,12 @@ import java.util.List;
 public class CustomerHomeActivity extends CustomerScreen {
   private CustomerRepository repository;
   private SessionManager sessionManager;
+  private boolean observingRealtime;
+  private final FirebaseRealtimeSync.DataObserver dataObserver =
+      () -> runOnUiThread(() -> {
+        if (observingRealtime && repository != null && !isFinishing())
+          refreshHome();
+      });
 
   @Override
   protected void onCreate(Bundle state) {
@@ -32,8 +38,30 @@ public class CustomerHomeActivity extends CustomerScreen {
   }
 
   @Override
+  protected void onStart() {
+    super.onStart();
+    if (!observingRealtime) {
+      FirebaseRealtimeSync.addObserver(dataObserver);
+      observingRealtime = true;
+    }
+  }
+
+  @Override
   protected void onResume() {
     super.onResume();
+    refreshHome();
+  }
+
+  @Override
+  protected void onStop() {
+    if (observingRealtime) {
+      FirebaseRealtimeSync.removeObserver(dataObserver);
+      observingRealtime = false;
+    }
+    super.onStop();
+  }
+
+  private void refreshHome() {
     bindPopularService();
     bindActiveRepair();
   }

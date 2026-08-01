@@ -14,12 +14,16 @@ public class MainActivity extends AppCompatActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    if (new SessionManager(this).isLoggedIn() &&
+    SessionManager sessionManager = new SessionManager(this);
+    if (sessionManager.isLoggedIn() &&
         FirebaseAuth.getInstance().getCurrentUser() != null) {
       FirebaseRealtimeSync.start(this);
       FirebaseSyncScheduler.enqueueNow(this);
       FirebaseSyncScheduler.schedulePeriodic(this);
-      startActivity(new Intent(this, CustomerHomeActivity.class));
+      Class<?> destination = sessionManager.isManager()
+                                 ? ManagementDashboardActivity.class
+                                 : CustomerHomeActivity.class;
+      startActivity(new Intent(this, destination));
       finish();
       return;
     }

@@ -16,6 +16,12 @@ public class PaymentActivity extends CustomerScreen {
   private SessionManager sessionManager;
   private long appointmentId;
   private PaymentMethod selectedMethod = PaymentMethod.CARD;
+  private boolean observingRealtime;
+  private final FirebaseRealtimeSync.DataObserver dataObserver =
+      () -> runOnUiThread(() -> {
+        if (observingRealtime && repository != null && !isFinishing())
+          bindPayment();
+      });
 
   public static void open(Activity activity, long appointmentId) {
     Intent intent = new Intent(activity, PaymentActivity.class);
@@ -41,9 +47,27 @@ public class PaymentActivity extends CustomerScreen {
   }
 
   @Override
+  protected void onStart() {
+    super.onStart();
+    if (!observingRealtime) {
+      FirebaseRealtimeSync.addObserver(dataObserver);
+      observingRealtime = true;
+    }
+  }
+
+  @Override
   protected void onResume() {
     super.onResume();
     bindPayment();
+  }
+
+  @Override
+  protected void onStop() {
+    if (observingRealtime) {
+      FirebaseRealtimeSync.removeObserver(dataObserver);
+      observingRealtime = false;
+    }
+    super.onStop();
   }
 
   private void bindMethod(int viewId, PaymentMethod method) {
@@ -94,14 +118,23 @@ public class PaymentActivity extends CustomerScreen {
                      payment.reference);
       confirm.setText("Payment complete");
       confirm.setEnabled(false);
+    } else if (payment != null && "PENDING".equals(payment.status)) {
+      status.setVisibility(View.VISIBLE);
+      status.setText("Payment is being securely confirmed.");
+      confirm.setText("Processing payment");
+      confirm.setEnabled(false);
     } else if (appointment.status != AppointmentStatus.READY_FOR_PAYMENT) {
       status.setVisibility(View.VISIBLE);
       status.setText("Payment unlocks when the repair is ready.");
       confirm.setText("Not ready for payment");
       confirm.setEnabled(false);
     } else {
-      status.setVisibility(View.GONE);
-      confirm.setText("Confirm demo payment");
+      status.setVisibility(payment != null && "FAILED".equals(payment.status)
+                               ? View.VISIBLE
+                               : View.GONE);
+      if (payment != null && "FAILED".equals(payment.status))
+        status.setText("Payment was not completed. Please try again.");
+      confirm.setText("Confirm payment");
       confirm.setEnabled(true);
     }
   }
@@ -111,7 +144,7 @@ public class PaymentActivity extends CustomerScreen {
       CustomerRepository.PaymentItem payment = repository.processPayment(
           sessionManager.getUserId(), appointmentId, selectedMethod);
       Toast
-          .makeText(this, "Payment recorded: " + payment.reference,
+          .makeText(this, "Payment submitted for confirmation.",
                     Toast.LENGTH_LONG)
           .show();
       bindPayment();

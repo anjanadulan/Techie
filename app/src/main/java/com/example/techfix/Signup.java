@@ -152,8 +152,9 @@ public class Signup extends AppCompatActivity {
                                     String email) {
     findViewById(R.id.btnSignUpSubmit).setEnabled(true);
     try {
-      User user = databaseHelper.getOrCreateFirebaseUser(fullName, email);
-      new SessionManager(this).startSession(user);
+      User user = databaseHelper.getOrCreateFirebaseUser(
+          fullName, email, firebaseUser.getUid());
+      new SessionManager(this).startSession(user, SessionManager.ROLE_CUSTOMER);
       FirebaseSyncScheduler.enqueueNow(this);
       FirebaseSyncScheduler.schedulePeriodic(this);
       FirebaseRealtimeSync.start(this);

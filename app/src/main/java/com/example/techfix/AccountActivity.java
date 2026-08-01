@@ -52,16 +52,18 @@ public class AccountActivity extends AppCompatActivity {
         .get()
         .addOnSuccessListener(profile -> {
           if ("manager".equals(profile.getString("role"))) {
+            sessionManager.setRole(SessionManager.ROLE_MANAGER);
             managementWorkspace.setVisibility(View.VISIBLE);
             managementWorkspace.setOnClickListener(
                 view
                 -> startActivity(
                     new Intent(this, ManagementDashboardActivity.class)));
+          } else {
+            sessionManager.setRole(SessionManager.ROLE_CUSTOMER);
           }
         });
     findViewById(R.id.btnLogout).setOnClickListener(view -> {
       FirebaseRealtimeSync.stop();
-      FirebaseSyncScheduler.cancel(this);
       FirebaseAuth.getInstance().signOut();
       sessionManager.clearSession();
       openAuthentication();

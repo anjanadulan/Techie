@@ -6,14 +6,20 @@ import java.util.Locale;
 
 public class ManagementDashboardActivity extends ManagementScreen {
   private ManagementRepository repository;
+  private final FirebaseRealtimeSync.DataObserver dataObserver =
+      () -> runOnUiThread(this::refreshDashboard);
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    showManagementLayout(R.layout.activity_management_dashboard);
+    if (!showManagementLayout(R.layout.activity_management_dashboard))
+      return;
     repository = new ManagementRepository(this);
 
-    findViewById(R.id.btnManagementBack).setOnClickListener(view -> finish());
+    findViewById(R.id.btnManagementBack).setOnClickListener(
+        view -> openAdminAccount());
+    findViewById(R.id.btnAdminAccount).setOnClickListener(
+        view -> openAdminAccount());
     bindModule(R.id.manageAppointments, ManagementModuleActivity.APPOINTMENTS);
     bindModule(R.id.manageBranches, ManagementModuleActivity.BRANCHES);
     bindModule(R.id.manageCategories, ManagementModuleActivity.CATEGORIES);
@@ -23,11 +29,16 @@ public class ManagementDashboardActivity extends ManagementScreen {
     bindModule(R.id.manageImages, ManagementModuleActivity.IMAGES);
     bindModule(R.id.managePayments, ManagementModuleActivity.PAYMENTS);
     bindModule(R.id.manageStatuses, ManagementModuleActivity.STATUSES);
+    FirebaseRealtimeSync.addObserver(dataObserver);
   }
 
   @Override
   protected void onResume() {
     super.onResume();
+    refreshDashboard();
+  }
+
+  private void refreshDashboard() {
     if (repository == null)
       return;
     ManagementRepository.DashboardStats stats = repository.getDashboardStats();
@@ -74,6 +85,10 @@ public class ManagementDashboardActivity extends ManagementScreen {
         view -> ManagementModuleActivity.open(this, module));
   }
 
+  private void openAdminAccount() {
+    startActivity(new android.content.Intent(this, AdminAccountActivity.class));
+  }
+
   private void setText(int viewId, String value) {
     ((TextView)findViewById(viewId)).setText(value);
   }
@@ -84,6 +99,7 @@ public class ManagementDashboardActivity extends ManagementScreen {
 
   @Override
   protected void onDestroy() {
+    FirebaseRealtimeSync.removeObserver(dataObserver);
     if (repository != null)
       repository.close();
     super.onDestroy();

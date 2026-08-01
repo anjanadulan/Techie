@@ -6,6 +6,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import com.example.techfix.data.model.AppointmentStatus;
 import com.example.techfix.data.model.PaymentMethod;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -160,25 +162,29 @@ public final class CustomerRepository implements AutoCloseable {
     }
 
     SQLiteDatabase database = helper.getWritableDatabase();
+    FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+    if (firebaseUser == null)
+      throw new IllegalStateException("Sign in before booking a repair.");
     long appointmentId;
     database.beginTransaction();
     try {
-      AssignmentOption assignment = findBestAssignment(
-          database, serviceId, latitude, longitude, appointmentAt);
-      reserveSparePart(database, assignment.sparePartId);
-      AppointmentStatus status = AppointmentStatus.ASSIGNED;
+      AppointmentStatus status = AppointmentStatus.PENDING;
       long now = System.currentTimeMillis();
       ContentValues values = new ContentValues();
       values.put(TechFixDatabaseHelper.USER_ID, userId);
-      values.put(TechFixDatabaseHelper.BRANCH_ID, assignment.branchId);
-      values.put(TechFixDatabaseHelper.TECHNICIAN_ID, assignment.technicianId);
+      values.put(TechFixDatabaseHelper.CUSTOMER_UID, firebaseUser.getUid());
+      values.putNull(TechFixDatabaseHelper.BRANCH_ID);
+      values.putNull(TechFixDatabaseHelper.TECHNICIAN_ID);
       values.put(TechFixDatabaseHelper.SERVICE_ID, serviceId);
       values.put(TechFixDatabaseHelper.DEVICE_DETAILS, deviceDetails.trim());
       values.put(TechFixDatabaseHelper.PROBLEM_DESCRIPTION,
                  problemDescription.trim());
       values.put(TechFixDatabaseHelper.STATUS, status.name());
       values.put(TechFixDatabaseHelper.APPOINTMENT_AT, appointmentAt);
+      values.put(TechFixDatabaseHelper.REQUEST_LATITUDE, latitude);
+      values.put(TechFixDatabaseHelper.REQUEST_LONGITUDE, longitude);
       values.put(TechFixDatabaseHelper.CREATED_AT, now);
+      LocalSyncState.prepareNew(values, now);
       appointmentId = database.insertOrThrow(
           TechFixDatabaseHelper.TABLE_APPOINTMENTS, null, values);
 
@@ -186,14 +192,12 @@ public final class CustomerRepository implements AutoCloseable {
       history.put(TechFixDatabaseHelper.APPOINTMENT_ID, appointmentId);
       history.put(TechFixDatabaseHelper.STATUS, status.name());
       history.put(TechFixDatabaseHelper.NOTES,
-                  "Assigned to " + assignment.technicianName + " at " +
-                      assignment.branchName +
-                      (" based on distance, technician availability, and "
-                       + "parts stock."));
+                  "Repair request submitted. Assignment is being confirmed.");
       if (imagePath != null && !imagePath.trim().isEmpty()) {
         history.put(TechFixDatabaseHelper.IMAGE_PATH, imagePath.trim());
       }
       history.put(TechFixDatabaseHelper.RECORDED_AT, now);
+      LocalSyncState.prepareNew(history, now);
       database.insertOrThrow(TechFixDatabaseHelper.TABLE_REPAIR_HISTORY, null,
                              history);
       database.setTransactionSuccessful();
@@ -326,17 +330,16 @@ public final class CustomerRepository implements AutoCloseable {
         throw new IllegalArgumentException(
             "Payment becomes available when the repair is ready.");
 
-      String reference =
-          "TFX-" + appointmentId + "-" + System.currentTimeMillis();
-      long paidAt = System.currentTimeMillis();
+      long requestedAt = System.currentTimeMillis();
       ContentValues values = new ContentValues();
       values.put(TechFixDatabaseHelper.APPOINTMENT_ID, appointmentId);
       values.put(TechFixDatabaseHelper.AMOUNT_CENTS, amountCents);
       values.put(TechFixDatabaseHelper.METHOD, method.name());
-      values.put(TechFixDatabaseHelper.STATUS, "PAID");
-      values.put(TechFixDatabaseHelper.REFERENCE, reference);
-      values.put(TechFixDatabaseHelper.PAID_AT, paidAt);
-      values.put(TechFixDatabaseHelper.CREATED_AT, paidAt);
+      values.put(TechFixDatabaseHelper.STATUS, "PENDING");
+      values.putNull(TechFixDatabaseHelper.REFERENCE);
+      values.putNull(TechFixDatabaseHelper.PAID_AT);
+      values.put(TechFixDatabaseHelper.CREATED_AT, requestedAt);
+      LocalSyncState.prepareNew(values, requestedAt);
 
       long paymentId;
       try (Cursor existing = database.query(
@@ -352,6 +355,8 @@ public final class CustomerRepository implements AutoCloseable {
             database.setTransactionSuccessful();
             return getPayment(userId, appointmentId);
           }
+          values.remove(TechFixDatabaseHelper.REMOTE_ID);
+          LocalSyncState.markDirty(values, requestedAt);
           database.update(TechFixDatabaseHelper.TABLE_PAYMENTS, values,
                           TechFixDatabaseHelper.ID + "=?",
                           new String[] {String.valueOf(paymentId)});
@@ -361,20 +366,8 @@ public final class CustomerRepository implements AutoCloseable {
         }
       }
 
-      ContentValues history = new ContentValues();
-      history.put(TechFixDatabaseHelper.APPOINTMENT_ID, appointmentId);
-      history.put(TechFixDatabaseHelper.STATUS,
-                  AppointmentStatus.READY_FOR_PAYMENT.name());
-      history.put(TechFixDatabaseHelper.NOTES,
-                  "Payment received via " +
-                      method.name().toLowerCase(Locale.US).replace('_', ' ') +
-                      ".");
-      history.putNull(TechFixDatabaseHelper.IMAGE_PATH);
-      history.put(TechFixDatabaseHelper.RECORDED_AT, paidAt);
-      database.insertOrThrow(TechFixDatabaseHelper.TABLE_REPAIR_HISTORY, null,
-                             history);
-      result = new PaymentItem(paymentId, amountCents, method.name(), "PAID",
-                               reference, paidAt);
+      result = new PaymentItem(paymentId, amountCents, method.name(),
+                               "PENDING", null, null);
       database.setTransactionSuccessful();
     } finally {
       database.endTransaction();
@@ -385,6 +378,26 @@ public final class CustomerRepository implements AutoCloseable {
 
   public List<GalleryItem> getFeaturedRepairImages() {
     List<GalleryItem> images = new ArrayList<>();
+    String sampleSql =
+        "SELECT " + TechFixDatabaseHelper.REMOTE_ID + "," +
+        TechFixDatabaseHelper.IMAGE_PATH + "," +
+        TechFixDatabaseHelper.DEVICE_DETAILS + "," +
+        TechFixDatabaseHelper.SERVICE_NAME + "," +
+        TechFixDatabaseHelper.BRANCH_NAME + "," +
+        TechFixDatabaseHelper.UPDATED_AT + " FROM " +
+        TechFixDatabaseHelper.TABLE_REPAIR_SAMPLES + " ORDER BY " +
+        TechFixDatabaseHelper.UPDATED_AT + " DESC";
+    try (Cursor cursor = helper.getReadableDatabase().rawQuery(sampleSql,
+                                                               null)) {
+      while (cursor.moveToNext()) {
+        long sampleId = Integer.toUnsignedLong(cursor.getString(0).hashCode());
+        images.add(new GalleryItem(sampleId, cursor.getString(1),
+                                   cursor.getString(2), cursor.getString(3),
+                                   cursor.getString(4), cursor.getLong(5)));
+      }
+    }
+    if (!images.isEmpty())
+      return images;
     String sql =
         "SELECT h." + TechFixDatabaseHelper.ID + ",h." +
         TechFixDatabaseHelper.IMAGE_PATH + ",a." +
@@ -401,8 +414,8 @@ public final class CustomerRepository implements AutoCloseable {
         " LEFT JOIN " + TechFixDatabaseHelper.TABLE_BRANCHES + " b ON b." +
         TechFixDatabaseHelper.ID + "=a." + TechFixDatabaseHelper.BRANCH_ID +
         " WHERE h." + TechFixDatabaseHelper.IMAGE_PATH +
-        " IS NOT NULL AND LOWER(h." + TechFixDatabaseHelper.NOTES +
-        ") LIKE '%featured%' ORDER BY h." +
+        " IS NOT NULL AND h." + TechFixDatabaseHelper.FEATURED +
+        "=1 ORDER BY h." +
         TechFixDatabaseHelper.RECORDED_AT + " DESC";
     try (Cursor cursor = helper.getReadableDatabase().rawQuery(sql, null)) {
       while (cursor.moveToNext()) {

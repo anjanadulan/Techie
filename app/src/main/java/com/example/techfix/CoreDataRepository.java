@@ -258,6 +258,11 @@ public class CoreDataRepository {
         values.put(TechFixDatabaseHelper.APPOINTMENT_AT, appointment.getAppointmentAt());
         values.put(TechFixDatabaseHelper.CREATED_AT,
                 appointment.getCreatedAt() > 0 ? appointment.getCreatedAt() : System.currentTimeMillis());
+        if (appointment.getId() <= 0) {
+            LocalSyncState.prepareNew(values, System.currentTimeMillis());
+        } else {
+            LocalSyncState.markDirty(values, System.currentTimeMillis());
+        }
         return save(TechFixDatabaseHelper.TABLE_APPOINTMENTS, appointment.getId(), values);
     }
 
@@ -303,6 +308,7 @@ public class CoreDataRepository {
             values.put(TechFixDatabaseHelper.BRANCH_ID, branchId);
             putNullableLong(values, TechFixDatabaseHelper.TECHNICIAN_ID, technicianId);
             values.put(TechFixDatabaseHelper.STATUS, AppointmentStatus.ASSIGNED.name());
+            LocalSyncState.markDirty(values, System.currentTimeMillis());
             int updated = database.update(
                     TechFixDatabaseHelper.TABLE_APPOINTMENTS,
                     values,
@@ -319,6 +325,7 @@ public class CoreDataRepository {
             historyValues.put(TechFixDatabaseHelper.NOTES, "Appointment assigned to branch.");
             historyValues.putNull(TechFixDatabaseHelper.IMAGE_PATH);
             historyValues.put(TechFixDatabaseHelper.RECORDED_AT, System.currentTimeMillis());
+            LocalSyncState.prepareNew(historyValues, System.currentTimeMillis());
             database.insertOrThrow(
                     TechFixDatabaseHelper.TABLE_REPAIR_HISTORY,
                     null,
@@ -342,6 +349,7 @@ public class CoreDataRepository {
         try {
             ContentValues appointmentValues = new ContentValues();
             appointmentValues.put(TechFixDatabaseHelper.STATUS, status.name());
+            LocalSyncState.markDirty(appointmentValues, System.currentTimeMillis());
             int updated = database.update(
                     TechFixDatabaseHelper.TABLE_APPOINTMENTS,
                     appointmentValues,
@@ -358,6 +366,7 @@ public class CoreDataRepository {
             historyValues.put(TechFixDatabaseHelper.NOTES, notes == null ? "" : notes.trim());
             putNullableText(historyValues, TechFixDatabaseHelper.IMAGE_PATH, imagePath);
             historyValues.put(TechFixDatabaseHelper.RECORDED_AT, System.currentTimeMillis());
+            LocalSyncState.prepareNew(historyValues, System.currentTimeMillis());
             database.insertOrThrow(
                     TechFixDatabaseHelper.TABLE_REPAIR_HISTORY,
                     null,
@@ -390,6 +399,11 @@ public class CoreDataRepository {
         putNullableLong(values, TechFixDatabaseHelper.PAID_AT, paidAt);
         values.put(TechFixDatabaseHelper.CREATED_AT,
                 payment.getCreatedAt() > 0 ? payment.getCreatedAt() : System.currentTimeMillis());
+        if (payment.getId() <= 0) {
+            LocalSyncState.prepareNew(values, System.currentTimeMillis());
+        } else {
+            LocalSyncState.markDirty(values, System.currentTimeMillis());
+        }
         return save(TechFixDatabaseHelper.TABLE_PAYMENTS, payment.getId(), values);
     }
 
@@ -426,6 +440,7 @@ public class CoreDataRepository {
         putNullableText(values, TechFixDatabaseHelper.IMAGE_PATH, history.getImagePath());
         values.put(TechFixDatabaseHelper.RECORDED_AT,
                 history.getRecordedAt() > 0 ? history.getRecordedAt() : System.currentTimeMillis());
+        LocalSyncState.prepareNew(values, System.currentTimeMillis());
         return databaseHelper.getWritableDatabase().insertOrThrow(
                 TechFixDatabaseHelper.TABLE_REPAIR_HISTORY,
                 null,

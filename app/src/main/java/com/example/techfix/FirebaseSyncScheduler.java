@@ -25,7 +25,8 @@ public final class FirebaseSyncScheduler {
             .setConstraints(constraints)
             .build();
     WorkManager.getInstance(context.getApplicationContext())
-        .enqueueUniqueWork(IMMEDIATE_WORK, ExistingWorkPolicy.REPLACE, request);
+        .enqueueUniqueWork(IMMEDIATE_WORK,
+                           ExistingWorkPolicy.APPEND_OR_REPLACE, request);
   }
 
   public static void schedulePeriodic(Context context) {
