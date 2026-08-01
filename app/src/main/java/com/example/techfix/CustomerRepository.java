@@ -82,10 +82,11 @@ public final class CustomerRepository implements AutoCloseable {
     return branches;
   }
 
-  public long createAppointment(long userId, long branchId, long serviceId, String deviceDetails,
-      String problemDescription, long appointmentAt, String imagePath) {
-    if (userId <= 0 || branchId <= 0 || serviceId <= 0) {
-      throw new IllegalArgumentException("User, branch, and service are required.");
+  public long createAppointment(long userId, long serviceId, String deviceDetails,
+      String problemDescription, long appointmentAt, String imagePath, double latitude,
+      double longitude) {
+    if (userId <= 0 || serviceId <= 0) {
+      throw new IllegalArgumentException("User and service are required.");
     }
     if (deviceDetails == null || deviceDetails.trim().isEmpty()) {
       throw new IllegalArgumentException("Device details are required.");
@@ -100,17 +101,15 @@ public final class CustomerRepository implements AutoCloseable {
     SQLiteDatabase database = helper.getWritableDatabase();
     database.beginTransaction();
     try {
-      Long technicianId = findAvailableTechnician(database, branchId);
-      AppointmentStatus status =
-          technicianId == null ? AppointmentStatus.PENDING : AppointmentStatus.ASSIGNED;
+      AssignmentOption assignment =
+          findBestAssignment(database, serviceId, latitude, longitude, appointmentAt);
+      reserveSparePart(database, assignment.sparePartId);
+      AppointmentStatus status = AppointmentStatus.ASSIGNED;
       long now = System.currentTimeMillis();
       ContentValues values = new ContentValues();
       values.put(TechFixDatabaseHelper.USER_ID, userId);
-      values.put(TechFixDatabaseHelper.BRANCH_ID, branchId);
-      if (technicianId == null)
-        values.putNull(TechFixDatabaseHelper.TECHNICIAN_ID);
-      else
-        values.put(TechFixDatabaseHelper.TECHNICIAN_ID, technicianId);
+      values.put(TechFixDatabaseHelper.BRANCH_ID, assignment.branchId);
+      values.put(TechFixDatabaseHelper.TECHNICIAN_ID, assignment.technicianId);
       values.put(TechFixDatabaseHelper.SERVICE_ID, serviceId);
       values.put(TechFixDatabaseHelper.DEVICE_DETAILS, deviceDetails.trim());
       values.put(TechFixDatabaseHelper.PROBLEM_DESCRIPTION, problemDescription.trim());
@@ -124,8 +123,8 @@ public final class CustomerRepository implements AutoCloseable {
       history.put(TechFixDatabaseHelper.APPOINTMENT_ID, appointmentId);
       history.put(TechFixDatabaseHelper.STATUS, status.name());
       history.put(TechFixDatabaseHelper.NOTES,
-          technicianId == null ? "Appointment submitted and awaiting technician assignment."
-                               : "Appointment confirmed and assigned to a technician.");
+          "Assigned to " + assignment.technicianName + " at " + assignment.branchName
+              + " based on distance, technician availability, and parts stock.");
       if (imagePath != null && !imagePath.trim().isEmpty()) {
         history.put(TechFixDatabaseHelper.IMAGE_PATH, imagePath.trim());
       }
@@ -136,6 +135,12 @@ public final class CustomerRepository implements AutoCloseable {
     } finally {
       database.endTransaction();
     }
+  }
+
+  public AssignmentOption findBestAssignment(
+      long serviceId, double latitude, double longitude, long appointmentAt) {
+    return findBestAssignment(
+        helper.getReadableDatabase(), serviceId, latitude, longitude, appointmentAt);
   }
 
   public AppointmentItem getLatestActiveAppointment(long userId) {
@@ -229,13 +234,143 @@ public final class CustomerRepository implements AutoCloseable {
     }
   }
 
-  private Long findAvailableTechnician(SQLiteDatabase database, long branchId) {
-    try (Cursor cursor = database.query(TechFixDatabaseHelper.TABLE_TECHNICIANS,
-             new String[] {TechFixDatabaseHelper.ID},
-             TechFixDatabaseHelper.BRANCH_ID + " = ? AND " + TechFixDatabaseHelper.ACTIVE + " = 1",
-             new String[] {String.valueOf(branchId)}, null, null, TechFixDatabaseHelper.ID, "1")) {
+  private AssignmentOption findBestAssignment(SQLiteDatabase database, long serviceId,
+      double latitude, double longitude, long appointmentAt) {
+    ServiceCapacity service = getServiceCapacity(database, serviceId);
+    if (service == null)
+      throw new IllegalArgumentException("Selected service is unavailable.");
+
+    AssignmentOption best = null;
+    try (Cursor branches = database.query(TechFixDatabaseHelper.TABLE_BRANCHES,
+             new String[] {TechFixDatabaseHelper.ID, TechFixDatabaseHelper.NAME,
+                 TechFixDatabaseHelper.ADDRESS, TechFixDatabaseHelper.LATITUDE,
+                 TechFixDatabaseHelper.LONGITUDE},
+             TechFixDatabaseHelper.ACTIVE + " = 1", null, null, null, null)) {
+      while (branches.moveToNext()) {
+        long branchId = branches.getLong(0);
+        TechnicianSlot technician = findAvailableTechnician(
+            database, branchId, service.categoryName, appointmentAt, service.estimatedMinutes);
+        if (technician == null)
+          continue;
+        String partKeyword = requiredPartKeyword(service.serviceName);
+        Long sparePartId = partKeyword == null
+            ? null
+            : findRequiredPart(database, branchId, service.categoryId, partKeyword);
+        if (partKeyword != null && sparePartId == null)
+          continue;
+        double distance =
+            distanceKm(latitude, longitude, branches.getDouble(3), branches.getDouble(4));
+        AssignmentOption option = new AssignmentOption(branchId, branches.getString(1),
+            branches.getString(2), technician.id, technician.name, sparePartId, distance);
+        if (best == null || option.distanceKm < best.distanceKm)
+          best = option;
+      }
+    }
+    if (best == null) {
+      throw new IllegalArgumentException(
+          "No branch currently has both an available technician and the required parts.");
+    }
+    return best;
+  }
+
+  private ServiceCapacity getServiceCapacity(SQLiteDatabase database, long serviceId) {
+    String sql = "SELECT s." + TechFixDatabaseHelper.CATEGORY_ID + ", s."
+        + TechFixDatabaseHelper.NAME + ", s." + TechFixDatabaseHelper.ESTIMATED_MINUTES + ", c."
+        + TechFixDatabaseHelper.NAME + " FROM " + TechFixDatabaseHelper.TABLE_REPAIR_SERVICES
+        + " s JOIN " + TechFixDatabaseHelper.TABLE_DEVICE_CATEGORIES + " c ON c."
+        + TechFixDatabaseHelper.ID + " = s." + TechFixDatabaseHelper.CATEGORY_ID + " WHERE s."
+        + TechFixDatabaseHelper.ID + " = ? AND s." + TechFixDatabaseHelper.ACTIVE + " = 1";
+    try (Cursor cursor = database.rawQuery(sql, new String[] {String.valueOf(serviceId)})) {
+      return cursor.moveToFirst() ? new ServiceCapacity(cursor.getLong(0), cursor.getString(1),
+                                        cursor.getInt(2), cursor.getString(3))
+                                  : null;
+    }
+  }
+
+  private TechnicianSlot findAvailableTechnician(SQLiteDatabase database, long branchId,
+      String categoryName, long appointmentAt, int estimatedMinutes) {
+    String sql = "SELECT t." + TechFixDatabaseHelper.ID + ", t." + TechFixDatabaseHelper.FULL_NAME
+        + " FROM " + TechFixDatabaseHelper.TABLE_TECHNICIANS + " t WHERE t."
+        + TechFixDatabaseHelper.BRANCH_ID + " = ? AND t." + TechFixDatabaseHelper.ACTIVE
+        + " = 1 AND LOWER(t." + TechFixDatabaseHelper.SPECIALTY
+        + ") LIKE ? AND NOT EXISTS (SELECT 1 FROM " + TechFixDatabaseHelper.TABLE_APPOINTMENTS
+        + " a WHERE a." + TechFixDatabaseHelper.TECHNICIAN_ID + " = t." + TechFixDatabaseHelper.ID
+        + " AND a." + TechFixDatabaseHelper.STATUS + " IN " + ACTIVE_STATUSES + " AND ABS(a."
+        + TechFixDatabaseHelper.APPOINTMENT_AT + " - ?) < ?) ORDER BY t." + TechFixDatabaseHelper.ID
+        + " LIMIT 1";
+    long conflictWindow = Math.max(60, estimatedMinutes + 30) * 60_000L;
+    try (
+        Cursor cursor = database.rawQuery(sql,
+            new String[] {String.valueOf(branchId), "%" + categoryName.toLowerCase(Locale.US) + "%",
+                String.valueOf(appointmentAt), String.valueOf(conflictWindow)})) {
+      return cursor.moveToFirst() ? new TechnicianSlot(cursor.getLong(0), cursor.getString(1))
+                                  : null;
+    }
+  }
+
+  private Long findRequiredPart(
+      SQLiteDatabase database, long branchId, long categoryId, String keyword) {
+    String selection = TechFixDatabaseHelper.BRANCH_ID + " = ? AND "
+        + TechFixDatabaseHelper.CATEGORY_ID + " = ? AND " + TechFixDatabaseHelper.ACTIVE
+        + " = 1 AND " + TechFixDatabaseHelper.QUANTITY_AVAILABLE + " > 0 AND LOWER("
+        + TechFixDatabaseHelper.NAME + ") LIKE ?";
+    try (Cursor cursor = database.query(TechFixDatabaseHelper.TABLE_SPARE_PARTS,
+             new String[] {TechFixDatabaseHelper.ID}, selection,
+             new String[] {
+                 String.valueOf(branchId), String.valueOf(categoryId), "%" + keyword + "%"},
+             null, null, null, "1")) {
       return cursor.moveToFirst() ? cursor.getLong(0) : null;
     }
+  }
+
+  private void reserveSparePart(SQLiteDatabase database, Long sparePartId) {
+    if (sparePartId == null)
+      return;
+    int quantity;
+    try (Cursor cursor = database.query(TechFixDatabaseHelper.TABLE_SPARE_PARTS,
+             new String[] {TechFixDatabaseHelper.QUANTITY_AVAILABLE},
+             TechFixDatabaseHelper.ID + " = ?", new String[] {String.valueOf(sparePartId)}, null,
+             null, null, "1")) {
+      if (!cursor.moveToFirst() || cursor.getInt(0) <= 0) {
+        throw new IllegalArgumentException("The required spare part is no longer available.");
+      }
+      quantity = cursor.getInt(0);
+    }
+    ContentValues values = new ContentValues();
+    values.put(TechFixDatabaseHelper.QUANTITY_AVAILABLE, quantity - 1);
+    int updated = database.update(TechFixDatabaseHelper.TABLE_SPARE_PARTS, values,
+        TechFixDatabaseHelper.ID + " = ? AND " + TechFixDatabaseHelper.QUANTITY_AVAILABLE + " = ?",
+        new String[] {String.valueOf(sparePartId), String.valueOf(quantity)});
+    if (updated != 1) {
+      throw new IllegalArgumentException(
+          "The required spare part was reserved by another request.");
+    }
+  }
+
+  private String requiredPartKeyword(String serviceName) {
+    String name = serviceName.toLowerCase(Locale.US);
+    if (name.contains("screen"))
+      return "display";
+    if (name.contains("battery"))
+      return "battery";
+    if (name.contains("keyboard"))
+      return "keyboard";
+    if (name.contains("charging"))
+      return "charging";
+    return null;
+  }
+
+  public static double distanceKm(
+      double fromLatitude, double fromLongitude, double toLatitude, double toLongitude) {
+    double earthRadiusKm = 6371.0088;
+    double latitudeDelta = Math.toRadians(toLatitude - fromLatitude);
+    double longitudeDelta = Math.toRadians(toLongitude - fromLongitude);
+    double startLatitude = Math.toRadians(fromLatitude);
+    double endLatitude = Math.toRadians(toLatitude);
+    double haversine = Math.sin(latitudeDelta / 2) * Math.sin(latitudeDelta / 2)
+        + Math.cos(startLatitude) * Math.cos(endLatitude) * Math.sin(longitudeDelta / 2)
+            * Math.sin(longitudeDelta / 2);
+    return earthRadiusKm * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
   }
 
   private ServiceItem mapService(Cursor cursor) {
@@ -270,6 +405,52 @@ public final class CustomerRepository implements AutoCloseable {
   @Override
   public void close() {
     helper.close();
+  }
+
+  private static final class ServiceCapacity {
+    final long categoryId;
+    final String serviceName;
+    final int estimatedMinutes;
+    final String categoryName;
+
+    ServiceCapacity(
+        long categoryId, String serviceName, int estimatedMinutes, String categoryName) {
+      this.categoryId = categoryId;
+      this.serviceName = serviceName;
+      this.estimatedMinutes = estimatedMinutes;
+      this.categoryName = categoryName;
+    }
+  }
+
+  private static final class TechnicianSlot {
+    final long id;
+    final String name;
+
+    TechnicianSlot(long id, String name) {
+      this.id = id;
+      this.name = name;
+    }
+  }
+
+  public static final class AssignmentOption {
+    public final long branchId;
+    public final String branchName;
+    public final String branchAddress;
+    public final long technicianId;
+    public final String technicianName;
+    public final Long sparePartId;
+    public final double distanceKm;
+
+    AssignmentOption(long branchId, String branchName, String branchAddress, long technicianId,
+        String technicianName, Long sparePartId, double distanceKm) {
+      this.branchId = branchId;
+      this.branchName = branchName;
+      this.branchAddress = branchAddress;
+      this.technicianId = technicianId;
+      this.technicianName = technicianName;
+      this.sparePartId = sparePartId;
+      this.distanceKm = distanceKm;
+    }
   }
 
   public static final class ServiceItem {

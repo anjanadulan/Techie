@@ -11,7 +11,7 @@ import java.util.Locale;
 
 public class TechFixDatabaseHelper extends SQLiteOpenHelper {
   static final String DATABASE_NAME = "techfix.db";
-  static final int DATABASE_VERSION = 3;
+  static final int DATABASE_VERSION = 4;
 
   static final String TABLE_USERS = "users";
   static final String TABLE_BRANCHES = "branches";
@@ -92,7 +92,7 @@ public class TechFixDatabaseHelper extends SQLiteOpenHelper {
       if (oldVersion < 2) {
         createCoreTables(database);
       }
-      if (oldVersion < 3) {
+      if (oldVersion < 4) {
         seedReferenceData(database);
       }
       database.setTransactionSuccessful();
@@ -252,6 +252,10 @@ public class TechFixDatabaseHelper extends SQLiteOpenHelper {
         database, galleId, phoneId, "Universal OLED display", "GAL-PH-DIS-01", 650000, 5);
     insertSparePart(
         database, galleId, laptopId, "Laptop keyboard assembly", "GAL-LP-KEY-01", 350000, 4);
+    insertSparePart(
+        database, colomboId, tabletId, "Tablet charging port", "COL-TB-CHG-01", 480000, 6);
+    insertSparePart(
+        database, galleId, tabletId, "Tablet charging port", "GAL-TB-CHG-01", 480000, 3);
   }
 
   private long insertBranch(SQLiteDatabase database, String name, String address, String phone,

@@ -1,10 +1,15 @@
 package com.example.techfix;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.EditText;
@@ -12,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.core.content.ContextCompat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
@@ -20,13 +26,16 @@ import java.util.Locale;
 public class BookRepairActivity extends CustomerScreen {
   private CustomerRepository repository;
   private SessionManager sessionManager;
+  private LocationManager locationManager;
   private List<CustomerRepository.ServiceItem> services;
-  private List<CustomerRepository.BranchItem> branches;
   private CustomerRepository.ServiceItem selectedService;
-  private CustomerRepository.BranchItem selectedBranch;
+  private CustomerRepository.AssignmentOption selectedAssignment;
   private String selectedDevice = "Samsung Galaxy S23";
   private String selectedImagePath;
+  private Double currentLatitude;
+  private Double currentLongitude;
   private final Calendar appointmentTime = Calendar.getInstance();
+
   private final ActivityResultLauncher<Intent> imagePicker =
       registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
         if (result.getResultCode() != RESULT_OK || result.getData() == null)
@@ -39,9 +48,19 @@ public class BookRepairActivity extends CustomerScreen {
           getContentResolver().takePersistableUriPermission(
               uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         } catch (SecurityException ignored) {
-          // Some document providers only grant access for the current session.
+          // Some providers only grant access for the current session.
         }
         ((TextView) findViewById(R.id.tvPhotoStatus)).setText("Photo attached");
+      });
+
+  private final ActivityResultLauncher<String[]> locationPermission = registerForActivityResult(
+      new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+        boolean granted = Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_FINE_LOCATION))
+            || Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_COARSE_LOCATION));
+        if (granted)
+          loadCurrentLocation();
+        else
+          ((TextView) findViewById(R.id.pickerBranch)).setText(R.string.location_required);
       });
 
   public static void open(Activity activity, long serviceId) {
@@ -56,8 +75,8 @@ public class BookRepairActivity extends CustomerScreen {
     showCustomerLayout(R.layout.activity_book_repair);
     repository = new CustomerRepository(this);
     sessionManager = new SessionManager(this);
+    locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
     services = repository.getServices("");
-    branches = repository.getBranches();
 
     appointmentTime.add(Calendar.DAY_OF_MONTH, 1);
     appointmentTime.set(Calendar.HOUR_OF_DAY, 10);
@@ -72,18 +91,17 @@ public class BookRepairActivity extends CustomerScreen {
     }
     if (selectedService == null && !services.isEmpty())
       selectedService = services.get(0);
-    if (!branches.isEmpty())
-      selectedBranch = branches.get(0);
 
     findViewById(R.id.btnBack).setOnClickListener(v -> finish());
     findViewById(R.id.pickerDevice).setOnClickListener(v -> chooseDevice());
     findViewById(R.id.pickerService).setOnClickListener(v -> chooseService());
-    findViewById(R.id.pickerBranch).setOnClickListener(v -> chooseBranch());
+    findViewById(R.id.pickerBranch).setOnClickListener(v -> requestLocation());
     findViewById(R.id.pickerDate).setOnClickListener(v -> chooseDate());
     findViewById(R.id.pickerTime).setOnClickListener(v -> chooseTime());
     findViewById(R.id.addPhotoCard).setOnClickListener(v -> choosePhoto());
     findViewById(R.id.btnContinue).setOnClickListener(v -> submitBooking());
     renderSelections();
+    requestLocation();
   }
 
   private void chooseDevice() {
@@ -108,21 +126,7 @@ public class BookRepairActivity extends CustomerScreen {
             (dialog, index) -> {
               selectedService = services.get(index);
               renderSelections();
-            })
-        .show();
-  }
-
-  private void chooseBranch() {
-    String[] names = new String[branches.size()];
-    for (int index = 0; index < branches.size(); index++) {
-      names[index] = branches.get(index).name + " · " + branches.get(index).address;
-    }
-    new AlertDialog.Builder(this)
-        .setTitle(R.string.preferred_branch)
-        .setItems(names,
-            (dialog, index) -> {
-              selectedBranch = branches.get(index);
-              renderSelections();
+              refreshAssignment();
             })
         .show();
   }
@@ -133,6 +137,7 @@ public class BookRepairActivity extends CustomerScreen {
             -> {
           appointmentTime.set(year, month, day);
           renderSelections();
+          refreshAssignment();
         },
         appointmentTime.get(Calendar.YEAR), appointmentTime.get(Calendar.MONTH),
         appointmentTime.get(Calendar.DAY_OF_MONTH))
@@ -146,6 +151,7 @@ public class BookRepairActivity extends CustomerScreen {
           appointmentTime.set(Calendar.HOUR_OF_DAY, hour);
           appointmentTime.set(Calendar.MINUTE, minute);
           renderSelections();
+          refreshAssignment();
         },
         appointmentTime.get(Calendar.HOUR_OF_DAY), appointmentTime.get(Calendar.MINUTE), false)
         .show();
@@ -155,9 +161,9 @@ public class BookRepairActivity extends CustomerScreen {
     ((TextView) findViewById(R.id.pickerDevice)).setText(selectedDevice + "  ›");
     ((TextView) findViewById(R.id.pickerService))
         .setText(selectedService == null ? "No services available" : selectedService.name + "  ›");
-    ((TextView) findViewById(R.id.pickerBranch))
-        .setText(
-            selectedBranch == null ? "No branches available" : selectedBranch.name + " branch  ›");
+    if (selectedAssignment == null && currentLatitude == null) {
+      ((TextView) findViewById(R.id.pickerBranch)).setText(R.string.detecting_branch);
+    }
     ((TextView) findViewById(R.id.pickerDate))
         .setText(new SimpleDateFormat("dd MMM yyyy", Locale.US).format(appointmentTime.getTime()));
     ((TextView) findViewById(R.id.pickerTime))
@@ -173,10 +179,76 @@ public class BookRepairActivity extends CustomerScreen {
     imagePicker.launch(intent);
   }
 
+  private void requestLocation() {
+    boolean fine = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+        == PackageManager.PERMISSION_GRANTED;
+    boolean coarse =
+        ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+        == PackageManager.PERMISSION_GRANTED;
+    if (!fine && !coarse) {
+      locationPermission.launch(new String[] {
+          Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION});
+      return;
+    }
+    loadCurrentLocation();
+  }
+
+  @SuppressWarnings("MissingPermission")
+  private void loadCurrentLocation() {
+    ((TextView) findViewById(R.id.pickerBranch)).setText(R.string.detecting_branch);
+    Location best = null;
+    for (String provider : locationManager.getProviders(true)) {
+      Location candidate = locationManager.getLastKnownLocation(provider);
+      if (candidate != null && (best == null || candidate.getTime() > best.getTime())) {
+        best = candidate;
+      }
+    }
+    if (best != null) {
+      useLocation(best);
+      return;
+    }
+    String provider = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+        ? LocationManager.NETWORK_PROVIDER
+        : LocationManager.GPS_PROVIDER;
+    try {
+      locationManager.requestSingleUpdate(provider, new LocationListener() {
+        @Override
+        public void onLocationChanged(Location location) {
+          useLocation(location);
+        }
+      }, getMainLooper());
+    } catch (RuntimeException exception) {
+      ((TextView) findViewById(R.id.pickerBranch)).setText(R.string.location_unavailable);
+    }
+  }
+
+  private void useLocation(Location location) {
+    currentLatitude = location.getLatitude();
+    currentLongitude = location.getLongitude();
+    refreshAssignment();
+  }
+
+  private void refreshAssignment() {
+    if (selectedService == null || currentLatitude == null || currentLongitude == null)
+      return;
+    try {
+      selectedAssignment = repository.findBestAssignment(
+          selectedService.id, currentLatitude, currentLongitude, appointmentTime.getTimeInMillis());
+      ((TextView) findViewById(R.id.pickerBranch))
+          .setText(selectedAssignment.branchName + " · "
+              + String.format(Locale.US, "%.1f km", selectedAssignment.distanceKm) + " · "
+              + selectedAssignment.technicianName);
+    } catch (IllegalArgumentException exception) {
+      selectedAssignment = null;
+      ((TextView) findViewById(R.id.pickerBranch)).setText(exception.getMessage());
+    }
+  }
+
   private void submitBooking() {
     String issue = ((EditText) findViewById(R.id.etIssueDescription)).getText().toString().trim();
-    if (selectedService == null || selectedBranch == null) {
-      Toast.makeText(this, "Service and branch data are unavailable.", Toast.LENGTH_SHORT).show();
+    if (selectedService == null || selectedAssignment == null || currentLatitude == null
+        || currentLongitude == null) {
+      Toast.makeText(this, R.string.location_required, Toast.LENGTH_SHORT).show();
       return;
     }
     if (issue.isEmpty()) {
@@ -185,8 +257,8 @@ public class BookRepairActivity extends CustomerScreen {
     }
     try {
       long appointmentId = repository.createAppointment(sessionManager.getUserId(),
-          selectedBranch.id, selectedService.id, selectedDevice, issue,
-          appointmentTime.getTimeInMillis(), selectedImagePath);
+          selectedService.id, selectedDevice, issue, appointmentTime.getTimeInMillis(),
+          selectedImagePath, currentLatitude, currentLongitude);
       Toast.makeText(this, R.string.booking_created, Toast.LENGTH_SHORT).show();
       RepairTrackingActivity.open(this, appointmentId);
       finish();

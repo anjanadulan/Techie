@@ -44,7 +44,10 @@
     <string name="booking_subtitle">Fill in the details to schedule your repair</string>
     <string name="device">Device</string>
     <string name="service">Service</string>
-    <string name="preferred_branch">Preferred Branch</string>
+    <string name="preferred_branch">Assigned Branch</string>
+    <string name="detecting_branch">Detecting nearest available branch...</string>
+    <string name="location_required">Location permission is required for automatic branch assignment.</string>
+    <string name="location_unavailable">Current location is unavailable. Tap to try again.</string>
     <string name="visit_date">Visit Date</string>
     <string name="visit_time">Visit Time</string>
     <string name="issue_description">Issue Description</string>
