@@ -119,6 +119,7 @@
                 />
 
                 <TextView
+                    android:id="@+id/tvDashboardSummary"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
@@ -141,6 +142,7 @@
                         android:orientation="vertical"
                     >
                         <TextView
+                            android:id="@+id/tvDashboardActive"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="08"
@@ -163,6 +165,7 @@
                         android:orientation="vertical"
                     >
                         <TextView
+                            android:id="@+id/tvDashboardReady"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="03"
@@ -185,6 +188,7 @@
                         android:orientation="vertical"
                     >
                         <TextView
+                            android:id="@+id/tvDashboardLowStock"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="02"
@@ -249,6 +253,7 @@
                         android:text="Appointments"
                     />
                     <TextView
+                        android:id="@+id/tvDashboardAppointmentsMeta"
                         style="@style/ManagementModuleMeta"
                         android:text="12 today · 4 new"
                     />
@@ -267,6 +272,7 @@
                         android:text="Technicians"
                     />
                     <TextView
+                        android:id="@+id/tvDashboardTechniciansMeta"
                         style="@style/ManagementModuleMeta"
                         android:text="4 active · 1 busy"
                     />
@@ -311,6 +317,7 @@
                         android:text="Spare parts"
                     />
                     <TextView
+                        android:id="@+id/tvDashboardPartsMeta"
                         style="@style/ManagementModuleMeta"
                         android:text="38 units · 2 low"
                     />
@@ -337,6 +344,7 @@
                         android:text="Repair gallery"
                     />
                     <TextView
+                        android:id="@+id/tvDashboardImagesMeta"
                         style="@style/ManagementModuleMeta"
                         android:text="24 images"
                     />
@@ -355,6 +363,7 @@
                         android:text="Payments"
                     />
                     <TextView
+                        android:id="@+id/tvDashboardPaymentsMeta"
                         style="@style/ManagementModuleMeta"
                         android:text="LKR 84.5K today"
                     />
@@ -435,6 +444,7 @@
                 android:padding="18dp"
             >
                 <TextView
+                    android:id="@+id/tvDashboardActivityOne"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="#TF-1042 moved to Quality check"
@@ -442,6 +452,7 @@
                     android:textStyle="bold"
                 />
                 <TextView
+                    android:id="@+id/tvDashboardActivityOneMeta"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"
@@ -456,6 +467,7 @@
                     android:background="@color/management_border"
                 />
                 <TextView
+                    android:id="@+id/tvDashboardActivityTwo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Payment received for #TF-1038"
@@ -463,6 +475,7 @@
                     android:textStyle="bold"
                 />
                 <TextView
+                    android:id="@+id/tvDashboardActivityTwoMeta"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"

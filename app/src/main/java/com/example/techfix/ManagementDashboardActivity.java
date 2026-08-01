@@ -1,12 +1,17 @@
 package com.example.techfix;
 
 import android.os.Bundle;
+import android.widget.TextView;
+import java.util.Locale;
 
 public class ManagementDashboardActivity extends ManagementScreen {
+  private ManagementRepository repository;
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     showManagementLayout(R.layout.activity_management_dashboard);
+    repository = new ManagementRepository(this);
 
     findViewById(R.id.btnManagementBack).setOnClickListener(view -> finish());
     bindModule(R.id.manageAppointments, ManagementModuleActivity.APPOINTMENTS);
@@ -18,7 +23,49 @@ public class ManagementDashboardActivity extends ManagementScreen {
     bindModule(R.id.manageStatuses, ManagementModuleActivity.STATUSES);
   }
 
+  @Override
+  protected void onResume() {
+    super.onResume();
+    if (repository == null)
+      return;
+    ManagementRepository.DashboardStats stats = repository.getDashboardStats();
+    setText(R.id.tvDashboardActive, twoDigits(stats.activeRepairs));
+    setText(R.id.tvDashboardReady, twoDigits(stats.readyRepairs));
+    setText(R.id.tvDashboardLowStock, twoDigits(stats.lowStockParts));
+    setText(
+        R.id.tvDashboardSummary, stats.activeRepairs + " repairs active across Colombo and Galle");
+    setText(R.id.tvDashboardAppointmentsMeta, stats.activeRepairs + " active repairs");
+    setText(R.id.tvDashboardTechniciansMeta, stats.activeTechnicians + " active technicians");
+    setText(R.id.tvDashboardPartsMeta, stats.lowStockParts + " low-stock items");
+    setText(R.id.tvDashboardImagesMeta,
+        repository.getSummary(ManagementModuleActivity.IMAGES, "All").metric + " images");
+    setText(R.id.tvDashboardPaymentsMeta, ManagementRepository.formatPrice(stats.paidCents));
+    setText(R.id.tvDashboardActivityOne,
+        stats.recentActivity.isEmpty() ? "No repair activity recorded yet"
+                                       : stats.recentActivity.get(0));
+    setText(R.id.tvDashboardActivityTwo,
+        stats.recentActivity.size() < 2 ? "Management updates will appear here"
+                                        : stats.recentActivity.get(1));
+    findViewById(R.id.tvDashboardActivityOneMeta).setVisibility(android.view.View.GONE);
+    findViewById(R.id.tvDashboardActivityTwoMeta).setVisibility(android.view.View.GONE);
+  }
+
   private void bindModule(int viewId, String module) {
     findViewById(viewId).setOnClickListener(view -> ManagementModuleActivity.open(this, module));
+  }
+
+  private void setText(int viewId, String value) {
+    ((TextView) findViewById(viewId)).setText(value);
+  }
+
+  private String twoDigits(long value) {
+    return String.format(Locale.US, "%02d", value);
+  }
+
+  @Override
+  protected void onDestroy() {
+    if (repository != null)
+      repository.close();
+    super.onDestroy();
   }
 }

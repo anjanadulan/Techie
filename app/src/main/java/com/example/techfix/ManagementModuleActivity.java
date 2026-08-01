@@ -9,14 +9,15 @@ import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import java.util.ArrayList;
-import java.util.Arrays;
+import com.example.techfix.data.model.AppointmentStatus;
 import java.util.List;
+import java.util.Locale;
 
 public class ManagementModuleActivity extends ManagementScreen {
   public static final String APPOINTMENTS = "appointments";
@@ -28,12 +29,14 @@ public class ManagementModuleActivity extends ManagementScreen {
   public static final String STATUSES = "statuses";
   private static final String EXTRA_MODULE = "management_module";
 
+  private ManagementRepository repository;
   private String module;
   private ModuleInfo moduleInfo;
   private String selectedBranch = "All";
+  private Long pendingImageAppointmentId;
 
   private final ActivityResultLauncher<String[]> imagePicker = registerForActivityResult(
-      new ActivityResultContracts.OpenDocument(), this::showSelectedImage);
+      new ActivityResultContracts.OpenDocument(), this::saveSelectedImage);
 
   public static void open(Activity activity, String module) {
     Intent intent = new Intent(activity, ManagementModuleActivity.class);
@@ -45,6 +48,7 @@ public class ManagementModuleActivity extends ManagementScreen {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     showManagementLayout(R.layout.activity_management_module);
+    repository = new ManagementRepository(this);
     module = getIntent().getStringExtra(EXTRA_MODULE);
     if (module == null)
       module = APPOINTMENTS;
@@ -52,24 +56,27 @@ public class ManagementModuleActivity extends ManagementScreen {
 
     ((TextView) findViewById(R.id.tvModuleEyebrow)).setText(moduleInfo.eyebrow);
     ((TextView) findViewById(R.id.tvModuleTitle)).setText(moduleInfo.title);
-    ((TextView) findViewById(R.id.tvModuleMetric)).setText(moduleInfo.metric);
-    ((TextView) findViewById(R.id.tvModuleMetricLabel)).setText(moduleInfo.metricLabel);
-    ((TextView) findViewById(R.id.tvModuleTrend)).setText(moduleInfo.trend);
     ((TextView) findViewById(R.id.tvModuleSection)).setText(moduleInfo.section);
-
     findViewById(R.id.btnModuleBack).setOnClickListener(view -> finish());
     findViewById(R.id.btnModuleAdd).setOnClickListener(view -> handleAdd());
     bindFilter(R.id.filterAll, "All");
     bindFilter(R.id.filterColombo, "Colombo");
     bindFilter(R.id.filterGalle, "Galle");
-    renderItems();
+    reloadModule();
+  }
+
+  @Override
+  protected void onResume() {
+    super.onResume();
+    if (repository != null)
+      reloadModule();
   }
 
   private void bindFilter(int viewId, String branch) {
     findViewById(viewId).setOnClickListener(view -> {
       selectedBranch = branch;
       updateFilterAppearance();
-      renderItems();
+      reloadModule();
     });
   }
 
@@ -86,145 +93,273 @@ public class ManagementModuleActivity extends ManagementScreen {
     filter.setTextColor(getColor(active ? R.color.management_cyan : R.color.management_muted));
   }
 
-  private void renderItems() {
+  private void reloadModule() {
+    try {
+      ManagementRepository.ModuleSummary summary = repository.getSummary(module, selectedBranch);
+      ((TextView) findViewById(R.id.tvModuleMetric)).setText(summary.metric);
+      ((TextView) findViewById(R.id.tvModuleMetricLabel)).setText(summary.label);
+      ((TextView) findViewById(R.id.tvModuleTrend)).setText(summary.trend);
+      renderItems(repository.getRecords(module, selectedBranch));
+    } catch (RuntimeException exception) {
+      showError(exception);
+    }
+  }
+
+  private void renderItems(List<ManagementRepository.ManagementRecord> items) {
     LinearLayout container = findViewById(R.id.managementList);
     container.removeAllViews();
     LayoutInflater inflater = LayoutInflater.from(this);
-    for (ManagementItem item : moduleInfo.items) {
-      if (!"All".equals(selectedBranch) && !selectedBranch.equals(item.branch))
-        continue;
+    for (ManagementRepository.ManagementRecord item : items) {
       View card = inflater.inflate(R.layout.view_management_item, container, false);
       ((TextView) card.findViewById(R.id.tvManagementItemCode)).setText(item.code);
       TextView status = card.findViewById(R.id.tvManagementItemStatus);
-      status.setText(item.status);
+      status.setText(item.status.toUpperCase(Locale.US));
       styleStatus(status, item.status);
-      if (IMAGES.equals(module))
-        card.findViewById(R.id.ivManagementItemPreview).setVisibility(View.VISIBLE);
+      ImageView preview = card.findViewById(R.id.ivManagementItemPreview);
+      if (IMAGES.equals(module)) {
+        preview.setVisibility(View.VISIBLE);
+        if (item.imagePath != null)
+          preview.setImageURI(Uri.parse(item.imagePath));
+      }
       ((TextView) card.findViewById(R.id.tvManagementItemTitle)).setText(item.title);
       ((TextView) card.findViewById(R.id.tvManagementItemMeta)).setText(item.meta);
       ((TextView) card.findViewById(R.id.tvManagementItemDetail)).setText(item.detail);
       TextView action = card.findViewById(R.id.btnManagementItemAction);
       action.setText(item.action);
-      View.OnClickListener listener = view -> handleItemAction(card, item);
+      View.OnClickListener listener = view -> handleItemAction(item);
       action.setOnClickListener(listener);
       card.setOnClickListener(listener);
       container.addView(card);
     }
-    if (container.getChildCount() == 0) {
-      TextView empty = new TextView(this);
-      empty.setText("No " + moduleInfo.title.toLowerCase() + " for this branch.");
-      empty.setTextColor(getColor(R.color.management_muted));
-      empty.setTextSize(14);
-      empty.setPadding(0, dp(32), 0, dp(32));
-      container.addView(empty);
+    if (container.getChildCount() == 0)
+      addEmptyState(container);
+  }
+
+  private void addEmptyState(LinearLayout container) {
+    TextView empty = new TextView(this);
+    empty.setText("No " + moduleInfo.title.toLowerCase(Locale.US) + " found for this selection.");
+    empty.setTextColor(getColor(R.color.management_muted));
+    empty.setTextSize(14);
+    empty.setPadding(0, dp(32), 0, dp(32));
+    container.addView(empty);
+  }
+
+  private void handleItemAction(ManagementRepository.ManagementRecord item) {
+    try {
+      switch (module) {
+        case APPOINTMENTS:
+        case STATUSES:
+          showStatusPicker(item.id);
+          break;
+        case TECHNICIANS:
+          boolean activate = "OFF DUTY".equalsIgnoreCase(item.status);
+          repository.setTechnicianActive(item.id, activate);
+          reloadModule();
+          break;
+        case PRICES:
+          showNumberEditor("Update service price", "Price in LKR",
+              value -> repository.updateServicePrice(item.id, value));
+          break;
+        case PARTS:
+          showNumberEditor("Adjust available stock", "Quantity",
+              value -> repository.updatePartQuantity(item.id, Math.toIntExact(value)));
+          break;
+        case IMAGES:
+          repository.featureRepairImage(item.id);
+          reloadModule();
+          break;
+        case PAYMENTS:
+          if ("PAID".equalsIgnoreCase(item.status)) {
+            Toast.makeText(this, "Payment receipt is ready.", Toast.LENGTH_SHORT).show();
+          } else {
+            repository.markPaymentPaid(item.id);
+            reloadModule();
+          }
+          break;
+        default:
+          break;
+      }
+    } catch (RuntimeException exception) {
+      showError(exception);
     }
   }
 
-  private void handleItemAction(View card, ManagementItem item) {
-    TextView status = card.findViewById(R.id.tvManagementItemStatus);
-    TextView detail = card.findViewById(R.id.tvManagementItemDetail);
-    switch (module) {
-      case APPOINTMENTS:
-      case STATUSES:
-        showStatusPicker(status, detail);
-        break;
-      case TECHNICIANS:
-        String technicianState =
-            "AVAILABLE".contentEquals(status.getText()) ? "OFF DUTY" : "AVAILABLE";
-        status.setText(technicianState);
-        detail.setText("AVAILABLE".equals(technicianState) ? "Ready for assignment"
-                                                             : "Removed from new assignments");
-        styleStatus(status, technicianState);
-        break;
-      case PRICES:
-        showValueEditor("Update service price", "Price in LKR", detail, "LKR ");
-        break;
-      case PARTS:
-        showValueEditor("Adjust available stock", "Quantity", detail, " units available");
-        break;
-      case IMAGES:
-        status.setText("FEATURED");
-        detail.setText("Visible in the customer repair gallery");
-        styleStatus(status, "FEATURED");
-        break;
-      case PAYMENTS:
-        status.setText("PAID");
-        detail.setText("Receipt ready to send");
-        styleStatus(status, "PAID");
-        break;
-      default:
-        break;
-    }
-  }
-
-  private void showStatusPicker(TextView status, TextView detail) {
-    String[] statuses = {"ASSIGNED", "IN PROGRESS", "QUALITY CHECK", "READY", "COMPLETED"};
+  private void showStatusPicker(long appointmentId) {
+    AppointmentStatus[] statuses = {AppointmentStatus.ASSIGNED, AppointmentStatus.IN_PROGRESS,
+        AppointmentStatus.WAITING_FOR_PARTS, AppointmentStatus.READY_FOR_PAYMENT,
+        AppointmentStatus.COMPLETED, AppointmentStatus.CANCELLED};
+    String[] labels = new String[statuses.length];
+    for (int index = 0; index < statuses.length; index++)
+      labels[index] = ManagementRepository.statusLabel(statuses[index]);
     new AlertDialog.Builder(this)
         .setTitle("Update repair status")
-        .setItems(statuses,
+        .setItems(labels,
             (dialog, index) -> {
-              status.setText(statuses[index]);
-              detail.setText("Customer notification queued");
-              styleStatus(status, statuses[index]);
+              try {
+                repository.updateAppointmentStatus(appointmentId, statuses[index]);
+                reloadModule();
+              } catch (RuntimeException exception) {
+                showError(exception);
+              }
             })
         .show();
   }
 
-  private void showValueEditor(String title, String hint, TextView target, String valueDecoration) {
+  private void showNumberEditor(String title, String hint, NumberAction action) {
     EditText value = new EditText(this);
     value.setHint(hint);
     value.setInputType(InputType.TYPE_CLASS_NUMBER);
     int padding = dp(20);
     value.setPadding(padding, padding, padding, padding);
-    new AlertDialog.Builder(this)
-        .setTitle(title)
-        .setView(value)
-        .setNegativeButton("Cancel", null)
-        .setPositiveButton("Save",
-            (dialog, which) -> {
-              String entered = value.getText().toString().trim();
-              if (!entered.isEmpty())
-                target.setText(valueDecoration.startsWith("LKR") ? valueDecoration + entered
-                                                                 : entered + valueDecoration);
-            })
-        .show();
+    AlertDialog dialog = new AlertDialog.Builder(this)
+                             .setTitle(title)
+                             .setView(value)
+                             .setNegativeButton("Cancel", null)
+                             .setPositiveButton("Save", null)
+                             .create();
+    dialog.setOnShowListener(
+        ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(button -> {
+          String entered = value.getText().toString().trim();
+          if (entered.isEmpty()) {
+            value.setError("A value is required.");
+            return;
+          }
+          try {
+            action.save(Long.parseLong(entered));
+            dialog.dismiss();
+            reloadModule();
+          } catch (RuntimeException exception) {
+            value.setError(message(exception));
+          }
+        }));
+    dialog.show();
   }
 
   private void handleAdd() {
-    if (IMAGES.equals(module)) {
-      imagePicker.launch(new String[] {"image/*"});
-      return;
+    switch (module) {
+      case IMAGES:
+        chooseAppointment("Attach image to repair", choice -> {
+          pendingImageAppointmentId = choice.id;
+          imagePicker.launch(new String[] {"image/*"});
+        });
+        return;
+      case PAYMENTS:
+        chooseAppointment("Record payment for repair", choice -> {
+          repository.createPendingPayment(choice.id);
+          reloadModule();
+        });
+        return;
+      case STATUSES:
+        chooseAppointment("Choose repair to update", choice -> showStatusPicker(choice.id));
+        return;
+      default:
+        showCreateDialog();
     }
+  }
+
+  private void showCreateDialog() {
     EditText name = new EditText(this);
     name.setHint(moduleInfo.addHint);
     int padding = dp(20);
     name.setPadding(padding, padding, padding, padding);
-    new AlertDialog.Builder(this)
-        .setTitle(moduleInfo.addTitle)
-        .setView(name)
-        .setNegativeButton("Cancel", null)
-        .setPositiveButton("Continue",
-            (dialog, which)
-                -> Toast
-                    .makeText(this, "Frontend form ready for " + moduleInfo.title.toLowerCase(),
-                        Toast.LENGTH_SHORT)
-                    .show())
-        .show();
+    AlertDialog dialog = new AlertDialog.Builder(this)
+                             .setTitle(moduleInfo.addTitle)
+                             .setView(name)
+                             .setNegativeButton("Cancel", null)
+                             .setPositiveButton("Save", null)
+                             .create();
+    dialog.setOnShowListener(
+        ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(button -> {
+          String value = name.getText().toString().trim();
+          if (value.isEmpty()) {
+            name.setError("This field is required.");
+            return;
+          }
+          try {
+            switch (module) {
+              case APPOINTMENTS:
+                repository.createWalkInAppointment(value, selectedBranch);
+                break;
+              case TECHNICIANS:
+                repository.addTechnician(value, selectedBranch);
+                break;
+              case PRICES:
+                repository.addService(value);
+                break;
+              case PARTS:
+                repository.addSparePart(value, selectedBranch);
+                break;
+              default:
+                return;
+            }
+            dialog.dismiss();
+            reloadModule();
+          } catch (RuntimeException exception) {
+            name.setError(message(exception));
+          }
+        }));
+    dialog.show();
   }
 
-  private void showSelectedImage(Uri uri) {
-    if (uri != null)
-      Toast.makeText(this, "Repair image selected for upload", Toast.LENGTH_SHORT).show();
+  private void chooseAppointment(String title, AppointmentAction action) {
+    try {
+      List<ManagementRepository.AppointmentChoice> choices = repository.getAppointmentChoices();
+      if (choices.isEmpty()) {
+        Toast.makeText(this, "No repair appointments are available.", Toast.LENGTH_SHORT).show();
+        return;
+      }
+      String[] labels = new String[choices.size()];
+      for (int index = 0; index < choices.size(); index++) labels[index] = choices.get(index).label;
+      new AlertDialog.Builder(this)
+          .setTitle(title)
+          .setItems(labels,
+              (dialog, index) -> {
+                try {
+                  action.run(choices.get(index));
+                } catch (RuntimeException exception) {
+                  showError(exception);
+                }
+              })
+          .show();
+    } catch (RuntimeException exception) {
+      showError(exception);
+    }
+  }
+
+  private void saveSelectedImage(Uri uri) {
+    if (uri == null || pendingImageAppointmentId == null)
+      return;
+    try {
+      getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+    } catch (SecurityException ignored) {
+      // The selected provider may only grant access for the current app session.
+    }
+    try {
+      repository.addRepairImage(pendingImageAppointmentId, uri.toString());
+      pendingImageAppointmentId = null;
+      reloadModule();
+    } catch (RuntimeException exception) {
+      showError(exception);
+    }
   }
 
   private void styleStatus(TextView status, String value) {
-    String normalized = value.toUpperCase();
+    String normalized = value.toUpperCase(Locale.US);
     boolean warning = normalized.contains("PENDING") || normalized.contains("LOW")
-        || normalized.contains("BUSY") || normalized.contains("AWAITING")
-        || normalized.contains("DUE") || normalized.contains("OFF DUTY");
+        || normalized.contains("BUSY") || normalized.contains("WAITING")
+        || normalized.contains("OFF DUTY") || normalized.contains("CANCELLED");
     status.setBackgroundResource(
         warning ? R.drawable.bg_management_status_warning : R.drawable.bg_management_status);
     status.setTextColor(getColor(warning ? R.color.management_amber : R.color.management_green));
+  }
+
+  private void showError(RuntimeException exception) {
+    Toast.makeText(this, message(exception), Toast.LENGTH_LONG).show();
+  }
+
+  private String message(RuntimeException exception) {
+    return exception.getMessage() == null ? "Unable to complete the management action."
+                                          : exception.getMessage();
   }
 
   private int dp(int value) {
@@ -232,136 +367,60 @@ public class ManagementModuleActivity extends ManagementScreen {
   }
 
   private ModuleInfo moduleInfo(String requestedModule) {
-    switch (requestedModule == null ? APPOINTMENTS : requestedModule) {
+    switch (requestedModule) {
       case TECHNICIANS:
-        return new ModuleInfo("WORKFORCE", "Technicians", "04", "technicians on shift", "1 BUSY",
-            "Team availability", "Add technician", "Technician name",
-            items(new ManagementItem("NP", "AVAILABLE", "Nimal Perera · Phone specialist",
-                      "Colombo · 3 repairs today", "Ready for assignment", "MANAGE", "Colombo"),
-                new ManagementItem("TS", "BUSY", "Tharindu Silva · Laptop specialist",
-                    "Colombo · Repair #TF-1042", "Available after 2:30 PM", "MANAGE", "Colombo"),
-                new ManagementItem("SF", "AVAILABLE", "Sachini Fernando · Phone specialist",
-                    "Galle · 2 repairs today", "Ready for assignment", "MANAGE", "Galle"),
-                new ManagementItem("KJ", "AVAILABLE", "Kavindu Jayasekara · Desktop specialist",
-                    "Galle · 1 repair today", "Ready for assignment", "MANAGE", "Galle")));
+        return new ModuleInfo(
+            "WORKFORCE", "Technicians", "Team availability", "Add technician", "Technician name");
       case PRICES:
-        return new ModuleInfo("SERVICE CATALOG", "Service prices", "05", "active repair services",
-            "AVG 6.1K", "Current pricing", "Add service", "Service name",
-            items(new ManagementItem("PHONE", "ACTIVE", "Screen replacement",
-                      "Phone · 90 minute estimate", "LKR 8,500", "EDIT", "Colombo"),
-                new ManagementItem("PHONE", "ACTIVE", "Battery replacement",
-                    "Phone · 60 minute estimate", "LKR 6,000", "EDIT", "Galle"),
-                new ManagementItem("LAPTOP", "ACTIVE", "Keyboard repair",
-                    "Laptop · 90 minute estimate", "LKR 4,500", "EDIT", "Galle"),
-                new ManagementItem("TABLET", "ACTIVE", "Charging port repair",
-                    "Tablet · 90 minute estimate", "LKR 7,000", "EDIT", "Colombo")));
+        return new ModuleInfo(
+            "SERVICE CATALOG", "Service prices", "Current pricing", "Add service", "Service name");
       case PARTS:
-        return new ModuleInfo("INVENTORY", "Spare parts", "38", "units across both branches",
-            "2 LOW", "Stock levels", "Add spare part", "Part name or SKU",
-            items(new ManagementItem("COL-PH-01", "IN STOCK", "Universal OLED display",
-                      "Phone · Colombo", "8 units available", "ADJUST", "Colombo"),
-                new ManagementItem("COL-BAT-01", "IN STOCK", "Phone battery pack",
-                    "Phone · Colombo", "12 units available", "ADJUST", "Colombo"),
-                new ManagementItem("GAL-KEY-01", "LOW STOCK", "Laptop keyboard assembly",
-                    "Laptop · Galle", "4 units available", "ADJUST", "Galle"),
-                new ManagementItem("GAL-DIS-01", "LOW STOCK", "Universal OLED display",
-                    "Phone · Galle", "5 units available", "ADJUST", "Galle")));
+        return new ModuleInfo(
+            "INVENTORY", "Spare parts", "Stock levels", "Add spare part", "Part name or SKU");
       case IMAGES:
-        return new ModuleInfo("MEDIA LIBRARY", "Repair gallery", "24", "published repair images",
-            "+6 MONTH", "Recent work", "Upload repair image", "Image caption",
-            items(new ManagementItem("BEFORE / AFTER", "PUBLISHED", "iPhone display restoration",
-                      "Colombo · Screen replacement", "Uploaded today", "FEATURE", "Colombo"),
-                new ManagementItem("DETAIL", "FEATURED", "Laptop keyboard replacement",
-                    "Galle · Keyboard repair", "Homepage sample image", "FEATURE", "Galle"),
-                new ManagementItem("BEFORE / AFTER", "PUBLISHED", "Tablet charging port repair",
-                    "Colombo · Charging repair", "Uploaded 2 days ago", "FEATURE", "Colombo")));
+        return new ModuleInfo("MEDIA LIBRARY", "Repair gallery", "Recent work",
+            "Upload repair image", "Image caption");
       case PAYMENTS:
-        return new ModuleInfo("FINANCE", "Payments", "LKR 84.5K", "collected today", "+12% WEEK",
-            "Latest transactions", "Record payment", "Appointment ID",
-            items(new ManagementItem("#PAY-084", "PAID", "LKR 8,500 · #TF-1038", "Card · Galle",
-                      "Receipt sent · 21 min ago", "RECEIPT", "Galle"),
-                new ManagementItem("#PAY-083", "PENDING", "LKR 6,000 · #TF-1041", "Cash · Colombo",
-                    "Awaiting customer collection", "MARK PAID", "Colombo"),
-                new ManagementItem("#PAY-082", "PAID", "LKR 4,500 · #TF-1036", "Card · Colombo",
-                    "Receipt sent · 2 hours ago", "RECEIPT", "Colombo")));
+        return new ModuleInfo(
+            "FINANCE", "Payments", "Latest transactions", "Record payment", "Appointment ID");
       case STATUSES:
-        return new ModuleInfo("REPAIR WORKFLOW", "Status updates", "08", "repairs require tracking",
-            "3 READY", "Update queue", "Create update", "Appointment ID",
-            items(new ManagementItem("#TF-1042", "QUALITY CHECK", "iPhone 14 Pro · Display",
-                      "Colombo · Nimal Perera", "Customer last notified 32 min ago", "UPDATE",
-                      "Colombo"),
-                new ManagementItem("#TF-1041", "IN PROGRESS", "Samsung Galaxy S23 · Battery",
-                    "Colombo · Tharindu Silva", "Repair started at 11:10 AM", "UPDATE", "Colombo"),
-                new ManagementItem("#TF-1039", "READY", "Dell Inspiron 15 · Keyboard",
-                    "Galle · Kavindu Jayasekara", "Customer notified · awaiting pickup", "UPDATE",
-                    "Galle")));
+        return new ModuleInfo(
+            "REPAIR WORKFLOW", "Status updates", "Update queue", "Create update", "Appointment ID");
       case APPOINTMENTS:
       default:
-        return new ModuleInfo("BOOKING DESK", "Appointments", "12", "appointments scheduled today",
-            "+4 NEW", "Today's queue", "Create appointment", "Customer or device",
-            items(
-                new ManagementItem("#TF-1042", "IN PROGRESS", "iPhone 14 Pro · Screen replacement",
-                    "Colombo · Nimal Perera · 10:30 AM", "Due in 45 minutes", "UPDATE", "Colombo"),
-                new ManagementItem("#TF-1041", "ASSIGNED",
-                    "Samsung Galaxy S23 · Battery replacement",
-                    "Colombo · Tharindu Silva · 11:30 AM", "Check-in confirmed", "UPDATE",
-                    "Colombo"),
-                new ManagementItem("#TF-1040", "PENDING", "Dell Inspiron 15 · Diagnostics",
-                    "Galle · Unassigned · 1:00 PM", "Technician assignment required", "ASSIGN",
-                    "Galle"),
-                new ManagementItem("#TF-1039", "READY", "Apple iPad Air · Charging port",
-                    "Galle · Sachini Fernando · 9:00 AM", "Ready for customer pickup", "VIEW",
-                    "Galle")));
+        return new ModuleInfo("BOOKING DESK", "Appointments", "Repair queue", "Create appointment",
+            "Customer device");
     }
   }
 
-  private List<ManagementItem> items(ManagementItem... entries) {
-    return new ArrayList<>(Arrays.asList(entries));
+  @Override
+  protected void onDestroy() {
+    if (repository != null)
+      repository.close();
+    super.onDestroy();
+  }
+
+  private interface NumberAction {
+    void save(long value);
+  }
+
+  private interface AppointmentAction {
+    void run(ManagementRepository.AppointmentChoice choice);
   }
 
   private static final class ModuleInfo {
     final String eyebrow;
     final String title;
-    final String metric;
-    final String metricLabel;
-    final String trend;
     final String section;
     final String addTitle;
     final String addHint;
-    final List<ManagementItem> items;
 
-    ModuleInfo(String eyebrow, String title, String metric, String metricLabel, String trend,
-        String section, String addTitle, String addHint, List<ManagementItem> items) {
+    ModuleInfo(String eyebrow, String title, String section, String addTitle, String addHint) {
       this.eyebrow = eyebrow;
       this.title = title;
-      this.metric = metric;
-      this.metricLabel = metricLabel;
-      this.trend = trend;
       this.section = section;
       this.addTitle = addTitle;
       this.addHint = addHint;
-      this.items = items;
-    }
-  }
-
-  private static final class ManagementItem {
-    final String code;
-    final String status;
-    final String title;
-    final String meta;
-    final String detail;
-    final String action;
-    final String branch;
-
-    ManagementItem(String code, String status, String title, String meta, String detail,
-        String action, String branch) {
-      this.code = code;
-      this.status = status;
-      this.title = title;
-      this.meta = meta;
-      this.detail = detail;
-      this.action = action;
-      this.branch = branch;
     }
   }
 }
