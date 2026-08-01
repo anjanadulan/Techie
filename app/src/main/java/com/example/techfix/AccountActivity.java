@@ -38,6 +38,9 @@ public class AccountActivity extends AppCompatActivity {
     accountName.setText(sessionManager.getFullName());
     accountEmail.setText(sessionManager.getEmail());
 
+    findViewById(R.id.btnManagementWorkspace)
+        .setOnClickListener(
+            view -> startActivity(new Intent(this, ManagementDashboardActivity.class)));
     findViewById(R.id.btnLogout).setOnClickListener(view -> {
       sessionManager.clearSession();
       openAuthentication();

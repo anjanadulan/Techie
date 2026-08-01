@@ -193,6 +193,59 @@
                     android:textColor="@color/customer_muted"
                 />
             </LinearLayout>
+            <LinearLayout
+                android:id="@+id/btnManagementWorkspace"
+                android:layout_width="match_parent"
+                android:layout_height="76dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_management_hero"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="18dp"
+            >
+                <TextView
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:background="@drawable/bg_management_chip_active"
+                    android:gravity="center"
+                    android:text="OPS"
+                    android:textColor="@color/management_cyan"
+                    android:textSize="9sp"
+                    android:textStyle="bold"
+                />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                >
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Management workspace"
+                        android:textColor="@color/management_text"
+                        android:textStyle="bold"
+                    />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Appointments, inventory and payments"
+                        android:textColor="@color/management_muted"
+                        android:textSize="11sp"
+                    />
+                </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textColor="@color/management_cyan"
+                    android:textSize="28sp"
+                />
+            </LinearLayout>
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnLogout"
                 android:layout_width="match_parent"
