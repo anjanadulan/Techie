@@ -32,6 +32,12 @@
         <activity
             android:name=".AccountActivity"
             android:exported="false" />
+        <activity android:name=".CustomerHomeActivity" android:exported="false" />
+        <activity android:name=".ServicesActivity" android:exported="false" />
+        <activity android:name=".ServiceDetailActivity" android:exported="false" />
+        <activity android:name=".BookRepairActivity" android:exported="false" />
+        <activity android:name=".RepairTrackingActivity" android:exported="false" />
+        <activity android:name=".RepairHistoryActivity" android:exported="false" />
     </application>
 
 </manifest>

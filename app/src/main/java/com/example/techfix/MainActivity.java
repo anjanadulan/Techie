@@ -16,7 +16,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         if (new SessionManager(this).isLoggedIn()) {
-            startActivity(new Intent(this, AccountActivity.class));
+            startActivity(new Intent(this, CustomerHomeActivity.class));
             finish();
             return;
         }

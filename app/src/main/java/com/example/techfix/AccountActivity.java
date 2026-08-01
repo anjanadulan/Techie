@@ -1,4 +1,4 @@
-package com.example.techie;
+package com.example.techfix;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -42,6 +42,7 @@ public class AccountActivity extends AppCompatActivity {
             sessionManager.clearSession();
             openAuthentication();
         });
+        CustomerNavigation.bind(this, CustomerNavigation.PROFILE);
     }
 
     private void openAuthentication() {

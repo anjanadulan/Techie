@@ -106,7 +106,7 @@ public class Signin extends AppCompatActivity {
     }
 
     private void openAccount() {
-        Intent intent = new Intent(this, AccountActivity.class);
+        Intent intent = new Intent(this, CustomerHomeActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();

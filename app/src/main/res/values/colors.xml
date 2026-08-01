@@ -33,4 +33,19 @@
     <color name="subtle_green">#2E4F4F</color>
     <color name="warning_amber">#FFB703</color>
     <color name="input_bg">#2C2C44</color>
+
+    <!-- Customer experience -->
+    <color name="customer_bg">#F2F8FC</color>
+    <color name="customer_surface">#FFFFFFFF</color>
+    <color name="customer_text">#121619</color>
+    <color name="customer_muted">#717B86</color>
+    <color name="customer_border">#E3EAEF</color>
+    <color name="customer_orange">#FF5315</color>
+    <color name="customer_orange_soft">#FFF0E9</color>
+    <color name="customer_blue">#278FE8</color>
+    <color name="customer_blue_soft">#E7F4FD</color>
+    <color name="customer_success">#2C9655</color>
+    <color name="customer_success_soft">#E6F5EB</color>
+    <color name="customer_danger">#C94848</color>
+    <color name="customer_danger_soft">#FCEAEA</color>
 </resources>

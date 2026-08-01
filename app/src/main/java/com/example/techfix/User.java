@@ -1,4 +1,4 @@
-package com.example.techie;
+package com.example.techfix;
 
 public class User {
 

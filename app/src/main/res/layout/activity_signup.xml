@@ -189,11 +189,7 @@
                     android:textStyle="bold"
                     android:clickable="true"
                     android:focusable="true"
-                    android:gravity="center"
-                    android:text="@string/log_in"
-                    android:textColor="@color/auth_link"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
+                    android:gravity="center" />
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
