@@ -12,9 +12,9 @@
     <!-- Top Header Layout -->
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="170dp"
+        android:layout_height="160dp"
         android:paddingHorizontal="20dp"
-        android:paddingTop="40dp">
+        android:paddingTop="36dp">
 
         <!-- Decorative Bubble Shapes -->
         <View
@@ -30,7 +30,7 @@
             android:layout_height="70dp"
             android:layout_alignParentEnd="true"
             android:layout_marginEnd="60dp"
-            android:layout_marginTop="30dp"
+            android:layout_marginTop="20dp"
             android:background="@drawable/bg_circle_overlay" />
 
         <!-- Back Button -->
@@ -50,13 +50,13 @@
                 android:layout_width="18dp"
                 android:layout_height="18dp"
                 android:src="@drawable/ic_back"
-                app:tint="@color/white" />
+                app:tint="@color/platinum_silver" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Back"
-                android:textColor="@color/white"
+                android:textColor="@color/platinum_silver"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:layout_marginStart="4dp" />
@@ -64,7 +64,7 @@
 
     </RelativeLayout>
 
-    <!-- White Card Sheet Container -->
+    <!-- Dark Container Card Sheet -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -80,8 +80,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Welcome back"
-            android:textColor="@color/primary_blue"
-            android:textSize="24sp"
+            android:textColor="@color/platinum_silver"
+            android:textSize="26sp"
             android:textStyle="bold"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="28dp" />
@@ -96,8 +96,9 @@
             app:boxCornerRadiusTopEnd="14dp"
             app:boxCornerRadiusBottomStart="14dp"
             app:boxCornerRadiusBottomEnd="14dp"
-            app:boxStrokeColor="@color/primary_blue"
-            app:hintTextColor="@color/primary_blue"
+            app:boxStrokeColor="@color/electric_purple"
+            app:hintTextColor="@color/electric_purple"
+            android:textColorHint="@color/text_secondary"
             android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -105,8 +106,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textEmailAddress"
-                android:text="kristin.watson@example.com"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/platinum_silver"
                 android:textSize="14sp"
                 android:paddingVertical="14dp" />
         </com.google.android.material.textfield.TextInputLayout>
@@ -121,9 +121,11 @@
             app:boxCornerRadiusTopEnd="14dp"
             app:boxCornerRadiusBottomStart="14dp"
             app:boxCornerRadiusBottomEnd="14dp"
-            app:boxStrokeColor="@color/primary_blue"
-            app:hintTextColor="@color/primary_blue"
+            app:boxStrokeColor="@color/electric_purple"
+            app:hintTextColor="@color/electric_purple"
+            android:textColorHint="@color/text_secondary"
             app:endIconMode="password_toggle"
+            app:endIconTint="@color/platinum_silver"
             android:layout_marginBottom="12dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -131,8 +133,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPassword"
-                android:text="••••••••••••"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/platinum_silver"
                 android:textSize="14sp"
                 android:paddingVertical="14dp" />
         </com.google.android.material.textfield.TextInputLayout>
@@ -153,7 +154,7 @@
                 android:textColor="@color/text_secondary"
                 android:textSize="13sp"
                 android:checked="true"
-                app:buttonTint="@color/primary_blue" />
+                app:buttonTint="@color/electric_purple" />
 
             <TextView
                 android:id="@+id/tvForgotPassword"
@@ -161,7 +162,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Forgot password?"
-                android:textColor="@color/primary_blue"
+                android:textColor="@color/electric_purple"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:gravity="end"
@@ -169,7 +170,7 @@
                 android:focusable="true" />
         </LinearLayout>
 
-        <!-- Sign In Primary Button -->
+        <!-- Sign In Primary Button (Electric Purple #7209B7) -->
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnSignIn"
             android:layout_width="match_parent"
@@ -220,7 +221,6 @@
             android:gravity="center"
             android:layout_marginBottom="24dp">
 
-            <!-- Facebook -->
             <ImageView
                 android:id="@+id/btnFacebook"
                 android:layout_width="44dp"
@@ -232,7 +232,6 @@
                 android:clickable="true"
                 android:focusable="true" />
 
-            <!-- Twitter -->
             <ImageView
                 android:id="@+id/btnTwitter"
                 android:layout_width="44dp"
@@ -244,7 +243,6 @@
                 android:clickable="true"
                 android:focusable="true" />
 
-            <!-- Google -->
             <ImageView
                 android:id="@+id/btnGoogle"
                 android:layout_width="44dp"
@@ -256,7 +254,6 @@
                 android:clickable="true"
                 android:focusable="true" />
 
-            <!-- Apple -->
             <ImageView
                 android:id="@+id/btnApple"
                 android:layout_width="44dp"
@@ -264,11 +261,15 @@
                 android:src="@drawable/ic_apple"
                 android:padding="10dp"
                 android:background="@drawable/bg_social_button"
+                app:tint="@color/platinum_silver"
                 android:clickable="true"
                 android:focusable="true" />
         </LinearLayout>
 
-
+        <Spacer
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
         <!-- Bottom Sign Up Link Row -->
         <LinearLayout
@@ -289,7 +290,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Sign up"
-                android:textColor="@color/primary_blue"
+                android:textColor="@color/electric_purple"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:clickable="true"

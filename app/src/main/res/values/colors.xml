@@ -1,15 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Tech-Precision Hybrid Color Palette -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="primary_blue">#3562D7</color>
-    <color name="primary_blue_dark">#2447A0</color>
-    <color name="header_gradient_start">#4C76ED</color>
-    <color name="header_gradient_center">#3B64D8</color>
-    <color name="header_gradient_end">#213E93</color>
-    <color name="text_primary">#1D2939</color>
-    <color name="text_secondary">#667085</color>
-    <color name="input_outline">#D0D5DD</color>
-    <color name="social_icon_bg">#F2F4F7</color>
-    <color name="divider_color">#EAECF0</color>
+    
+    <!-- Primary (60%) - Charcoal Slate Dark Background -->
+    <color name="bg_charcoal">#1A1A2E</color>
+    <color name="bg_card_dark">#22223B</color>
+    <color name="bg_card_header">#16162A</color>
+
+    <!-- Secondary (30%) - Platinum Silver for Text & Structure -->
+    <color name="platinum_silver">#E0E1DD</color>
+    <color name="text_primary">#E0E1DD</color>
+    <color name="text_secondary">#9A9AB0</color>
+    
+    <!-- Accent (10%) - Electric Purple for Buttons & Highlights -->
+    <color name="electric_purple">#7209B7</color>
+    <color name="electric_purple_dark">#560BAD</color>
+    <color name="electric_purple_light">#307209B7</color>
+    
+    <!-- Integrated Green Shades -->
+    <color name="success_green">#4CAF50</color>
+    <color name="subtle_green">#2E4F4F</color>
+
+    <!-- Status Alerts -->
+    <color name="warning_amber">#FFB703</color>
+    
+    <!-- Input & UI Components -->
+    <color name="input_bg">#2C2C44</color>
+    <color name="input_outline">#444466</color>
+    <color name="social_icon_bg">#282842</color>
+    <color name="divider_color">#333352</color>
+
+    <!-- Legacy / Alias Mappings for Compatibility -->
+    <color name="primary_blue">#7209B7</color>
+    <color name="primary_blue_dark">#560BAD</color>
+    <color name="header_gradient_start">#1A1A2E</color>
+    <color name="header_gradient_center">#271744</color>
+    <color name="header_gradient_end">#1A1A2E</color>
 </resources>

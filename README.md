@@ -1,20 +1,20 @@
-# 📱 Techie - Mobile & Computer Repair Platform
+# 📱 TechFix - Mobile & Computer Repair Platform
 
 [![Android](https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://developer.android.com/)
 [![Java](https://img.shields.io/badge/Language-Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.java.com/)
 [![Gradle](https://img.shields.io/badge/Build-Gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white)](https://gradle.org/)
 
-**Techie** (TechFix) is a modern Android mobile application designed for computer and mobile phone repair services in Sri Lanka, supporting branch operations in **Colombo** and **Galle**.
+**TechFix** is a modern Android mobile application designed for computer and mobile phone repair services in Sri Lanka, supporting branch operations in **Colombo** and **Galle**.
 
 Developed as part of the **Higher National Diploma in Software Engineering (HNDSE)** course at the **National Institute of Business Management (NIBM)** for the *Mobile Application Development (CW1)* module.
 
 ---
 
-## 📸 Key Features & UI Screens (Still Developing)
+## 📸 Key Features & UI Screens
 
 ### 1. 🎬 Splash & Loading Screen (`MainActivity`)
-- Vibrant blue fluid gradient background with ambient floating bubble graphics.
-- **Techie** branding logo frame, title, subtitle (*"Repair & Service Platform"*), and progress spinner.
+- Dark Charcoal Slate background (`#1A1A2E`) with Electric Purple (`#7209B7`) accent overlays.
+- **TechFix** branding logo frame, title, subtitle (*"Repair & Service Platform"*), and progress spinner.
 - Navigation bar providing instant access to **Sign in** and **Sign up**.
 
 ### 2. 🔑 Sign In Portal (`Signin`)
@@ -33,7 +33,7 @@ Developed as part of the **Higher National Diploma in Software Engineering (HNDS
 
 ## 🏗️ Architecture & Core Deliverables
 
-- **UI Layout System:** Constructed using structured `LinearLayout`s, custom drawables, and Material 3 components for optimal responsiveness.
+- **UI Layout System:** Constructed using structured `LinearLayout`s, custom drawables, and Material 3 components for optimal responsiveness following the **Tech-Precision Hybrid** color palette.
 - **Locations & GPS:** Branch distance calculation between Colombo & Galle locations using `FusedLocationProviderClient` and Google Maps API.
 - **Camera & Image Integration:** Attachment support for faulty device photos and repaired device proof images using `CameraX`.
 - **Offline Storage & Caching:** **Room Database** / SQLite for offline repair history and draft bookings.
@@ -41,13 +41,15 @@ Developed as part of the **Higher National Diploma in Software Engineering (HNDS
 
 ---
 
-## 🛠️ Tech Stack & Dependencies
+## 🎨 Design Theme: Tech-Precision Hybrid
 
-* **Language:** Java
-* **UI Components:** `LinearLayout`, `MaterialCardView`, `TextInputLayout`, `VectorDrawables`
-* **Min SDK:** 24 (Android 7.0)
-* **Target SDK:** 36
-* **Build System:** Gradle (Kotlin DSL `build.gradle.kts`)
+- **Primary Background (60%):** `#1A1A2E` (Charcoal Slate)
+- **Secondary / Structure (30%):** `#E0E1DD` (Platinum Silver) & `#22223B` (Container Cards)
+- **Accent Highlight (10%):** `#7209B7` (Electric Purple)
+- **Status Indicators:**
+  - 🟢 **Success Green:** `#4CAF50` (*Ready for Pickup / Payment Successful*)
+  - 🟢 **Subtle Green:** `#2E4F4F` (*Deep Sage*)
+  - ⚠️ **Warning Amber:** `#FFB703` (*In Progress*)
 
 ---
 
@@ -67,7 +69,7 @@ Developed as part of the **Higher National Diploma in Software Engineering (HNDS
    ```
 
 2. **Open in Android Studio:**
-   * File -> Open -> Select the `Techie` directory.
+   * File -> Open -> Select the `TechFix` project directory.
 
 3. **Build the Debug APK:**
    ```bash
@@ -79,4 +81,4 @@ Developed as part of the **Higher National Diploma in Software Engineering (HNDS
 
 ---
 
-*Created with ❤️ for Techie Repair Services.*
+*Created with ❤️ for TechFix Repair Services.*

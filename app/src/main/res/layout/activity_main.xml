@@ -50,26 +50,28 @@
             android:gravity="center">
 
             <!-- App Logo Icon Frame -->
-            <FrameLayout
-                android:layout_width="96dp"
-                android:layout_height="96dp"
-                android:background="@drawable/bg_social_button"
-                android:elevation="8dp"
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="10dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/electric_purple"
                 android:layout_marginBottom="24dp">
 
                 <ImageView
-                    android:layout_width="54dp"
-                    android:layout_height="54dp"
-                    android:layout_gravity="center"
-                    android:src="@mipmap/ic_launcher" />
-            </FrameLayout>
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_app_logo" />
+            </com.google.android.material.card.MaterialCardView>
 
-            <!-- App Title -->
+            <!-- App Title (Platinum Silver #E0E1DD) -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Techie"
-                android:textColor="@color/white"
+                android:text="TechFix"
+                android:textColor="@color/platinum_silver"
                 android:textSize="40sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.05"
@@ -80,16 +82,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Repair &amp; Service Platform"
-                android:textColor="#D0E0FF"
+                android:textColor="@color/text_secondary"
                 android:textSize="15sp"
                 android:layout_marginBottom="32dp" />
 
-            <!-- Loading Spinner -->
+            <!-- Loading Spinner (Electric Purple Accent #7209B7) -->
             <ProgressBar
                 android:id="@+id/progressBar"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
-                android:indeterminateTint="@color/white" />
+                android:indeterminateTint="@color/electric_purple" />
 
         </LinearLayout>
 
@@ -109,7 +111,7 @@
             android:layout_height="48dp"
             android:layout_weight="1"
             android:text="Sign in"
-            android:textColor="@color/white"
+            android:textColor="@color/platinum_silver"
             android:textSize="16sp"
             android:textStyle="bold"
             android:gravity="center"
@@ -121,10 +123,10 @@
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_white_pill_button"
+            android:background="@drawable/bg_blue_button"
             android:text="Sign up"
             android:textAllCaps="false"
-            android:textColor="@color/primary_blue"
+            android:textColor="@color/white"
             android:textSize="16sp"
             android:textStyle="bold"
             android:elevation="2dp" />
