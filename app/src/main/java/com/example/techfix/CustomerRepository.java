@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import com.example.techfix.data.model.AppointmentStatus;
+import com.example.techfix.data.model.PaymentMethod;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -227,6 +228,152 @@ public final class CustomerRepository implements AutoCloseable {
       }
     }
     return history;
+  }
+
+  public PaymentItem getPayment(long userId, long appointmentId) {
+    String sql =
+        "SELECT p." + TechFixDatabaseHelper.ID + ",p." +
+        TechFixDatabaseHelper.AMOUNT_CENTS + ",p." +
+        TechFixDatabaseHelper.METHOD + ",p." + TechFixDatabaseHelper.STATUS +
+        ",p." + TechFixDatabaseHelper.REFERENCE + ",p." +
+        TechFixDatabaseHelper.PAID_AT + " FROM " +
+        TechFixDatabaseHelper.TABLE_PAYMENTS + " p JOIN " +
+        TechFixDatabaseHelper.TABLE_APPOINTMENTS + " a ON a." +
+        TechFixDatabaseHelper.ID + "=p." +
+        TechFixDatabaseHelper.APPOINTMENT_ID + " WHERE a." +
+        TechFixDatabaseHelper.USER_ID + "=? AND a." + TechFixDatabaseHelper.ID +
+        "=? ORDER BY p." + TechFixDatabaseHelper.CREATED_AT + " DESC LIMIT 1";
+    try (Cursor cursor = helper.getReadableDatabase().rawQuery(
+             sql, new String[] {String.valueOf(userId),
+                                String.valueOf(appointmentId)})) {
+      return cursor.moveToFirst() ? mapPayment(cursor) : null;
+    }
+  }
+
+  public PaymentItem processPayment(long userId, long appointmentId,
+                                    PaymentMethod method) {
+    if (method == null || method == PaymentMethod.CASH)
+      throw new IllegalArgumentException(
+          "Choose card, bank transfer, or online payment.");
+    SQLiteDatabase database = helper.getWritableDatabase();
+    database.beginTransaction();
+    PaymentItem result;
+    try {
+      String appointmentSql =
+          "SELECT a." + TechFixDatabaseHelper.STATUS + ",s." +
+          TechFixDatabaseHelper.BASE_PRICE_CENTS + " FROM " +
+          TechFixDatabaseHelper.TABLE_APPOINTMENTS + " a JOIN " +
+          TechFixDatabaseHelper.TABLE_REPAIR_SERVICES + " s ON s." +
+          TechFixDatabaseHelper.ID + "=a." + TechFixDatabaseHelper.SERVICE_ID +
+          " WHERE a." + TechFixDatabaseHelper.ID + "=? AND a." +
+          TechFixDatabaseHelper.USER_ID + "=?";
+      String appointmentStatus;
+      long amountCents;
+      try (Cursor appointment = database.rawQuery(
+               appointmentSql, new String[] {String.valueOf(appointmentId),
+                                             String.valueOf(userId)})) {
+        if (!appointment.moveToFirst())
+          throw new IllegalArgumentException("Repair appointment not found.");
+        appointmentStatus = appointment.getString(0);
+        amountCents = appointment.getLong(1);
+      }
+      if (!AppointmentStatus.READY_FOR_PAYMENT.name().equals(appointmentStatus))
+        throw new IllegalArgumentException(
+            "Payment becomes available when the repair is ready.");
+
+      String reference =
+          "TFX-" + appointmentId + "-" + System.currentTimeMillis();
+      long paidAt = System.currentTimeMillis();
+      ContentValues values = new ContentValues();
+      values.put(TechFixDatabaseHelper.APPOINTMENT_ID, appointmentId);
+      values.put(TechFixDatabaseHelper.AMOUNT_CENTS, amountCents);
+      values.put(TechFixDatabaseHelper.METHOD, method.name());
+      values.put(TechFixDatabaseHelper.STATUS, "PAID");
+      values.put(TechFixDatabaseHelper.REFERENCE, reference);
+      values.put(TechFixDatabaseHelper.PAID_AT, paidAt);
+      values.put(TechFixDatabaseHelper.CREATED_AT, paidAt);
+
+      long paymentId;
+      try (Cursor existing = database.query(
+               TechFixDatabaseHelper.TABLE_PAYMENTS,
+               new String[] {TechFixDatabaseHelper.ID,
+                             TechFixDatabaseHelper.STATUS},
+               TechFixDatabaseHelper.APPOINTMENT_ID + "=?",
+               new String[] {String.valueOf(appointmentId)}, null, null,
+               TechFixDatabaseHelper.CREATED_AT + " DESC", "1")) {
+        if (existing.moveToFirst()) {
+          paymentId = existing.getLong(0);
+          if ("PAID".equals(existing.getString(1))) {
+            database.setTransactionSuccessful();
+            return getPayment(userId, appointmentId);
+          }
+          database.update(TechFixDatabaseHelper.TABLE_PAYMENTS, values,
+                          TechFixDatabaseHelper.ID + "=?",
+                          new String[] {String.valueOf(paymentId)});
+        } else {
+          paymentId = database.insertOrThrow(
+              TechFixDatabaseHelper.TABLE_PAYMENTS, null, values);
+        }
+      }
+
+      ContentValues history = new ContentValues();
+      history.put(TechFixDatabaseHelper.APPOINTMENT_ID, appointmentId);
+      history.put(TechFixDatabaseHelper.STATUS,
+                  AppointmentStatus.READY_FOR_PAYMENT.name());
+      history.put(TechFixDatabaseHelper.NOTES,
+                  "Payment received via " +
+                      method.name().toLowerCase(Locale.US).replace('_', ' ') +
+                      ".");
+      history.putNull(TechFixDatabaseHelper.IMAGE_PATH);
+      history.put(TechFixDatabaseHelper.RECORDED_AT, paidAt);
+      database.insertOrThrow(TechFixDatabaseHelper.TABLE_REPAIR_HISTORY, null,
+                             history);
+      result = new PaymentItem(paymentId, amountCents, method.name(), "PAID",
+                               reference, paidAt);
+      database.setTransactionSuccessful();
+    } finally {
+      database.endTransaction();
+    }
+    FirebaseSyncScheduler.enqueueNow(appContext);
+    return result;
+  }
+
+  public List<GalleryItem> getFeaturedRepairImages() {
+    List<GalleryItem> images = new ArrayList<>();
+    String sql =
+        "SELECT h." + TechFixDatabaseHelper.ID + ",h." +
+        TechFixDatabaseHelper.IMAGE_PATH + ",a." +
+        TechFixDatabaseHelper.DEVICE_DETAILS + ",s." +
+        TechFixDatabaseHelper.NAME + ",COALESCE(b." +
+        TechFixDatabaseHelper.NAME + ",'TechFix'),h." +
+        TechFixDatabaseHelper.RECORDED_AT + " FROM " +
+        TechFixDatabaseHelper.TABLE_REPAIR_HISTORY + " h JOIN " +
+        TechFixDatabaseHelper.TABLE_APPOINTMENTS + " a ON a." +
+        TechFixDatabaseHelper.ID + "=h." +
+        TechFixDatabaseHelper.APPOINTMENT_ID + " JOIN " +
+        TechFixDatabaseHelper.TABLE_REPAIR_SERVICES + " s ON s." +
+        TechFixDatabaseHelper.ID + "=a." + TechFixDatabaseHelper.SERVICE_ID +
+        " LEFT JOIN " + TechFixDatabaseHelper.TABLE_BRANCHES + " b ON b." +
+        TechFixDatabaseHelper.ID + "=a." + TechFixDatabaseHelper.BRANCH_ID +
+        " WHERE h." + TechFixDatabaseHelper.IMAGE_PATH +
+        " IS NOT NULL AND LOWER(h." + TechFixDatabaseHelper.NOTES +
+        ") LIKE '%featured%' ORDER BY h." +
+        TechFixDatabaseHelper.RECORDED_AT + " DESC";
+    try (Cursor cursor = helper.getReadableDatabase().rawQuery(sql, null)) {
+      while (cursor.moveToNext()) {
+        images.add(new GalleryItem(cursor.getLong(0), cursor.getString(1),
+                                   cursor.getString(2), cursor.getString(3),
+                                   cursor.getString(4), cursor.getLong(5)));
+      }
+    }
+    return images;
+  }
+
+  private PaymentItem mapPayment(Cursor cursor) {
+    return new PaymentItem(cursor.getLong(0), cursor.getLong(1),
+                           cursor.getString(2), cursor.getString(3),
+                           cursor.getString(4),
+                           cursor.isNull(5) ? null : cursor.getLong(5));
   }
 
   private List<AppointmentItem> queryAppointments(String selection,
@@ -605,6 +752,44 @@ public final class CustomerRepository implements AutoCloseable {
       this.branchPhone = branchPhone;
       this.technicianName = technicianName;
       this.technicianPhone = technicianPhone;
+    }
+  }
+
+  public static final class PaymentItem {
+    public final long id;
+    public final long amountCents;
+    public final String method;
+    public final String status;
+    public final String reference;
+    public final Long paidAt;
+
+    PaymentItem(long id, long amountCents, String method, String status,
+                String reference, Long paidAt) {
+      this.id = id;
+      this.amountCents = amountCents;
+      this.method = method;
+      this.status = status;
+      this.reference = reference;
+      this.paidAt = paidAt;
+    }
+  }
+
+  public static final class GalleryItem {
+    public final long id;
+    public final String imagePath;
+    public final String device;
+    public final String service;
+    public final String branch;
+    public final long recordedAt;
+
+    GalleryItem(long id, String imagePath, String device, String service,
+                String branch, long recordedAt) {
+      this.id = id;
+      this.imagePath = imagePath;
+      this.device = device;
+      this.service = service;
+      this.branch = branch;
+      this.recordedAt = recordedAt;
     }
   }
 

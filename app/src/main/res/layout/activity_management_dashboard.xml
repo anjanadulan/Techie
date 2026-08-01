@@ -226,7 +226,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="7 MODULES"
+                    android:text="9 MODULES"
                     android:textColor="@color/management_muted"
                     android:textSize="10sp"
                     android:textStyle="bold"
@@ -275,6 +275,52 @@
                         android:id="@+id/tvDashboardTechniciansMeta"
                         style="@style/ManagementModuleMeta"
                         android:text="4 active · 1 busy"
+                    />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:orientation="horizontal"
+            >
+                <LinearLayout
+                    android:id="@+id/manageBranches"
+                    style="@style/ManagementModuleCard"
+                    android:layout_marginEnd="7dp"
+                >
+                    <TextView
+                        style="@style/ManagementModuleCode"
+                        android:text="GPS"
+                    />
+                    <TextView
+                        style="@style/ManagementModuleTitle"
+                        android:text="Branches"
+                    />
+                    <TextView
+                        android:id="@+id/tvDashboardBranchesMeta"
+                        style="@style/ManagementModuleMeta"
+                        android:text="2 locations"
+                    />
+                </LinearLayout>
+                <LinearLayout
+                    android:id="@+id/manageCategories"
+                    style="@style/ManagementModuleCard"
+                    android:layout_marginStart="7dp"
+                >
+                    <TextView
+                        style="@style/ManagementModuleCode"
+                        android:text="TYPE"
+                    />
+                    <TextView
+                        style="@style/ManagementModuleTitle"
+                        android:text="Device categories"
+                    />
+                    <TextView
+                        android:id="@+id/tvDashboardCategoriesMeta"
+                        style="@style/ManagementModuleMeta"
+                        android:text="4 categories"
                     />
                 </LinearLayout>
             </LinearLayout>

@@ -63,14 +63,24 @@ service cloud.firestore {
     }
 
     match /repairHistory/{documentId} {
-      allow read: if isManager() || ownsExistingRecord();
+      allow read: if isManager() || ownsExistingRecord() || resource.data.featured == true;
       allow create: if isManager() || ownsNewRecord();
-      allow update, delete: if isManager();
+      allow update: if isManager()
+          || (ownsExistingRecord()
+              && request.resource.data.customerUid == request.auth.uid
+              && request.resource.data.diff(resource.data).affectedKeys()
+                  .hasOnly(["imagePath", "updatedAt"]));
+      allow delete: if isManager();
     }
 
     match /payments/{documentId} {
       allow read: if isManager() || ownsExistingRecord();
-      allow write: if isManager();
+      allow create: if isManager() || ownsNewRecord();
+      allow update: if isManager()
+          || (ownsExistingRecord()
+              && ownsNewRecord()
+              && request.resource.data.appointmentId == resource.data.appointmentId);
+      allow delete: if isManager();
     }
   }
 }

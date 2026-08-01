@@ -16,6 +16,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,8 +52,7 @@ public final class FirebaseSyncWorker extends Worker {
           new SessionManager(getApplicationContext()).getUserId();
       syncAppointments(firestore, firebaseUser, manager ? null : localUserId);
       syncHistory(firestore, firebaseUser, manager ? null : localUserId);
-      if (manager)
-        syncPayments(firestore, firebaseUser, null);
+      syncPayments(firestore, firebaseUser, manager ? null : localUserId);
       return Result.success();
     } catch (Exception exception) {
       return getRunAttemptCount() >= 4 ? Result.failure() : Result.retry();
@@ -226,24 +226,38 @@ public final class FirebaseSyncWorker extends Worker {
     try (Cursor cursor =
              helper.getReadableDatabase().rawQuery(sql, arguments)) {
       while (cursor.moveToNext()) {
-        if (localUserId != null &&
-            Tasks
-                .await(firestore.collection("repairHistory")
-                           .document(id(cursor))
-                           .get())
-                .exists())
+        boolean remoteExists = localUserId != null &&
+                               Tasks
+                                   .await(firestore.collection("repairHistory")
+                                              .document(id(cursor))
+                                              .get())
+                                   .exists();
+        String syncedImage =
+            syncImage(firebaseUser, id(cursor),
+                      nullableText(cursor, TechFixDatabaseHelper.IMAGE_PATH));
+        if (remoteExists) {
+          Map<String, Object> imageUpdate = base(cursor);
+          imageUpdate.put("customerUid", firebaseUser.getUid());
+          imageUpdate.put("imagePath", syncedImage);
+          set(firestore, "repairHistory", id(cursor), imageUpdate);
           continue;
+        }
         Map<String, Object> values = base(cursor);
-        values.put("appointmentId",
-                   number(cursor, TechFixDatabaseHelper.APPOINTMENT_ID));
-        if (localUserId != null)
-          values.put("customerUid", firebaseUser.getUid());
+        long appointmentId =
+            number(cursor, TechFixDatabaseHelper.APPOINTMENT_ID);
+        values.put("appointmentId", appointmentId);
+        String customerUid = localUserId != null
+                                 ? firebaseUser.getUid()
+                                 : customerUid(firestore, appointmentId);
+        if (customerUid != null)
+          values.put("customerUid", customerUid);
         values.put("status", text(cursor, TechFixDatabaseHelper.STATUS));
         values.put("notes", text(cursor, TechFixDatabaseHelper.NOTES));
-        values.put(
-            "imagePath",
-            syncImage(firebaseUser, id(cursor),
-                      nullableText(cursor, TechFixDatabaseHelper.IMAGE_PATH)));
+        values.put("featured", text(cursor, TechFixDatabaseHelper.NOTES)
+                                   .toLowerCase(java.util.Locale.US)
+                                   .contains("featured"));
+        values.put("imagePath", syncedImage);
+        values.putAll(galleryMetadata(appointmentId));
         values.put("recordedAt",
                    number(cursor, TechFixDatabaseHelper.RECORDED_AT));
         set(firestore, "repairHistory", id(cursor), values);
@@ -267,10 +281,14 @@ public final class FirebaseSyncWorker extends Worker {
              helper.getReadableDatabase().rawQuery(sql, arguments)) {
       while (cursor.moveToNext()) {
         Map<String, Object> values = base(cursor);
-        values.put("appointmentId",
-                   number(cursor, TechFixDatabaseHelper.APPOINTMENT_ID));
-        if (localUserId != null)
-          values.put("customerUid", firebaseUser.getUid());
+        long appointmentId =
+            number(cursor, TechFixDatabaseHelper.APPOINTMENT_ID);
+        values.put("appointmentId", appointmentId);
+        String customerUid = localUserId != null
+                                 ? firebaseUser.getUid()
+                                 : customerUid(firestore, appointmentId);
+        if (customerUid != null)
+          values.put("customerUid", customerUid);
         values.put("amountCents",
                    number(cursor, TechFixDatabaseHelper.AMOUNT_CENTS));
         values.put("method", text(cursor, TechFixDatabaseHelper.METHOD));
@@ -294,22 +312,72 @@ public final class FirebaseSyncWorker extends Worker {
                     .set(values, SetOptions.merge()));
   }
 
+  private String customerUid(FirebaseFirestore firestore, long appointmentId)
+      throws Exception {
+    return Tasks
+        .await(firestore.collection("appointments")
+                   .document(String.valueOf(appointmentId))
+                   .get())
+        .getString("customerUid");
+  }
+
+  private Map<String, Object> galleryMetadata(long appointmentId) {
+    String sql =
+        "SELECT a." + TechFixDatabaseHelper.DEVICE_DETAILS + ",s." +
+        TechFixDatabaseHelper.NAME + ",COALESCE(b." +
+        TechFixDatabaseHelper.NAME + ",'TechFix') FROM " +
+        TechFixDatabaseHelper.TABLE_APPOINTMENTS + " a JOIN " +
+        TechFixDatabaseHelper.TABLE_REPAIR_SERVICES + " s ON s." +
+        TechFixDatabaseHelper.ID + "=a." + TechFixDatabaseHelper.SERVICE_ID +
+        " LEFT JOIN " + TechFixDatabaseHelper.TABLE_BRANCHES + " b ON b." +
+        TechFixDatabaseHelper.ID + "=a." + TechFixDatabaseHelper.BRANCH_ID +
+        " WHERE a." + TechFixDatabaseHelper.ID + "=?";
+    Map<String, Object> metadata = new HashMap<>();
+    try (Cursor cursor = helper.getReadableDatabase().rawQuery(
+             sql, new String[] {String.valueOf(appointmentId)})) {
+      if (cursor.moveToFirst()) {
+        metadata.put("device", cursor.getString(0));
+        metadata.put("serviceName", cursor.getString(1));
+        metadata.put("branchName", cursor.getString(2));
+      }
+    }
+    return metadata;
+  }
+
   private String syncImage(FirebaseUser firebaseUser, String historyId,
                            String imagePath) throws Exception {
-    if (imagePath == null || !imagePath.startsWith("content://"))
+    if (imagePath == null || (!imagePath.startsWith("content://") &&
+                              !imagePath.startsWith("file://")))
       return imagePath;
+    Uri localImage = Uri.parse(imagePath);
     StorageReference image = FirebaseStorage.getInstance()
                                  .getReference()
                                  .child("repair-images")
                                  .child(firebaseUser.getUid())
                                  .child(historyId + ".jpg");
-    Tasks.await(image.putFile(Uri.parse(imagePath)));
-    String downloadUrl = Tasks.await(image.getDownloadUrl()).toString();
+    String downloadUrl;
+    try {
+      Tasks.await(image.putFile(localImage));
+      downloadUrl = Tasks.await(image.getDownloadUrl()).toString();
+    } catch (Exception storageUnavailable) {
+      return null;
+    }
     ContentValues values = new ContentValues();
     values.put(TechFixDatabaseHelper.IMAGE_PATH, downloadUrl);
     helper.getWritableDatabase().update(
         TechFixDatabaseHelper.TABLE_REPAIR_HISTORY, values,
         TechFixDatabaseHelper.ID + "=?", new String[] {historyId});
+    if ("file".equals(localImage.getScheme()) && localImage.getPath() != null) {
+      File localFile = new File(localImage.getPath());
+      File imageDirectory = new File(appContext.getFilesDir(), "repair-images");
+      try {
+        if (localFile.getCanonicalPath().startsWith(
+                imageDirectory.getCanonicalPath() + File.separator))
+          localFile.delete();
+      } catch (java.io.IOException ignored) {
+        // The Firestore URL is already saved; cleanup can be retried later.
+      }
+    }
     return downloadUrl;
   }
 

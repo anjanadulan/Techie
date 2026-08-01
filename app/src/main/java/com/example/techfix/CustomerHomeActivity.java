@@ -18,9 +18,14 @@ public class CustomerHomeActivity extends CustomerScreen {
     sessionManager = new SessionManager(this);
 
     findViewById(R.id.openServices)
-        .setOnClickListener(v -> CustomerNavigation.open(this, ServicesActivity.class));
+        .setOnClickListener(
+            v -> CustomerNavigation.open(this, ServicesActivity.class));
     findViewById(R.id.searchServices)
-        .setOnClickListener(v -> CustomerNavigation.open(this, ServicesActivity.class));
+        .setOnClickListener(
+            v -> CustomerNavigation.open(this, ServicesActivity.class));
+    findViewById(R.id.openRepairGallery)
+        .setOnClickListener(
+            v -> CustomerNavigation.open(this, RepairGalleryActivity.class));
   }
 
   @Override
@@ -38,10 +43,10 @@ public class CustomerHomeActivity extends CustomerScreen {
       return;
     }
     CustomerRepository.ServiceItem service = services.get(0);
-    ((TextView) findViewById(R.id.tvPopularServiceName)).setText(service.name);
-    ((TextView) findViewById(R.id.tvPopularServiceMeta))
-        .setText("From " + CustomerRepository.formatPrice(service.priceCents) + " · "
-            + service.estimatedMinutes + " min");
+    ((TextView)findViewById(R.id.tvPopularServiceName)).setText(service.name);
+    ((TextView)findViewById(R.id.tvPopularServiceMeta))
+        .setText("From " + CustomerRepository.formatPrice(service.priceCents) +
+                 " · " + service.estimatedMinutes + " min");
     card.setOnClickListener(v -> ServiceDetailActivity.open(this, service.id));
   }
 
@@ -54,12 +59,14 @@ public class CustomerHomeActivity extends CustomerScreen {
       return;
     }
     card.setVisibility(View.VISIBLE);
-    ((TextView) findViewById(R.id.tvActiveRepairId)).setText("Repair #TF-" + appointment.id);
-    ((TextView) findViewById(R.id.tvActiveRepairStatus))
+    ((TextView)findViewById(R.id.tvActiveRepairId))
+        .setText("Repair #TF-" + appointment.id);
+    ((TextView)findViewById(R.id.tvActiveRepairStatus))
         .setText(CustomerRepository.statusLabel(appointment.status));
-    ((TextView) findViewById(R.id.tvActiveRepairSummary))
+    ((TextView)findViewById(R.id.tvActiveRepairSummary))
         .setText(appointment.deviceDetails + " · " + appointment.serviceName);
-    card.setOnClickListener(v -> RepairTrackingActivity.open(this, appointment.id));
+    card.setOnClickListener(
+        v -> RepairTrackingActivity.open(this, appointment.id));
   }
 
   @Override

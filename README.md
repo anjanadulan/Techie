@@ -11,20 +11,20 @@
 ## 📸 Key Features & UI Screens
 
 ### 1. 🎬 Splash & Loading Screen (`MainActivity`)
-- Dark Charcoal Slate background (`#1A1A2E`) with Electric Purple (`#7209B7`) accent overlays.
+- Light cloud-blue header with a clean white authentication card and black primary actions.
 - **TechFix** branding logo frame, title, subtitle (*"Repair & Service Platform"*), and progress spinner.
 - Navigation bar providing instant access to **Sign in** and **Sign up**.
 
 ### 2. 🔑 Sign In Portal (`Signin`)
 - **"Welcome back"** sheet container.
 - Outlined input fields for **Email** and **Password** with password visibility toggle.
-- Validates credentials against the local SQLite user database.
-- Creates a persistent local session after a successful login.
+- Authenticates email and password accounts with Firebase Authentication.
+- Mirrors the signed-in profile into SQLite for offline appointment relationships.
 
 ### 3. 📝 Sign Up Portal (`Signup`)
 - **"Get Started"** onboarding layout.
 - Inputs for **Full Name**, **Email**, **Password**, and password confirmation.
-- Creates unique local user accounts with salted PBKDF2 password hashes.
+- Creates Firebase accounts and a matching offline SQLite profile.
 - Direct navigation back to Sign In.
 
 ### 4. 👤 Local Account Session (`AccountActivity`)
@@ -37,22 +37,21 @@
 ## 🏗️ Architecture & Features
 
 - **UI Layout System:** Constructed using structured `LinearLayout`s, custom drawables, and Material 3 components for optimal responsiveness following the **Tech-Precision Hybrid** color palette.
-- **Locations & GPS:** Branch distance calculation between Colombo & Galle locations using `FusedLocationProviderClient` and Google Maps API.
-- **Camera & Image Integration:** Attachment support for faulty device photos and repaired device proof images using `CameraX`.
+- **Locations & GPS:** Uses Android `LocationManager` and Haversine distance calculations to select the nearest branch that has a suitable technician and required stock.
+- **Camera & Image Integration:** Managers can capture repaired devices through an in-app CameraX viewfinder or select an existing gallery image. Photos are retained locally until WorkManager uploads them to Firebase Storage, and featured samples are displayed in the customer repair gallery.
 - **Offline Storage:** Native SQLite stores user accounts, branches, technicians, device categories, repair services, branch spare-part inventory, appointments, payments, and repair-history events.
-- **Remote Data & Web Services:** REST API / Firebase integration for real-time status tracking and appointment updates.
+- **Remote Data & Web Services:** Firebase Authentication, Cloud Firestore listeners, and WorkManager synchronize availability, appointments, payments, and repair progress.
+- **Management:** Dedicated modules manage branches, device categories, appointments, technicians, pricing, spare parts, repair images, payments, and statuses.
+- **Customer Payments:** A coursework-safe payment simulation records card, bank-transfer, or online payment receipts without collecting real banking credentials.
+- **Repair Gallery:** Managers can feature repaired-device images for customers to browse.
 
 ---
 
-## 🎨 Design Theme: Tech-Precision Hybrid
+## 🎨 Design Theme
 
-- **Primary Background (60%):** `#1A1A2E` (Charcoal Slate)
-- **Secondary / Structure (30%):** `#E0E1DD` (Platinum Silver) & `#22223B` (Container Cards)
-- **Accent Highlight (10%):** `#7209B7` (Electric Purple)
-- **Status Indicators:**
-  - 🟢 **Success Green:** `#4CAF50` (*Ready for Pickup / Payment Successful*)
-  - 🟢 **Subtle Green:** `#2E4F4F` (*Deep Sage*)
-  - ⚠️ **Warning Amber:** `#FFB703` (*In Progress*)
+- **Authentication:** Cloud blue, white, and black for calm, focused account flows.
+- **Customer experience:** Warm white surfaces with blue and orange accents.
+- **Management workspace:** Deep navy surfaces with cyan, green, and amber operational states.
 
 ---
 
@@ -67,7 +66,7 @@
 
 1. **Clone the Repository:**
    ```bash
-   git clone <repository-url> TechFix
+   git clone https://github.com/anjanadulan/Techie.git TechFix
    cd TechFix
    ```
 

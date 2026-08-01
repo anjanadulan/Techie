@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/customer_bg"
+    android:orientation="vertical"
+>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="68dp"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="20dp"
+    >
+        <TextView
+            android:id="@+id/btnPaymentBack"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_customer_chip"
+            android:gravity="center"
+            android:text="‹"
+            android:textColor="@color/customer_text"
+            android:textSize="30sp"
+        />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:layout_weight="1"
+            android:text="TechFix checkout"
+            android:textColor="@color/customer_text"
+            android:textSize="20sp"
+            android:textStyle="bold"
+        />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DEMO"
+            android:textColor="@color/customer_orange"
+            android:textSize="11sp"
+            android:textStyle="bold"
+        />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+    >
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp"
+        >
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_customer_card"
+                android:orientation="vertical"
+                android:padding="20dp"
+            >
+                <TextView
+                    android:id="@+id/tvPaymentRepair"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Repair #TF-1001"
+                    android:textColor="@color/customer_orange"
+                    android:textStyle="bold"
+                />
+                <TextView
+                    android:id="@+id/tvPaymentDevice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Device · Service"
+                    android:textColor="@color/customer_text"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="TOTAL DUE"
+                    android:textColor="@color/customer_muted"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                />
+                <TextView
+                    android:id="@+id/tvPaymentAmount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="LKR 8,500"
+                    android:textColor="@color/customer_text"
+                    android:textSize="32sp"
+                    android:textStyle="bold"
+                />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:text="Payment method"
+                android:textColor="@color/customer_text"
+                android:textSize="18sp"
+                android:textStyle="bold"
+            />
+            <TextView
+                android:id="@+id/paymentMethodCard"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:layout_marginTop="12dp"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="18dp"
+                android:text="CARD  ·  Visa or Mastercard"
+                android:textStyle="bold"
+            />
+            <TextView
+                android:id="@+id/paymentMethodBank"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="18dp"
+                android:text="BANK TRANSFER  ·  Direct transfer"
+                android:textStyle="bold"
+            />
+            <TextView
+                android:id="@+id/paymentMethodOnline"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="18dp"
+                android:text="ONLINE  ·  Mobile banking"
+                android:textStyle="bold"
+            />
+
+            <TextView
+                android:id="@+id/tvPaymentStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/bg_customer_soft_blue"
+                android:padding="16dp"
+                android:textColor="@color/customer_text"
+                android:textStyle="bold"
+            />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:text="Coursework simulation: this records a payment and receipt but does not charge a real bank account."
+                android:textColor="@color/customer_muted"
+                android:textSize="12sp"
+            />
+            <TextView
+                android:id="@+id/btnConfirmPayment"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/bg_customer_primary"
+                android:gravity="center"
+                android:text="Confirm demo payment"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+            />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

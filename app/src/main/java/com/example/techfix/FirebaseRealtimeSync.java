@@ -34,6 +34,8 @@ public final class FirebaseRealtimeSync {
            documents -> applyTechnicians(appContext, documents));
     listen(firestore.collection("spareParts"),
            documents -> applyParts(appContext, documents));
+    listen(firestore.collection("repairHistory").whereEqualTo("featured", true),
+           documents -> applyHistory(appContext, documents));
 
     firestore.collection("users")
         .document(user.getUid())

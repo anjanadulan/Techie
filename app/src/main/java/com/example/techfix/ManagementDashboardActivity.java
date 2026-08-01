@@ -15,6 +15,8 @@ public class ManagementDashboardActivity extends ManagementScreen {
 
     findViewById(R.id.btnManagementBack).setOnClickListener(view -> finish());
     bindModule(R.id.manageAppointments, ManagementModuleActivity.APPOINTMENTS);
+    bindModule(R.id.manageBranches, ManagementModuleActivity.BRANCHES);
+    bindModule(R.id.manageCategories, ManagementModuleActivity.CATEGORIES);
     bindModule(R.id.manageTechnicians, ManagementModuleActivity.TECHNICIANS);
     bindModule(R.id.managePrices, ManagementModuleActivity.PRICES);
     bindModule(R.id.manageParts, ManagementModuleActivity.PARTS);
@@ -32,30 +34,48 @@ public class ManagementDashboardActivity extends ManagementScreen {
     setText(R.id.tvDashboardActive, twoDigits(stats.activeRepairs));
     setText(R.id.tvDashboardReady, twoDigits(stats.readyRepairs));
     setText(R.id.tvDashboardLowStock, twoDigits(stats.lowStockParts));
+    setText(R.id.tvDashboardSummary,
+            stats.activeRepairs + " repairs active across Colombo and Galle");
+    setText(R.id.tvDashboardAppointmentsMeta,
+            stats.activeRepairs + " active repairs");
     setText(
-        R.id.tvDashboardSummary, stats.activeRepairs + " repairs active across Colombo and Galle");
-    setText(R.id.tvDashboardAppointmentsMeta, stats.activeRepairs + " active repairs");
-    setText(R.id.tvDashboardTechniciansMeta, stats.activeTechnicians + " active technicians");
-    setText(R.id.tvDashboardPartsMeta, stats.lowStockParts + " low-stock items");
-    setText(R.id.tvDashboardImagesMeta,
-        repository.getSummary(ManagementModuleActivity.IMAGES, "All").metric + " images");
-    setText(R.id.tvDashboardPaymentsMeta, ManagementRepository.formatPrice(stats.paidCents));
-    setText(R.id.tvDashboardActivityOne,
-        stats.recentActivity.isEmpty() ? "No repair activity recorded yet"
-                                       : stats.recentActivity.get(0));
+        R.id.tvDashboardBranchesMeta,
+        repository.getSummary(ManagementModuleActivity.BRANCHES, "All").metric +
+            " locations");
+    setText(R.id.tvDashboardCategoriesMeta,
+            repository.getSummary(ManagementModuleActivity.CATEGORIES, "All")
+                    .metric +
+                " categories");
+    setText(R.id.tvDashboardTechniciansMeta,
+            stats.activeTechnicians + " active technicians");
+    setText(R.id.tvDashboardPartsMeta,
+            stats.lowStockParts + " low-stock items");
+    setText(
+        R.id.tvDashboardImagesMeta,
+        repository.getSummary(ManagementModuleActivity.IMAGES, "All").metric +
+            " images");
+    setText(R.id.tvDashboardPaymentsMeta,
+            ManagementRepository.formatPrice(stats.paidCents));
+    setText(R.id.tvDashboardActivityOne, stats.recentActivity.isEmpty()
+                                             ? "No repair activity recorded yet"
+                                             : stats.recentActivity.get(0));
     setText(R.id.tvDashboardActivityTwo,
-        stats.recentActivity.size() < 2 ? "Management updates will appear here"
-                                        : stats.recentActivity.get(1));
-    findViewById(R.id.tvDashboardActivityOneMeta).setVisibility(android.view.View.GONE);
-    findViewById(R.id.tvDashboardActivityTwoMeta).setVisibility(android.view.View.GONE);
+            stats.recentActivity.size() < 2
+                ? "Management updates will appear here"
+                : stats.recentActivity.get(1));
+    findViewById(R.id.tvDashboardActivityOneMeta)
+        .setVisibility(android.view.View.GONE);
+    findViewById(R.id.tvDashboardActivityTwoMeta)
+        .setVisibility(android.view.View.GONE);
   }
 
   private void bindModule(int viewId, String module) {
-    findViewById(viewId).setOnClickListener(view -> ManagementModuleActivity.open(this, module));
+    findViewById(viewId).setOnClickListener(
+        view -> ManagementModuleActivity.open(this, module));
   }
 
   private void setText(int viewId, String value) {
-    ((TextView) findViewById(viewId)).setText(value);
+    ((TextView)findViewById(viewId)).setText(value);
   }
 
   private String twoDigits(long value) {

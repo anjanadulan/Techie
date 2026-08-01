@@ -21,6 +21,8 @@ import java.util.Locale;
 
 public class ManagementModuleActivity extends ManagementScreen {
   public static final String APPOINTMENTS = "appointments";
+  public static final String BRANCHES = "branches";
+  public static final String CATEGORIES = "categories";
   public static final String TECHNICIANS = "technicians";
   public static final String PRICES = "prices";
   public static final String PARTS = "parts";
@@ -35,8 +37,29 @@ public class ManagementModuleActivity extends ManagementScreen {
   private String selectedBranch = "All";
   private Long pendingImageAppointmentId;
 
-  private final ActivityResultLauncher<String[]> imagePicker = registerForActivityResult(
-      new ActivityResultContracts.OpenDocument(), this::saveSelectedImage);
+  private final ActivityResultLauncher<String[]> imagePicker =
+      registerForActivityResult(new ActivityResultContracts.OpenDocument(),
+                                uri -> {
+                                  if (uri == null)
+                                    pendingImageAppointmentId = null;
+                                  else
+                                    saveSelectedImage(uri);
+                                });
+  private final ActivityResultLauncher<Intent> cameraCapture =
+      registerForActivityResult(
+          new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() != RESULT_OK ||
+                result.getData() == null) {
+              pendingImageAppointmentId = null;
+              return;
+            }
+            String imageUri = result.getData().getStringExtra(
+                RepairCameraActivity.RESULT_IMAGE_URI);
+            if (imageUri != null)
+              saveSelectedImage(Uri.parse(imageUri));
+            else
+              pendingImageAppointmentId = null;
+          });
 
   public static void open(Activity activity, String module) {
     Intent intent = new Intent(activity, ManagementModuleActivity.class);
@@ -54,9 +77,9 @@ public class ManagementModuleActivity extends ManagementScreen {
       module = APPOINTMENTS;
     moduleInfo = moduleInfo(module);
 
-    ((TextView) findViewById(R.id.tvModuleEyebrow)).setText(moduleInfo.eyebrow);
-    ((TextView) findViewById(R.id.tvModuleTitle)).setText(moduleInfo.title);
-    ((TextView) findViewById(R.id.tvModuleSection)).setText(moduleInfo.section);
+    ((TextView)findViewById(R.id.tvModuleEyebrow)).setText(moduleInfo.eyebrow);
+    ((TextView)findViewById(R.id.tvModuleTitle)).setText(moduleInfo.title);
+    ((TextView)findViewById(R.id.tvModuleSection)).setText(moduleInfo.section);
     findViewById(R.id.btnModuleBack).setOnClickListener(view -> finish());
     findViewById(R.id.btnModuleAdd).setOnClickListener(view -> handleAdd());
     bindFilter(R.id.filterAll, "All");
@@ -88,17 +111,19 @@ public class ManagementModuleActivity extends ManagementScreen {
 
   private void updateFilter(int viewId, boolean active) {
     TextView filter = findViewById(viewId);
-    filter.setBackgroundResource(
-        active ? R.drawable.bg_management_chip_active : R.drawable.bg_management_chip);
-    filter.setTextColor(getColor(active ? R.color.management_cyan : R.color.management_muted));
+    filter.setBackgroundResource(active ? R.drawable.bg_management_chip_active
+                                        : R.drawable.bg_management_chip);
+    filter.setTextColor(
+        getColor(active ? R.color.management_cyan : R.color.management_muted));
   }
 
   private void reloadModule() {
     try {
-      ManagementRepository.ModuleSummary summary = repository.getSummary(module, selectedBranch);
-      ((TextView) findViewById(R.id.tvModuleMetric)).setText(summary.metric);
-      ((TextView) findViewById(R.id.tvModuleMetricLabel)).setText(summary.label);
-      ((TextView) findViewById(R.id.tvModuleTrend)).setText(summary.trend);
+      ManagementRepository.ModuleSummary summary =
+          repository.getSummary(module, selectedBranch);
+      ((TextView)findViewById(R.id.tvModuleMetric)).setText(summary.metric);
+      ((TextView)findViewById(R.id.tvModuleMetricLabel)).setText(summary.label);
+      ((TextView)findViewById(R.id.tvModuleTrend)).setText(summary.trend);
       renderItems(repository.getRecords(module, selectedBranch));
     } catch (RuntimeException exception) {
       showError(exception);
@@ -110,8 +135,10 @@ public class ManagementModuleActivity extends ManagementScreen {
     container.removeAllViews();
     LayoutInflater inflater = LayoutInflater.from(this);
     for (ManagementRepository.ManagementRecord item : items) {
-      View card = inflater.inflate(R.layout.view_management_item, container, false);
-      ((TextView) card.findViewById(R.id.tvManagementItemCode)).setText(item.code);
+      View card =
+          inflater.inflate(R.layout.view_management_item, container, false);
+      ((TextView)card.findViewById(R.id.tvManagementItemCode))
+          .setText(item.code);
       TextView status = card.findViewById(R.id.tvManagementItemStatus);
       status.setText(item.status.toUpperCase(Locale.US));
       styleStatus(status, item.status);
@@ -119,15 +146,19 @@ public class ManagementModuleActivity extends ManagementScreen {
       if (IMAGES.equals(module)) {
         preview.setVisibility(View.VISIBLE);
         if (item.imagePath != null) {
-          if (item.imagePath.startsWith("https://") || item.imagePath.startsWith("http://"))
+          if (item.imagePath.startsWith("https://") ||
+              item.imagePath.startsWith("http://"))
             RemoteImageLoader.load(preview, item.imagePath);
           else
             preview.setImageURI(Uri.parse(item.imagePath));
         }
       }
-      ((TextView) card.findViewById(R.id.tvManagementItemTitle)).setText(item.title);
-      ((TextView) card.findViewById(R.id.tvManagementItemMeta)).setText(item.meta);
-      ((TextView) card.findViewById(R.id.tvManagementItemDetail)).setText(item.detail);
+      ((TextView)card.findViewById(R.id.tvManagementItemTitle))
+          .setText(item.title);
+      ((TextView)card.findViewById(R.id.tvManagementItemMeta))
+          .setText(item.meta);
+      ((TextView)card.findViewById(R.id.tvManagementItemDetail))
+          .setText(item.detail);
       TextView action = card.findViewById(R.id.btnManagementItemAction);
       action.setText(item.action);
       View.OnClickListener listener = view -> handleItemAction(item);
@@ -141,7 +172,8 @@ public class ManagementModuleActivity extends ManagementScreen {
 
   private void addEmptyState(LinearLayout container) {
     TextView empty = new TextView(this);
-    empty.setText("No " + moduleInfo.title.toLowerCase(Locale.US) + " found for this selection.");
+    empty.setText("No " + moduleInfo.title.toLowerCase(Locale.US) +
+                  " found for this selection.");
     empty.setTextColor(getColor(R.color.management_muted));
     empty.setTextSize(14);
     empty.setPadding(0, dp(32), 0, dp(32));
@@ -151,37 +183,51 @@ public class ManagementModuleActivity extends ManagementScreen {
   private void handleItemAction(ManagementRepository.ManagementRecord item) {
     try {
       switch (module) {
-        case APPOINTMENTS:
-        case STATUSES:
-          showStatusPicker(item.id);
-          break;
-        case TECHNICIANS:
-          boolean activate = "OFF DUTY".equalsIgnoreCase(item.status);
-          repository.setTechnicianActive(item.id, activate);
+      case BRANCHES:
+        repository.setBranchActive(item.id,
+                                   "INACTIVE".equalsIgnoreCase(item.status));
+        reloadModule();
+        break;
+      case CATEGORIES:
+        repository.setCategoryActive(
+            item.id, "INACTIVE".equalsIgnoreCase(item.status));
+        reloadModule();
+        break;
+      case APPOINTMENTS:
+      case STATUSES:
+        showStatusPicker(item.id);
+        break;
+      case TECHNICIANS:
+        boolean activate = "OFF DUTY".equalsIgnoreCase(item.status);
+        repository.setTechnicianActive(item.id, activate);
+        reloadModule();
+        break;
+      case PRICES:
+        showNumberEditor(
+            "Update service price", "Price in LKR",
+            value -> repository.updateServicePrice(item.id, value));
+        break;
+      case PARTS:
+        showNumberEditor(
+            "Adjust available stock", "Quantity",
+            value
+            -> repository.updatePartQuantity(item.id, Math.toIntExact(value)));
+        break;
+      case IMAGES:
+        repository.featureRepairImage(item.id);
+        reloadModule();
+        break;
+      case PAYMENTS:
+        if ("PAID".equalsIgnoreCase(item.status)) {
+          Toast.makeText(this, "Payment receipt is ready.", Toast.LENGTH_SHORT)
+              .show();
+        } else {
+          repository.markPaymentPaid(item.id);
           reloadModule();
-          break;
-        case PRICES:
-          showNumberEditor("Update service price", "Price in LKR",
-              value -> repository.updateServicePrice(item.id, value));
-          break;
-        case PARTS:
-          showNumberEditor("Adjust available stock", "Quantity",
-              value -> repository.updatePartQuantity(item.id, Math.toIntExact(value)));
-          break;
-        case IMAGES:
-          repository.featureRepairImage(item.id);
-          reloadModule();
-          break;
-        case PAYMENTS:
-          if ("PAID".equalsIgnoreCase(item.status)) {
-            Toast.makeText(this, "Payment receipt is ready.", Toast.LENGTH_SHORT).show();
-          } else {
-            repository.markPaymentPaid(item.id);
-            reloadModule();
-          }
-          break;
-        default:
-          break;
+        }
+        break;
+      default:
+        break;
       }
     } catch (RuntimeException exception) {
       showError(exception);
@@ -189,27 +235,32 @@ public class ManagementModuleActivity extends ManagementScreen {
   }
 
   private void showStatusPicker(long appointmentId) {
-    AppointmentStatus[] statuses = {AppointmentStatus.ASSIGNED, AppointmentStatus.IN_PROGRESS,
-        AppointmentStatus.WAITING_FOR_PARTS, AppointmentStatus.READY_FOR_PAYMENT,
-        AppointmentStatus.COMPLETED, AppointmentStatus.CANCELLED};
+    AppointmentStatus[] statuses = {AppointmentStatus.ASSIGNED,
+                                    AppointmentStatus.IN_PROGRESS,
+                                    AppointmentStatus.WAITING_FOR_PARTS,
+                                    AppointmentStatus.READY_FOR_PAYMENT,
+                                    AppointmentStatus.COMPLETED,
+                                    AppointmentStatus.CANCELLED};
     String[] labels = new String[statuses.length];
     for (int index = 0; index < statuses.length; index++)
       labels[index] = ManagementRepository.statusLabel(statuses[index]);
     new AlertDialog.Builder(this)
         .setTitle("Update repair status")
         .setItems(labels,
-            (dialog, index) -> {
-              try {
-                repository.updateAppointmentStatus(appointmentId, statuses[index]);
-                reloadModule();
-              } catch (RuntimeException exception) {
-                showError(exception);
-              }
-            })
+                  (dialog, index) -> {
+                    try {
+                      repository.updateAppointmentStatus(appointmentId,
+                                                         statuses[index]);
+                      reloadModule();
+                    } catch (RuntimeException exception) {
+                      showError(exception);
+                    }
+                  })
         .show();
   }
 
-  private void showNumberEditor(String title, String hint, NumberAction action) {
+  private void showNumberEditor(String title, String hint,
+                                NumberAction action) {
     EditText value = new EditText(this);
     value.setHint(hint);
     value.setInputType(InputType.TYPE_CLASS_NUMBER);
@@ -221,43 +272,52 @@ public class ManagementModuleActivity extends ManagementScreen {
                              .setNegativeButton("Cancel", null)
                              .setPositiveButton("Save", null)
                              .create();
-    dialog.setOnShowListener(
-        ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(button -> {
-          String entered = value.getText().toString().trim();
-          if (entered.isEmpty()) {
-            value.setError("A value is required.");
-            return;
-          }
-          try {
-            action.save(Long.parseLong(entered));
-            dialog.dismiss();
-            reloadModule();
-          } catch (RuntimeException exception) {
-            value.setError(message(exception));
-          }
-        }));
+    dialog.setOnShowListener(ignored
+                             -> dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                                    .setOnClickListener(button -> {
+                                      String entered =
+                                          value.getText().toString().trim();
+                                      if (entered.isEmpty()) {
+                                        value.setError("A value is required.");
+                                        return;
+                                      }
+                                      try {
+                                        action.save(Long.parseLong(entered));
+                                        dialog.dismiss();
+                                        reloadModule();
+                                      } catch (RuntimeException exception) {
+                                        value.setError(message(exception));
+                                      }
+                                    }));
     dialog.show();
   }
 
   private void handleAdd() {
     switch (module) {
-      case IMAGES:
-        chooseAppointment("Attach image to repair", choice -> {
-          pendingImageAppointmentId = choice.id;
-          imagePicker.launch(new String[] {"image/*"});
-        });
-        return;
-      case PAYMENTS:
-        chooseAppointment("Record payment for repair", choice -> {
-          repository.createPendingPayment(choice.id);
-          reloadModule();
-        });
-        return;
-      case STATUSES:
-        chooseAppointment("Choose repair to update", choice -> showStatusPicker(choice.id));
-        return;
-      default:
-        showCreateDialog();
+    case BRANCHES:
+      showBranchDialog();
+      return;
+    case CATEGORIES:
+      showCategoryDialog();
+      return;
+    case IMAGES:
+      chooseAppointment("Attach image to repair", choice -> {
+        pendingImageAppointmentId = choice.id;
+        showImageSourcePicker();
+      });
+      return;
+    case PAYMENTS:
+      chooseAppointment("Record payment for repair", choice -> {
+        repository.createPendingPayment(choice.id);
+        reloadModule();
+      });
+      return;
+    case STATUSES:
+      chooseAppointment("Choose repair to update",
+                        choice -> showStatusPicker(choice.id));
+      return;
+    default:
+      showCreateDialog();
     }
   }
 
@@ -273,57 +333,143 @@ public class ManagementModuleActivity extends ManagementScreen {
                              .setPositiveButton("Save", null)
                              .create();
     dialog.setOnShowListener(
-        ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(button -> {
-          String value = name.getText().toString().trim();
-          if (value.isEmpty()) {
-            name.setError("This field is required.");
-            return;
-          }
-          try {
-            switch (module) {
-              case APPOINTMENTS:
-                repository.createWalkInAppointment(value, selectedBranch);
-                break;
-              case TECHNICIANS:
-                repository.addTechnician(value, selectedBranch);
-                break;
-              case PRICES:
-                repository.addService(value);
-                break;
-              case PARTS:
-                repository.addSparePart(value, selectedBranch);
-                break;
-              default:
-                return;
-            }
-            dialog.dismiss();
-            reloadModule();
-          } catch (RuntimeException exception) {
-            name.setError(message(exception));
-          }
-        }));
+        ignored
+        -> dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+               .setOnClickListener(button -> {
+                 String value = name.getText().toString().trim();
+                 if (value.isEmpty()) {
+                   name.setError("This field is required.");
+                   return;
+                 }
+                 try {
+                   switch (module) {
+                   case APPOINTMENTS:
+                     repository.createWalkInAppointment(value, selectedBranch);
+                     break;
+                   case TECHNICIANS:
+                     repository.addTechnician(value, selectedBranch);
+                     break;
+                   case PRICES:
+                     repository.addService(value);
+                     break;
+                   case PARTS:
+                     repository.addSparePart(value, selectedBranch);
+                     break;
+                   default:
+                     return;
+                   }
+                   dialog.dismiss();
+                   reloadModule();
+                 } catch (RuntimeException exception) {
+                   name.setError(message(exception));
+                 }
+               }));
+    dialog.show();
+  }
+
+  private void showBranchDialog() {
+    LinearLayout form = dialogForm();
+    EditText name = formField(form, "Branch name", InputType.TYPE_CLASS_TEXT);
+    EditText address = formField(form, "Address", InputType.TYPE_CLASS_TEXT);
+    EditText phone = formField(form, "Phone", InputType.TYPE_CLASS_PHONE);
+    EditText latitude = formField(form, "Latitude",
+                                  InputType.TYPE_CLASS_NUMBER |
+                                      InputType.TYPE_NUMBER_FLAG_DECIMAL |
+                                      InputType.TYPE_NUMBER_FLAG_SIGNED);
+    EditText longitude = formField(form, "Longitude",
+                                   InputType.TYPE_CLASS_NUMBER |
+                                       InputType.TYPE_NUMBER_FLAG_DECIMAL |
+                                       InputType.TYPE_NUMBER_FLAG_SIGNED);
+    showFormDialog(
+        "Add service branch", form,
+        ()
+            -> repository.addBranch(
+                name.getText().toString(), address.getText().toString(),
+                phone.getText().toString(),
+                Double.parseDouble(latitude.getText().toString().trim()),
+                Double.parseDouble(longitude.getText().toString().trim())));
+  }
+
+  private void showCategoryDialog() {
+    LinearLayout form = dialogForm();
+    EditText name = formField(form, "Category name", InputType.TYPE_CLASS_TEXT);
+    EditText description = formField(
+        form, "Description",
+        InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES |
+            InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+    showFormDialog(
+        "Add device category", form,
+        ()
+            -> repository.addCategory(name.getText().toString(),
+                                      description.getText().toString()));
+  }
+
+  private LinearLayout dialogForm() {
+    LinearLayout form = new LinearLayout(this);
+    form.setOrientation(LinearLayout.VERTICAL);
+    form.setPadding(dp(20), dp(8), dp(20), 0);
+    return form;
+  }
+
+  private EditText formField(LinearLayout form, String hint, int inputType) {
+    EditText field = new EditText(this);
+    field.setHint(hint);
+    field.setInputType(inputType);
+    field.setPadding(0, dp(12), 0, dp(12));
+    form.addView(field, new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT));
+    return field;
+  }
+
+  private void showFormDialog(String title, LinearLayout form,
+                              FormAction action) {
+    AlertDialog dialog = new AlertDialog.Builder(this)
+                             .setTitle(title)
+                             .setView(form)
+                             .setNegativeButton("Cancel", null)
+                             .setPositiveButton("Save", null)
+                             .create();
+    dialog.setOnShowListener(
+        ignored
+        -> dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+               .setOnClickListener(button -> {
+                 try {
+                   action.save();
+                   dialog.dismiss();
+                   reloadModule();
+                 } catch (RuntimeException exception) {
+                   Toast.makeText(this, message(exception), Toast.LENGTH_LONG)
+                       .show();
+                 }
+               }));
     dialog.show();
   }
 
   private void chooseAppointment(String title, AppointmentAction action) {
     try {
-      List<ManagementRepository.AppointmentChoice> choices = repository.getAppointmentChoices();
+      List<ManagementRepository.AppointmentChoice> choices =
+          repository.getAppointmentChoices();
       if (choices.isEmpty()) {
-        Toast.makeText(this, "No repair appointments are available.", Toast.LENGTH_SHORT).show();
+        Toast
+            .makeText(this, "No repair appointments are available.",
+                      Toast.LENGTH_SHORT)
+            .show();
         return;
       }
       String[] labels = new String[choices.size()];
-      for (int index = 0; index < choices.size(); index++) labels[index] = choices.get(index).label;
+      for (int index = 0; index < choices.size(); index++)
+        labels[index] = choices.get(index).label;
       new AlertDialog.Builder(this)
           .setTitle(title)
           .setItems(labels,
-              (dialog, index) -> {
-                try {
-                  action.run(choices.get(index));
-                } catch (RuntimeException exception) {
-                  showError(exception);
-                }
-              })
+                    (dialog, index) -> {
+                      try {
+                        action.run(choices.get(index));
+                      } catch (RuntimeException exception) {
+                        showError(exception);
+                      }
+                    })
           .show();
     } catch (RuntimeException exception) {
       showError(exception);
@@ -334,9 +480,11 @@ public class ManagementModuleActivity extends ManagementScreen {
     if (uri == null || pendingImageAppointmentId == null)
       return;
     try {
-      getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+      getContentResolver().takePersistableUriPermission(
+          uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
     } catch (SecurityException ignored) {
-      // The selected provider may only grant access for the current app session.
+      // The selected provider may only grant access for the current app
+      // session.
     }
     try {
       repository.addRepairImage(pendingImageAppointmentId, uri.toString());
@@ -347,14 +495,32 @@ public class ManagementModuleActivity extends ManagementScreen {
     }
   }
 
+  private void showImageSourcePicker() {
+    new AlertDialog.Builder(this)
+        .setTitle("Add repaired-device photo")
+        .setItems(new String[] {"Take photo", "Choose from gallery"},
+                  (dialog, index) -> {
+                    if (index == 0)
+                      cameraCapture.launch(
+                          new Intent(this, RepairCameraActivity.class));
+                    else
+                      imagePicker.launch(new String[] {"image/*"});
+                  })
+        .setOnCancelListener(dialog -> pendingImageAppointmentId = null)
+        .show();
+  }
+
   private void styleStatus(TextView status, String value) {
     String normalized = value.toUpperCase(Locale.US);
-    boolean warning = normalized.contains("PENDING") || normalized.contains("LOW")
-        || normalized.contains("BUSY") || normalized.contains("WAITING")
-        || normalized.contains("OFF DUTY") || normalized.contains("CANCELLED");
-    status.setBackgroundResource(
-        warning ? R.drawable.bg_management_status_warning : R.drawable.bg_management_status);
-    status.setTextColor(getColor(warning ? R.color.management_amber : R.color.management_green));
+    boolean warning =
+        normalized.contains("PENDING") || normalized.contains("LOW") ||
+        normalized.contains("BUSY") || normalized.contains("WAITING") ||
+        normalized.contains("OFF DUTY") || normalized.contains("CANCELLED");
+    status.setBackgroundResource(warning
+                                     ? R.drawable.bg_management_status_warning
+                                     : R.drawable.bg_management_status);
+    status.setTextColor(getColor(warning ? R.color.management_amber
+                                         : R.color.management_green));
   }
 
   private void showError(RuntimeException exception) {
@@ -362,8 +528,9 @@ public class ManagementModuleActivity extends ManagementScreen {
   }
 
   private String message(RuntimeException exception) {
-    return exception.getMessage() == null ? "Unable to complete the management action."
-                                          : exception.getMessage();
+    return exception.getMessage() == null
+        ? "Unable to complete the management action."
+        : exception.getMessage();
   }
 
   private int dp(int value) {
@@ -372,28 +539,35 @@ public class ManagementModuleActivity extends ManagementScreen {
 
   private ModuleInfo moduleInfo(String requestedModule) {
     switch (requestedModule) {
-      case TECHNICIANS:
-        return new ModuleInfo(
-            "WORKFORCE", "Technicians", "Team availability", "Add technician", "Technician name");
-      case PRICES:
-        return new ModuleInfo(
-            "SERVICE CATALOG", "Service prices", "Current pricing", "Add service", "Service name");
-      case PARTS:
-        return new ModuleInfo(
-            "INVENTORY", "Spare parts", "Stock levels", "Add spare part", "Part name or SKU");
-      case IMAGES:
-        return new ModuleInfo("MEDIA LIBRARY", "Repair gallery", "Recent work",
-            "Upload repair image", "Image caption");
-      case PAYMENTS:
-        return new ModuleInfo(
-            "FINANCE", "Payments", "Latest transactions", "Record payment", "Appointment ID");
-      case STATUSES:
-        return new ModuleInfo(
-            "REPAIR WORKFLOW", "Status updates", "Update queue", "Create update", "Appointment ID");
-      case APPOINTMENTS:
-      default:
-        return new ModuleInfo("BOOKING DESK", "Appointments", "Repair queue", "Create appointment",
-            "Customer device");
+    case BRANCHES:
+      return new ModuleInfo("LOCATIONS", "Branches", "Service locations",
+                            "Add branch", "Branch name");
+    case CATEGORIES:
+      return new ModuleInfo("DEVICE CATALOG", "Device categories",
+                            "Supported devices", "Add category",
+                            "Category name");
+    case TECHNICIANS:
+      return new ModuleInfo("WORKFORCE", "Technicians", "Team availability",
+                            "Add technician", "Technician name");
+    case PRICES:
+      return new ModuleInfo("SERVICE CATALOG", "Service prices",
+                            "Current pricing", "Add service", "Service name");
+    case PARTS:
+      return new ModuleInfo("INVENTORY", "Spare parts", "Stock levels",
+                            "Add spare part", "Part name or SKU");
+    case IMAGES:
+      return new ModuleInfo("MEDIA LIBRARY", "Repair gallery", "Recent work",
+                            "Upload repair image", "Image caption");
+    case PAYMENTS:
+      return new ModuleInfo("FINANCE", "Payments", "Latest transactions",
+                            "Record payment", "Appointment ID");
+    case STATUSES:
+      return new ModuleInfo("REPAIR WORKFLOW", "Status updates", "Update queue",
+                            "Create update", "Appointment ID");
+    case APPOINTMENTS:
+    default:
+      return new ModuleInfo("BOOKING DESK", "Appointments", "Repair queue",
+                            "Create appointment", "Customer device");
     }
   }
 
@@ -408,6 +582,10 @@ public class ManagementModuleActivity extends ManagementScreen {
     void save(long value);
   }
 
+  private interface FormAction {
+    void save();
+  }
+
   private interface AppointmentAction {
     void run(ManagementRepository.AppointmentChoice choice);
   }
@@ -419,7 +597,8 @@ public class ManagementModuleActivity extends ManagementScreen {
     final String addTitle;
     final String addHint;
 
-    ModuleInfo(String eyebrow, String title, String section, String addTitle, String addHint) {
+    ModuleInfo(String eyebrow, String title, String section, String addTitle,
+               String addHint) {
       this.eyebrow = eyebrow;
       this.title = title;
       this.section = section;

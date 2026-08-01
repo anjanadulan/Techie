@@ -26,6 +26,10 @@ public final class ManagementRepository implements AutoCloseable {
 
   public List<ManagementRecord> getRecords(String module, String branch) {
     switch (module) {
+    case ManagementModuleActivity.BRANCHES:
+      return getBranches();
+    case ManagementModuleActivity.CATEGORIES:
+      return getCategories();
     case ManagementModuleActivity.TECHNICIANS:
       return getTechnicians(branch);
     case ManagementModuleActivity.PRICES:
@@ -47,6 +51,12 @@ public final class ManagementRepository implements AutoCloseable {
   public ModuleSummary getSummary(String module, String branch) {
     List<ManagementRecord> records = getRecords(module, branch);
     switch (module) {
+    case ManagementModuleActivity.BRANCHES:
+      return new ModuleSummary(String.valueOf(records.size()),
+                               "service branches", "LOCATIONS");
+    case ManagementModuleActivity.CATEGORIES:
+      return new ModuleSummary(String.valueOf(records.size()),
+                               "device categories", "CATALOG");
     case ManagementModuleActivity.TECHNICIANS:
       return new ModuleSummary(String.valueOf(records.size()), "technicians",
                                "LIVE DATA");
@@ -144,6 +154,20 @@ public final class ManagementRepository implements AutoCloseable {
     ContentValues values = new ContentValues();
     values.put(TechFixDatabaseHelper.ACTIVE, active ? 1 : 0);
     return updateById(TechFixDatabaseHelper.TABLE_TECHNICIANS, technicianId,
+                      values) == 1;
+  }
+
+  public boolean setBranchActive(long branchId, boolean active) {
+    ContentValues values = new ContentValues();
+    values.put(TechFixDatabaseHelper.ACTIVE, active ? 1 : 0);
+    return updateById(TechFixDatabaseHelper.TABLE_BRANCHES, branchId, values) ==
+        1;
+  }
+
+  public boolean setCategoryActive(long categoryId, boolean active) {
+    ContentValues values = new ContentValues();
+    values.put(TechFixDatabaseHelper.ACTIVE, active ? 1 : 0);
+    return updateById(TechFixDatabaseHelper.TABLE_DEVICE_CATEGORIES, categoryId,
                       values) == 1;
   }
 
@@ -257,6 +281,30 @@ public final class ManagementRepository implements AutoCloseable {
     values.put(TechFixDatabaseHelper.SPECIALTY, "Phone and tablet repairs");
     values.put(TechFixDatabaseHelper.ACTIVE, 1);
     return insertAndSync(TechFixDatabaseHelper.TABLE_TECHNICIANS, values);
+  }
+
+  public long addBranch(String name, String address, String phone,
+                        double latitude, double longitude) {
+    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180)
+      throw new IllegalArgumentException("Enter valid branch coordinates.");
+    ContentValues values = new ContentValues();
+    values.put(TechFixDatabaseHelper.NAME, requireText(name, "Branch name"));
+    values.put(TechFixDatabaseHelper.ADDRESS,
+               requireText(address, "Branch address"));
+    values.put(TechFixDatabaseHelper.PHONE, requireText(phone, "Branch phone"));
+    values.put(TechFixDatabaseHelper.LATITUDE, latitude);
+    values.put(TechFixDatabaseHelper.LONGITUDE, longitude);
+    values.put(TechFixDatabaseHelper.ACTIVE, 1);
+    return insertAndSync(TechFixDatabaseHelper.TABLE_BRANCHES, values);
+  }
+
+  public long addCategory(String name, String description) {
+    ContentValues values = new ContentValues();
+    values.put(TechFixDatabaseHelper.NAME, requireText(name, "Category name"));
+    values.put(TechFixDatabaseHelper.DESCRIPTION,
+               requireText(description, "Category description"));
+    values.put(TechFixDatabaseHelper.ACTIVE, 1);
+    return insertAndSync(TechFixDatabaseHelper.TABLE_DEVICE_CATEGORIES, values);
   }
 
   public long addService(String serviceName) {
@@ -374,6 +422,56 @@ public final class ManagementRepository implements AutoCloseable {
             branchName + " · " + cursor.getString(7) + " · " +
                 formatDateTime(cursor.getLong(4)),
             cursor.getString(3), "UPDATE", branchName, null));
+      }
+    }
+    return records;
+  }
+
+  private List<ManagementRecord> getBranches() {
+    List<ManagementRecord> records = new ArrayList<>();
+    try (Cursor cursor = helper.getReadableDatabase().query(
+             TechFixDatabaseHelper.TABLE_BRANCHES, null, null, null, null, null,
+             TechFixDatabaseHelper.NAME)) {
+      while (cursor.moveToNext()) {
+        boolean active = cursor.getInt(cursor.getColumnIndexOrThrow(
+                             TechFixDatabaseHelper.ACTIVE)) == 1;
+        String name = cursor.getString(
+            cursor.getColumnIndexOrThrow(TechFixDatabaseHelper.NAME));
+        records.add(new ManagementRecord(
+            cursor.getLong(
+                cursor.getColumnIndexOrThrow(TechFixDatabaseHelper.ID)),
+            name.substring(0, Math.min(3, name.length()))
+                .toUpperCase(Locale.US),
+            active ? "ACTIVE" : "INACTIVE", name,
+            cursor.getString(
+                cursor.getColumnIndexOrThrow(TechFixDatabaseHelper.ADDRESS)),
+            cursor.getString(
+                cursor.getColumnIndexOrThrow(TechFixDatabaseHelper.PHONE)),
+            active ? "DISABLE" : "ENABLE", name, null));
+      }
+    }
+    return records;
+  }
+
+  private List<ManagementRecord> getCategories() {
+    List<ManagementRecord> records = new ArrayList<>();
+    try (Cursor cursor = helper.getReadableDatabase().query(
+             TechFixDatabaseHelper.TABLE_DEVICE_CATEGORIES, null, null, null,
+             null, null, TechFixDatabaseHelper.NAME)) {
+      while (cursor.moveToNext()) {
+        boolean active = cursor.getInt(cursor.getColumnIndexOrThrow(
+                             TechFixDatabaseHelper.ACTIVE)) == 1;
+        String name = cursor.getString(
+            cursor.getColumnIndexOrThrow(TechFixDatabaseHelper.NAME));
+        records.add(new ManagementRecord(
+            cursor.getLong(
+                cursor.getColumnIndexOrThrow(TechFixDatabaseHelper.ID)),
+            name.substring(0, Math.min(4, name.length()))
+                .toUpperCase(Locale.US),
+            active ? "ACTIVE" : "INACTIVE", name, "Service classification",
+            cursor.getString(cursor.getColumnIndexOrThrow(
+                TechFixDatabaseHelper.DESCRIPTION)),
+            active ? "DISABLE" : "ENABLE", "All", null));
       }
     }
     return records;

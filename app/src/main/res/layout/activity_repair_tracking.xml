@@ -291,6 +291,17 @@
                     android:textStyle="bold"
                 />
             </LinearLayout>
+            <TextView
+                android:id="@+id/btnCustomerPayment"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_customer_primary"
+                android:gravity="center"
+                android:text="Payment available when repair is ready"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+            />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>
