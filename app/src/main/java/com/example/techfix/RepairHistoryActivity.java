@@ -1,7 +1,9 @@
 package com.example.techfix;
 
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.example.techfix.data.model.AppointmentStatus;
 import java.util.List;
@@ -9,13 +11,6 @@ import java.util.List;
 public class RepairHistoryActivity extends CustomerScreen {
   private CustomerRepository repository;
   private SessionManager sessionManager;
-  private final int[] cardIds = {R.id.historyCard1, R.id.historyCard2, R.id.historyCard3};
-  private final int[] idIds = {R.id.historyId1, R.id.historyId2, R.id.historyId3};
-  private final int[] statusIds = {R.id.historyStatus1, R.id.historyStatus2, R.id.historyStatus3};
-  private final int[] titleIds = {R.id.historyTitle1, R.id.historyTitle2, R.id.historyTitle3};
-  private final int[] subtitleIds = {
-      R.id.historySubtitle1, R.id.historySubtitle2, R.id.historySubtitle3};
-  private final int[] priceIds = {R.id.historyPrice1, R.id.historyPrice2, R.id.historyPrice3};
 
   @Override
   protected void onCreate(Bundle state) {
@@ -35,33 +30,40 @@ public class RepairHistoryActivity extends CustomerScreen {
   private void bindHistory() {
     List<CustomerRepository.AppointmentItem> appointments =
         repository.getAppointments(sessionManager.getUserId());
-    for (int index = 0; index < cardIds.length; index++) {
-      View card = findViewById(cardIds[index]);
-      if (index >= appointments.size()) {
-        card.setVisibility(View.GONE);
-        continue;
-      }
-      CustomerRepository.AppointmentItem appointment = appointments.get(index);
-      card.setVisibility(View.VISIBLE);
-      ((TextView) findViewById(idIds[index]))
-          .setText("#TF-" + appointment.id + " · "
-              + CustomerRepository.formatDate(appointment.createdAt));
-      TextView status = findViewById(statusIds[index]);
+    LinearLayout list = findViewById(R.id.repairHistoryList);
+    list.removeAllViews();
+    LayoutInflater inflater = LayoutInflater.from(this);
+    for (CustomerRepository.AppointmentItem appointment : appointments) {
+      View card =
+          inflater.inflate(R.layout.view_repair_history_item, list, false);
+      ((TextView)card.findViewById(R.id.historyItemId))
+          .setText("#TF-" + appointment.id + " · " +
+                   CustomerRepository.formatDate(appointment.createdAt));
+      TextView status = card.findViewById(R.id.historyItemStatus);
       status.setText(CustomerRepository.statusLabel(appointment.status));
       boolean cancelled = appointment.status == AppointmentStatus.CANCELLED;
-      status.setBackgroundResource(
-          cancelled ? R.drawable.bg_status_cancelled : R.drawable.bg_status_success);
-      status.setTextColor(getColor(cancelled ? R.color.customer_danger : R.color.customer_success));
-      ((TextView) findViewById(titleIds[index])).setText(appointment.deviceDetails);
-      ((TextView) findViewById(subtitleIds[index]))
-          .setText(appointment.serviceName + " · "
-              + (appointment.branchName == null ? "Branch pending"
-                                                : appointment.branchName + " branch"));
-      ((TextView) findViewById(priceIds[index]))
-          .setText((appointment.status == AppointmentStatus.COMPLETED ? "Total · " : "Estimated · ")
-              + CustomerRepository.formatPrice(appointment.priceCents));
-      card.setOnClickListener(v -> RepairTrackingActivity.open(this, appointment.id));
+      status.setBackgroundResource(cancelled ? R.drawable.bg_status_cancelled
+                                             : R.drawable.bg_status_success);
+      status.setTextColor(getColor(cancelled ? R.color.customer_danger
+                                             : R.color.customer_success));
+      ((TextView)card.findViewById(R.id.historyItemTitle))
+          .setText(appointment.deviceDetails);
+      ((TextView)card.findViewById(R.id.historyItemSubtitle))
+          .setText(appointment.serviceName + " · " +
+                   (appointment.branchName == null
+                        ? "Branch pending"
+                        : appointment.branchName + " branch"));
+      ((TextView)card.findViewById(R.id.historyItemPrice))
+          .setText((appointment.status == AppointmentStatus.COMPLETED
+                        ? "Total · "
+                        : "Estimated · ") +
+                   CustomerRepository.formatPrice(appointment.priceCents));
+      card.setOnClickListener(
+          v -> RepairTrackingActivity.open(this, appointment.id));
+      list.addView(card);
     }
+    findViewById(R.id.tvHistoryEmpty)
+        .setVisibility(appointments.isEmpty() ? View.VISIBLE : View.GONE);
   }
 
   @Override

@@ -12,7 +12,7 @@ import java.util.UUID;
 
 public class TechFixDatabaseHelper extends SQLiteOpenHelper {
   static final String DATABASE_NAME = "techfix.db";
-  static final int DATABASE_VERSION = 4;
+  static final int DATABASE_VERSION = 5;
 
   static final String TABLE_USERS = "users";
   static final String TABLE_BRANCHES = "branches";
@@ -60,6 +60,7 @@ public class TechFixDatabaseHelper extends SQLiteOpenHelper {
   static final String IMAGE_PATH = "image_path";
   static final String RECORDED_AT = "recorded_at";
   static final String CREATED_AT = "created_at";
+  static final String REMOTE_ID = "remote_id";
 
   private static final String APPOINTMENT_STATUS_CHECK =
       " CHECK (" + STATUS + " IN ('PENDING','ASSIGNED','IN_PROGRESS',"
@@ -96,6 +97,9 @@ public class TechFixDatabaseHelper extends SQLiteOpenHelper {
       }
       if (oldVersion < 4) {
         seedReferenceData(database);
+      }
+      if (oldVersion < 5) {
+        addRemoteIdentifiers(database);
       }
       database.setTransactionSuccessful();
     } finally {
@@ -175,13 +179,13 @@ public class TechFixDatabaseHelper extends SQLiteOpenHelper {
 
     database.execSQL(
         "CREATE TABLE IF NOT EXISTS " + TABLE_APPOINTMENTS + " (" + ID +
-        " INTEGER PRIMARY KEY AUTOINCREMENT, " + USER_ID +
-        " INTEGER NOT NULL, " + BRANCH_ID + " INTEGER, " + TECHNICIAN_ID +
-        " INTEGER, " + SERVICE_ID + " INTEGER NOT NULL, " + DEVICE_DETAILS +
-        " TEXT NOT NULL, " + PROBLEM_DESCRIPTION + " TEXT NOT NULL, " +
-        STATUS + " TEXT NOT NULL" + APPOINTMENT_STATUS_CHECK + ", " +
-        APPOINTMENT_AT + " INTEGER NOT NULL, " + CREATED_AT +
-        " INTEGER NOT NULL, "
+        " INTEGER PRIMARY KEY AUTOINCREMENT, " + REMOTE_ID +
+        " TEXT UNIQUE, " + USER_ID + " INTEGER NOT NULL, " + BRANCH_ID +
+        " INTEGER, " + TECHNICIAN_ID + " INTEGER, " + SERVICE_ID +
+        " INTEGER NOT NULL, " + DEVICE_DETAILS + " TEXT NOT NULL, " +
+        PROBLEM_DESCRIPTION + " TEXT NOT NULL, " + STATUS + " TEXT NOT NULL" +
+        APPOINTMENT_STATUS_CHECK + ", " + APPOINTMENT_AT +
+        " INTEGER NOT NULL, " + CREATED_AT + " INTEGER NOT NULL, "
         + "FOREIGN KEY (" + USER_ID + ") REFERENCES " + TABLE_USERS + "(" +
         ID + ") ON UPDATE CASCADE ON DELETE RESTRICT, "
         + "FOREIGN KEY (" + BRANCH_ID + ") REFERENCES " + TABLE_BRANCHES +
@@ -196,22 +200,24 @@ public class TechFixDatabaseHelper extends SQLiteOpenHelper {
 
     database.execSQL(
         "CREATE TABLE IF NOT EXISTS " + TABLE_PAYMENTS + " (" + ID +
-        " INTEGER PRIMARY KEY AUTOINCREMENT, " + APPOINTMENT_ID +
-        " INTEGER NOT NULL, " + AMOUNT_CENTS + " INTEGER NOT NULL CHECK (" +
-        AMOUNT_CENTS + " >= 0), " + METHOD + " TEXT NOT NULL" +
-        PAYMENT_METHOD_CHECK + ", " + STATUS + " TEXT NOT NULL" +
-        PAYMENT_STATUS_CHECK + ", " + REFERENCE + " TEXT, " + PAID_AT +
-        " INTEGER, " + CREATED_AT + " INTEGER NOT NULL, "
+        " INTEGER PRIMARY KEY AUTOINCREMENT, " + REMOTE_ID +
+        " TEXT UNIQUE, " + APPOINTMENT_ID + " INTEGER NOT NULL, " +
+        AMOUNT_CENTS + " INTEGER NOT NULL CHECK (" + AMOUNT_CENTS + " >= 0), " +
+        METHOD + " TEXT NOT NULL" + PAYMENT_METHOD_CHECK + ", " + STATUS +
+        " TEXT NOT NULL" + PAYMENT_STATUS_CHECK + ", " + REFERENCE +
+        " TEXT, " + PAID_AT + " INTEGER, " + CREATED_AT +
+        " INTEGER NOT NULL, "
         + "FOREIGN KEY (" + APPOINTMENT_ID + ") REFERENCES " +
         TABLE_APPOINTMENTS + "(" + ID + ") ON UPDATE CASCADE ON DELETE CASCADE"
         + ")");
 
     database.execSQL(
         "CREATE TABLE IF NOT EXISTS " + TABLE_REPAIR_HISTORY + " (" + ID +
-        " INTEGER PRIMARY KEY AUTOINCREMENT, " + APPOINTMENT_ID +
-        " INTEGER NOT NULL, " + STATUS + " TEXT NOT NULL" +
-        APPOINTMENT_STATUS_CHECK + ", " + NOTES + " TEXT NOT NULL, " +
-        IMAGE_PATH + " TEXT, " + RECORDED_AT + " INTEGER NOT NULL, "
+        " INTEGER PRIMARY KEY AUTOINCREMENT, " + REMOTE_ID +
+        " TEXT UNIQUE, " + APPOINTMENT_ID + " INTEGER NOT NULL, " + STATUS +
+        " TEXT NOT NULL" + APPOINTMENT_STATUS_CHECK + ", " + NOTES +
+        " TEXT NOT NULL, " + IMAGE_PATH + " TEXT, " + RECORDED_AT +
+        " INTEGER NOT NULL, "
         + "FOREIGN KEY (" + APPOINTMENT_ID + ") REFERENCES " +
         TABLE_APPOINTMENTS + "(" + ID + ") ON UPDATE CASCADE ON DELETE CASCADE"
         + ")");
@@ -238,6 +244,33 @@ public class TechFixDatabaseHelper extends SQLiteOpenHelper {
     database.execSQL("CREATE INDEX IF NOT EXISTS idx_history_appointment ON " +
                      TABLE_REPAIR_HISTORY + "(" + APPOINTMENT_ID + ", " +
                      RECORDED_AT + ")");
+  }
+
+  private void addRemoteIdentifiers(SQLiteDatabase database) {
+    String[] tables = {TABLE_APPOINTMENTS, TABLE_PAYMENTS,
+                       TABLE_REPAIR_HISTORY};
+    for (String table : tables) {
+      if (!hasColumn(database, table, REMOTE_ID))
+        database.execSQL("ALTER TABLE " + table + " ADD COLUMN " + REMOTE_ID +
+                         " TEXT");
+      database.execSQL("UPDATE " + table + " SET " + REMOTE_ID +
+                       "=lower(hex(randomblob(16))) WHERE " + REMOTE_ID +
+                       " IS NULL");
+      database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS idx_" + table +
+                       "_remote_id ON " + table + "(" + REMOTE_ID + ")");
+    }
+  }
+
+  private boolean hasColumn(SQLiteDatabase database, String table,
+                            String column) {
+    try (Cursor cursor =
+             database.rawQuery("PRAGMA table_info(" + table + ")", null)) {
+      int nameIndex = cursor.getColumnIndexOrThrow("name");
+      while (cursor.moveToNext())
+        if (column.equals(cursor.getString(nameIndex)))
+          return true;
+      return false;
+    }
   }
 
   private void seedReferenceData(SQLiteDatabase database) {

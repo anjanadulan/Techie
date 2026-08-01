@@ -41,6 +41,8 @@
 - **Camera & Image Integration:** Managers can capture repaired devices through an in-app CameraX viewfinder or select an existing gallery image. Photos are retained locally until WorkManager uploads them to Firebase Storage, and featured samples are displayed in the customer repair gallery.
 - **Offline Storage:** Native SQLite stores user accounts, branches, technicians, device categories, repair services, branch spare-part inventory, appointments, payments, and repair-history events.
 - **Remote Data & Web Services:** Firebase Authentication, Cloud Firestore listeners, and WorkManager synchronize availability, appointments, payments, and repair progress.
+- **Collision-safe Sync:** Customer appointments, payments, and repair-history events use persistent UUIDs across devices.
+- **Customer Availability:** Customers can browse active technicians, specialties, branches, and current spare-part quantities.
 - **Management:** Dedicated modules manage branches, device categories, appointments, technicians, pricing, spare parts, repair images, payments, and statuses.
 - **Customer Payments:** A coursework-safe payment simulation records card, bank-transfer, or online payment receipts without collecting real banking credentials.
 - **Repair Gallery:** Managers can feature repaired-device images for customers to browse.

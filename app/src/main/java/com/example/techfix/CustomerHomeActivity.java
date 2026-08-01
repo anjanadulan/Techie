@@ -26,6 +26,9 @@ public class CustomerHomeActivity extends CustomerScreen {
     findViewById(R.id.openRepairGallery)
         .setOnClickListener(
             v -> CustomerNavigation.open(this, RepairGalleryActivity.class));
+    findViewById(R.id.openAvailability)
+        .setOnClickListener(
+            v -> CustomerNavigation.open(this, AvailabilityActivity.class));
   }
 
   @Override

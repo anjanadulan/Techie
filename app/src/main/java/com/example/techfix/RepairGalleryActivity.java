@@ -36,6 +36,7 @@ public class RepairGalleryActivity extends CustomerScreen {
     container.removeAllViews();
     List<CustomerRepository.GalleryItem> images =
         new ArrayList<>(repository.getFeaturedRepairImages());
+    addBundledSamples(images);
     renderItems(container, images);
     FirebaseFirestore.getInstance()
         .collection("repairHistory")
@@ -61,6 +62,19 @@ public class RepairGalleryActivity extends CustomerScreen {
           }
           renderItems(container, images);
         });
+  }
+
+  private void addBundledSamples(List<CustomerRepository.GalleryItem> images) {
+    String prefix = "android.resource://" + getPackageName() + "/drawable/";
+    images.add(new CustomerRepository.GalleryItem(
+        -1, prefix + "sample_repair_phone", "Smartphone sample",
+        "Screen replacement", "TechFix showcase", 0));
+    images.add(new CustomerRepository.GalleryItem(
+        -2, prefix + "sample_repair_laptop", "Laptop sample",
+        "Keyboard replacement", "TechFix showcase", 0));
+    images.add(new CustomerRepository.GalleryItem(
+        -3, prefix + "sample_repair_tablet", "Tablet sample",
+        "Charging-port repair", "TechFix showcase", 0));
   }
 
   private void renderItems(LinearLayout container,
@@ -89,8 +103,10 @@ public class RepairGalleryActivity extends CustomerScreen {
       ((TextView)card.findViewById(R.id.tvGalleryTitle))
           .setText(item.device + " · " + item.service);
       ((TextView)card.findViewById(R.id.tvGalleryMeta))
-          .setText(item.branch + " · " +
-                   CustomerRepository.formatDate(item.recordedAt));
+          .setText(item.recordedAt == 0
+                       ? item.branch + " · Illustrative sample"
+                       : item.branch + " · " +
+                             CustomerRepository.formatDate(item.recordedAt));
       container.addView(card);
     }
   }

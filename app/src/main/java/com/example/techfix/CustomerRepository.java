@@ -97,6 +97,51 @@ public final class CustomerRepository implements AutoCloseable {
     return branches;
   }
 
+  public List<AvailabilityItem> getAvailability() {
+    List<AvailabilityItem> items = new ArrayList<>();
+    String technicianSql =
+        "SELECT b." + TechFixDatabaseHelper.NAME + ",t." +
+        TechFixDatabaseHelper.FULL_NAME + ",t." +
+        TechFixDatabaseHelper.SPECIALTY + ",t." + TechFixDatabaseHelper.PHONE +
+        " FROM " + TechFixDatabaseHelper.TABLE_TECHNICIANS + " t JOIN " +
+        TechFixDatabaseHelper.TABLE_BRANCHES + " b ON b." +
+        TechFixDatabaseHelper.ID + "=t." + TechFixDatabaseHelper.BRANCH_ID +
+        " WHERE b." + TechFixDatabaseHelper.ACTIVE + "=1 AND t." +
+        TechFixDatabaseHelper.ACTIVE + "=1 ORDER BY b." +
+        TechFixDatabaseHelper.NAME + ",t." + TechFixDatabaseHelper.FULL_NAME;
+    try (Cursor cursor =
+             helper.getReadableDatabase().rawQuery(technicianSql, null)) {
+      while (cursor.moveToNext())
+        items.add(new AvailabilityItem(
+            "TECHNICIAN", cursor.getString(1), cursor.getString(0) + " branch",
+            cursor.getString(2), cursor.getString(3)));
+    }
+    String partsSql =
+        "SELECT b." + TechFixDatabaseHelper.NAME + ",p." +
+        TechFixDatabaseHelper.NAME + ",c." + TechFixDatabaseHelper.NAME +
+        ",p." + TechFixDatabaseHelper.QUANTITY_AVAILABLE + " FROM " +
+        TechFixDatabaseHelper.TABLE_SPARE_PARTS + " p JOIN " +
+        TechFixDatabaseHelper.TABLE_BRANCHES + " b ON b." +
+        TechFixDatabaseHelper.ID + "=p." + TechFixDatabaseHelper.BRANCH_ID +
+        " LEFT JOIN " + TechFixDatabaseHelper.TABLE_DEVICE_CATEGORIES +
+        " c ON c." + TechFixDatabaseHelper.ID + "=p." +
+        TechFixDatabaseHelper.CATEGORY_ID + " WHERE b." +
+        TechFixDatabaseHelper.ACTIVE + "=1 AND p." +
+        TechFixDatabaseHelper.ACTIVE + "=1 ORDER BY b." +
+        TechFixDatabaseHelper.NAME + ",p." + TechFixDatabaseHelper.NAME;
+    try (Cursor cursor =
+             helper.getReadableDatabase().rawQuery(partsSql, null)) {
+      while (cursor.moveToNext()) {
+        int quantity = cursor.getInt(3);
+        items.add(new AvailabilityItem(
+            "SPARE PART", cursor.getString(1), cursor.getString(0) + " branch",
+            cursor.isNull(2) ? "General device part" : cursor.getString(2),
+            quantity > 0 ? quantity + " available" : "Out of stock"));
+      }
+    }
+    return items;
+  }
+
   public long createAppointment(long userId, long serviceId,
                                 String deviceDetails, String problemDescription,
                                 long appointmentAt, String imagePath,
@@ -716,6 +761,23 @@ public final class CustomerRepository implements AutoCloseable {
       this.name = name;
       this.address = address;
       this.phone = phone;
+    }
+  }
+
+  public static final class AvailabilityItem {
+    public final String type;
+    public final String title;
+    public final String branch;
+    public final String detail;
+    public final String status;
+
+    AvailabilityItem(String type, String title, String branch, String detail,
+                     String status) {
+      this.type = type;
+      this.title = title;
+      this.branch = branch;
+      this.detail = detail;
+      this.status = status;
     }
   }
 

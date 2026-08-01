@@ -196,6 +196,7 @@ public final class FirebaseRealtimeSync {
             email.isEmpty() ? "remote." + document.getId() + "@techfix.local"
                             : email);
         ContentValues values = new ContentValues();
+        values.put(TechFixDatabaseHelper.REMOTE_ID, document.getId());
         values.put(TechFixDatabaseHelper.USER_ID, user.getId());
         putNullableLong(values, TechFixDatabaseHelper.BRANCH_ID,
                         document.getLong("branchId"));
@@ -212,8 +213,8 @@ public final class FirebaseRealtimeSync {
                    number(document, "appointmentAt"));
         values.put(TechFixDatabaseHelper.CREATED_AT,
                    number(document, "createdAt"));
-        upsert(database, TechFixDatabaseHelper.TABLE_APPOINTMENTS,
-               localId(document), values);
+        upsertByRemoteId(database, TechFixDatabaseHelper.TABLE_APPOINTMENTS,
+                         document.getId(), values);
       }
       database.setTransactionSuccessful();
     } finally {
@@ -227,8 +228,12 @@ public final class FirebaseRealtimeSync {
     withDatabase(context, database -> {
       for (DocumentSnapshot document : documents) {
         ContentValues values = new ContentValues();
-        values.put(TechFixDatabaseHelper.APPOINTMENT_ID,
-                   number(document, "appointmentId"));
+        long appointmentId =
+            appointmentId(database, document.getString("appointmentRemoteId"));
+        if (appointmentId <= 0)
+          continue;
+        values.put(TechFixDatabaseHelper.REMOTE_ID, document.getId());
+        values.put(TechFixDatabaseHelper.APPOINTMENT_ID, appointmentId);
         values.put(TechFixDatabaseHelper.AMOUNT_CENTS,
                    number(document, "amountCents"));
         values.put(TechFixDatabaseHelper.METHOD, text(document, "method"));
@@ -239,8 +244,8 @@ public final class FirebaseRealtimeSync {
                         document.getLong("paidAt"));
         values.put(TechFixDatabaseHelper.CREATED_AT,
                    number(document, "createdAt"));
-        upsert(database, TechFixDatabaseHelper.TABLE_PAYMENTS,
-               localId(document), values);
+        upsertByRemoteId(database, TechFixDatabaseHelper.TABLE_PAYMENTS,
+                         document.getId(), values);
       }
     });
   }
@@ -250,16 +255,20 @@ public final class FirebaseRealtimeSync {
     withDatabase(context, database -> {
       for (DocumentSnapshot document : documents) {
         ContentValues values = new ContentValues();
-        values.put(TechFixDatabaseHelper.APPOINTMENT_ID,
-                   number(document, "appointmentId"));
+        long appointmentId =
+            appointmentId(database, document.getString("appointmentRemoteId"));
+        if (appointmentId <= 0)
+          continue;
+        values.put(TechFixDatabaseHelper.REMOTE_ID, document.getId());
+        values.put(TechFixDatabaseHelper.APPOINTMENT_ID, appointmentId);
         values.put(TechFixDatabaseHelper.STATUS, text(document, "status"));
         values.put(TechFixDatabaseHelper.NOTES, text(document, "notes"));
         putNullableText(values, TechFixDatabaseHelper.IMAGE_PATH,
                         document.getString("imagePath"));
         values.put(TechFixDatabaseHelper.RECORDED_AT,
                    number(document, "recordedAt"));
-        upsert(database, TechFixDatabaseHelper.TABLE_REPAIR_HISTORY,
-               localId(document), values);
+        upsertByRemoteId(database, TechFixDatabaseHelper.TABLE_REPAIR_HISTORY,
+                         document.getId(), values);
       }
     });
   }
@@ -285,6 +294,28 @@ public final class FirebaseRealtimeSync {
     if (updated == 0) {
       values.put(TechFixDatabaseHelper.ID, id);
       database.insertOrThrow(table, null, values);
+    }
+  }
+
+  private static void upsertByRemoteId(SQLiteDatabase database, String table,
+                                       String remoteId, ContentValues values) {
+    int updated =
+        database.update(table, values, TechFixDatabaseHelper.REMOTE_ID + "=?",
+                        new String[] {remoteId});
+    if (updated == 0)
+      database.insertOrThrow(table, null, values);
+  }
+
+  private static long appointmentId(SQLiteDatabase database,
+                                    String appointmentRemoteId) {
+    if (appointmentRemoteId == null)
+      return -1;
+    try (android.database.Cursor cursor = database.query(
+             TechFixDatabaseHelper.TABLE_APPOINTMENTS,
+             new String[] {TechFixDatabaseHelper.ID},
+             TechFixDatabaseHelper.REMOTE_ID + "=?",
+             new String[] {appointmentRemoteId}, null, null, null, "1")) {
+      return cursor.moveToFirst() ? cursor.getLong(0) : -1;
     }
   }
 

@@ -19,6 +19,7 @@ import com.google.firebase.storage.StorageReference;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public final class FirebaseSyncWorker extends Worker {
   private final TechFixDatabaseHelper helper;
@@ -37,6 +38,7 @@ public final class FirebaseSyncWorker extends Worker {
       return Result.failure();
     try {
       FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+      ensureRemoteIdentifiers();
       syncProfile(firestore, firebaseUser);
       DocumentSnapshot profile = Tasks.await(
           firestore.collection("users").document(firebaseUser.getUid()).get());
@@ -180,7 +182,7 @@ public final class FirebaseSyncWorker extends Worker {
         if (localUserId != null &&
             Tasks
                 .await(firestore.collection("appointments")
-                           .document(id(cursor))
+                           .document(remoteId(cursor))
                            .get())
                 .exists())
           continue;
@@ -205,7 +207,8 @@ public final class FirebaseSyncWorker extends Worker {
                    number(cursor, TechFixDatabaseHelper.APPOINTMENT_AT));
         values.put("createdAt",
                    number(cursor, TechFixDatabaseHelper.CREATED_AT));
-        set(firestore, "appointments", id(cursor), values);
+        values.put("remoteId", remoteId(cursor));
+        set(firestore, "appointments", remoteId(cursor), values);
       }
     }
   }
@@ -229,26 +232,29 @@ public final class FirebaseSyncWorker extends Worker {
         boolean remoteExists = localUserId != null &&
                                Tasks
                                    .await(firestore.collection("repairHistory")
-                                              .document(id(cursor))
+                                              .document(remoteId(cursor))
                                               .get())
                                    .exists();
         String syncedImage =
-            syncImage(firebaseUser, id(cursor),
+            syncImage(firebaseUser, remoteId(cursor),
                       nullableText(cursor, TechFixDatabaseHelper.IMAGE_PATH));
         if (remoteExists) {
           Map<String, Object> imageUpdate = base(cursor);
           imageUpdate.put("customerUid", firebaseUser.getUid());
           imageUpdate.put("imagePath", syncedImage);
-          set(firestore, "repairHistory", id(cursor), imageUpdate);
+          set(firestore, "repairHistory", remoteId(cursor), imageUpdate);
           continue;
         }
         Map<String, Object> values = base(cursor);
         long appointmentId =
             number(cursor, TechFixDatabaseHelper.APPOINTMENT_ID);
         values.put("appointmentId", appointmentId);
+        String appointmentRemoteId = appointmentRemoteId(appointmentId);
+        values.put("appointmentRemoteId", appointmentRemoteId);
+        values.put("remoteId", remoteId(cursor));
         String customerUid = localUserId != null
                                  ? firebaseUser.getUid()
-                                 : customerUid(firestore, appointmentId);
+                                 : customerUid(firestore, appointmentRemoteId);
         if (customerUid != null)
           values.put("customerUid", customerUid);
         values.put("status", text(cursor, TechFixDatabaseHelper.STATUS));
@@ -260,7 +266,7 @@ public final class FirebaseSyncWorker extends Worker {
         values.putAll(galleryMetadata(appointmentId));
         values.put("recordedAt",
                    number(cursor, TechFixDatabaseHelper.RECORDED_AT));
-        set(firestore, "repairHistory", id(cursor), values);
+        set(firestore, "repairHistory", remoteId(cursor), values);
       }
     }
   }
@@ -284,9 +290,12 @@ public final class FirebaseSyncWorker extends Worker {
         long appointmentId =
             number(cursor, TechFixDatabaseHelper.APPOINTMENT_ID);
         values.put("appointmentId", appointmentId);
+        String appointmentRemoteId = appointmentRemoteId(appointmentId);
+        values.put("appointmentRemoteId", appointmentRemoteId);
+        values.put("remoteId", remoteId(cursor));
         String customerUid = localUserId != null
                                  ? firebaseUser.getUid()
-                                 : customerUid(firestore, appointmentId);
+                                 : customerUid(firestore, appointmentRemoteId);
         if (customerUid != null)
           values.put("customerUid", customerUid);
         values.put("amountCents",
@@ -299,7 +308,7 @@ public final class FirebaseSyncWorker extends Worker {
                    nullableNumber(cursor, TechFixDatabaseHelper.PAID_AT));
         values.put("createdAt",
                    number(cursor, TechFixDatabaseHelper.CREATED_AT));
-        set(firestore, "payments", id(cursor), values);
+        set(firestore, "payments", remoteId(cursor), values);
       }
     }
   }
@@ -312,13 +321,48 @@ public final class FirebaseSyncWorker extends Worker {
                     .set(values, SetOptions.merge()));
   }
 
-  private String customerUid(FirebaseFirestore firestore, long appointmentId)
-      throws Exception {
+  private String customerUid(FirebaseFirestore firestore,
+                             String appointmentRemoteId) throws Exception {
     return Tasks
         .await(firestore.collection("appointments")
-                   .document(String.valueOf(appointmentId))
+                   .document(appointmentRemoteId)
                    .get())
         .getString("customerUid");
+  }
+
+  private String appointmentRemoteId(long appointmentId) {
+    try (Cursor cursor = helper.getReadableDatabase().query(
+             TechFixDatabaseHelper.TABLE_APPOINTMENTS,
+             new String[] {TechFixDatabaseHelper.REMOTE_ID},
+             TechFixDatabaseHelper.ID + "=?",
+             new String[] {String.valueOf(appointmentId)}, null, null, null,
+             "1")) {
+      if (!cursor.moveToFirst() || cursor.isNull(0))
+        throw new IllegalStateException(
+            "Appointment remote identifier is unavailable.");
+      return cursor.getString(0);
+    }
+  }
+
+  private void ensureRemoteIdentifiers() {
+    SQLiteDatabase database = helper.getWritableDatabase();
+    String[] tables = {TechFixDatabaseHelper.TABLE_APPOINTMENTS,
+                       TechFixDatabaseHelper.TABLE_PAYMENTS,
+                       TechFixDatabaseHelper.TABLE_REPAIR_HISTORY};
+    for (String table : tables) {
+      try (Cursor cursor =
+               database.query(table, new String[] {TechFixDatabaseHelper.ID},
+                              TechFixDatabaseHelper.REMOTE_ID + " IS NULL",
+                              null, null, null, null)) {
+        while (cursor.moveToNext()) {
+          ContentValues values = new ContentValues();
+          values.put(TechFixDatabaseHelper.REMOTE_ID,
+                     UUID.randomUUID().toString());
+          database.update(table, values, TechFixDatabaseHelper.ID + "=?",
+                          new String[] {String.valueOf(cursor.getLong(0))});
+        }
+      }
+    }
   }
 
   private Map<String, Object> galleryMetadata(long appointmentId) {
@@ -366,7 +410,7 @@ public final class FirebaseSyncWorker extends Worker {
     values.put(TechFixDatabaseHelper.IMAGE_PATH, downloadUrl);
     helper.getWritableDatabase().update(
         TechFixDatabaseHelper.TABLE_REPAIR_HISTORY, values,
-        TechFixDatabaseHelper.ID + "=?", new String[] {historyId});
+        TechFixDatabaseHelper.REMOTE_ID + "=?", new String[] {historyId});
     if ("file".equals(localImage.getScheme()) && localImage.getPath() != null) {
       File localFile = new File(localImage.getPath());
       File imageDirectory = new File(appContext.getFilesDir(), "repair-images");
@@ -390,6 +434,11 @@ public final class FirebaseSyncWorker extends Worker {
 
   private String id(Cursor cursor) {
     return String.valueOf(number(cursor, TechFixDatabaseHelper.ID));
+  }
+
+  private String remoteId(Cursor cursor) {
+    return cursor.getString(
+        cursor.getColumnIndexOrThrow(TechFixDatabaseHelper.REMOTE_ID));
   }
 
   private long number(Cursor cursor, String column) {

@@ -69,123 +69,22 @@
                     android:text="Completed"
                 />
             </LinearLayout>
-            <LinearLayout android:id="@+id/historyCard1" style="@style/HistoryCard">
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                >
-                    <TextView
-                        android:id="@+id/historyId1"
-                        style="@style/HistoryId"
-                        android:text="#TF-2048 · 01 Aug 2026"
-                    />
-                    <TextView
-                        android:id="@+id/historyStatus1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_status_success"
-                        android:text="In progress"
-                        android:textColor="@color/customer_success"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                    />
-                </LinearLayout>
-                <TextView
-                    android:id="@+id/historyTitle1"
-                    style="@style/HistoryTitle"
-                    android:text="Samsung Galaxy S23"
-                />
-                <TextView
-                    android:id="@+id/historySubtitle1"
-                    style="@style/HistorySubtitle"
-                    android:text="Screen replacement · Colombo branch"
-                />
-                <TextView
-                    android:id="@+id/historyPrice1"
-                    style="@style/HistoryPrice"
-                    android:text="Estimated · LKR 12,500"
-                />
-            </LinearLayout>
-            <LinearLayout android:id="@+id/historyCard2" style="@style/HistoryCard">
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                >
-                    <TextView
-                        android:id="@+id/historyId2"
-                        style="@style/HistoryId"
-                        android:text="#TF-1982 · 12 Jul 2026"
-                    />
-                    <TextView
-                        android:id="@+id/historyStatus2"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_status_success"
-                        android:text="Completed"
-                        android:textColor="@color/customer_success"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                    />
-                </LinearLayout>
-                <TextView
-                    android:id="@+id/historyTitle2"
-                    style="@style/HistoryTitle"
-                    android:text="Dell Inspiron 15"
-                />
-                <TextView
-                    android:id="@+id/historySubtitle2"
-                    style="@style/HistorySubtitle"
-                    android:text="Keyboard repair · Galle branch"
-                />
-                <TextView
-                    android:id="@+id/historyPrice2"
-                    style="@style/HistoryPrice"
-                    android:text="Paid · LKR 7,500"
-                />
-            </LinearLayout>
-            <LinearLayout android:id="@+id/historyCard3" style="@style/HistoryCard">
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                >
-                    <TextView
-                        android:id="@+id/historyId3"
-                        style="@style/HistoryId"
-                        android:text="#TF-1814 · 21 May 2026"
-                    />
-                    <TextView
-                        android:id="@+id/historyStatus3"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_status_cancelled"
-                        android:text="Cancelled"
-                        android:textColor="@color/customer_danger"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                    />
-                </LinearLayout>
-                <TextView
-                    android:id="@+id/historyTitle3"
-                    style="@style/HistoryTitle"
-                    android:text="Apple iPad Air"
-                />
-                <TextView
-                    android:id="@+id/historySubtitle3"
-                    style="@style/HistorySubtitle"
-                    android:text="Device diagnostics · Colombo branch"
-                />
-                <TextView
-                    android:id="@+id/historyPrice3"
-                    style="@style/HistoryPrice"
-                    android:text="No payment"
-                />
-            </LinearLayout>
+            <TextView
+                android:id="@+id/tvHistoryEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:gravity="center"
+                android:text="Your repair appointments will appear here."
+                android:textColor="@color/customer_muted"
+                android:visibility="gone"
+            />
+            <LinearLayout
+                android:id="@+id/repairHistoryList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+            />
         </LinearLayout>
     </ScrollView>
     <include layout="@layout/view_customer_bottom_nav" />

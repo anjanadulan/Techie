@@ -66,6 +66,7 @@
         />
         <activity android:name=".PaymentActivity" android:exported="false" />
         <activity android:name=".RepairGalleryActivity" android:exported="false" />
+        <activity android:name=".AvailabilityActivity" android:exported="false" />
         <activity
             android:name=".RepairCameraActivity"
             android:exported="false"

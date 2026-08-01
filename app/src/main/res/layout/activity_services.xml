@@ -124,12 +124,21 @@
                 android:textSize="18sp"
                 android:textStyle="bold"
             />
-            <include android:id="@+id/serviceScreen" layout="@layout/view_service_row" />
-            <include android:id="@+id/serviceBattery" layout="@layout/view_service_row_battery" />
-            <include android:id="@+id/serviceKeyboard" layout="@layout/view_service_row_keyboard" />
-            <include
-                android:id="@+id/serviceDiagnostic"
-                layout="@layout/view_service_row_diagnostic"
+            <TextView
+                android:id="@+id/tvServicesEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:gravity="center"
+                android:text="No matching repair services."
+                android:textColor="@color/customer_muted"
+                android:visibility="gone"
+            />
+            <LinearLayout
+                android:id="@+id/servicesList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
             />
         </LinearLayout>
     </ScrollView>
