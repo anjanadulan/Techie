@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
@@ -8,13 +7,12 @@
     android:layout_height="match_parent"
     android:background="@color/auth_sky_start"
     android:orientation="vertical"
-    tools:context=".Signup"
->
+    tools:context=".Signup">
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="150dp"
-        android:background="@drawable/bg_auth_header"
-    />
+        android:background="@drawable/bg_auth_header" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -23,8 +21,8 @@
         android:background="@drawable/bg_top_rounded_card"
         android:clipToOutline="true"
         android:fillViewport="true"
-        android:overScrollMode="never"
-    >
+        android:overScrollMode="never">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -33,8 +31,8 @@
             android:paddingStart="28dp"
             android:paddingTop="28dp"
             android:paddingEnd="28dp"
-            android:paddingBottom="28dp"
-        >
+            android:paddingBottom="28dp">
+
             <include layout="@layout/view_auth_brand" />
 
             <TextView
@@ -44,8 +42,7 @@
                 android:text="@string/create_account_title"
                 android:textColor="@color/auth_text"
                 android:textSize="22sp"
-                android:textStyle="bold"
-            />
+                android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -53,8 +50,7 @@
                 android:layout_marginTop="6dp"
                 android:text="@string/create_account_subtitle"
                 android:textColor="@color/auth_muted"
-                android:textSize="14sp"
-            />
+                android:textSize="14sp" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilSignUpFullName"
@@ -69,16 +65,15 @@
                 app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusTopStart="12dp"
                 app:boxStrokeColor="@color/auth_border"
-                app:hintTextColor="@color/auth_muted"
-            >
+                app:hintTextColor="@color/auth_muted">
+
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etFullName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textPersonName"
                     android:textColor="@color/auth_text"
-                    android:textSize="14sp"
-                />
+                    android:textSize="14sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -94,16 +89,15 @@
                 app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusTopStart="12dp"
                 app:boxStrokeColor="@color/auth_border"
-                app:hintTextColor="@color/auth_muted"
-            >
+                app:hintTextColor="@color/auth_muted">
+
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etSignUpEmail"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textEmailAddress"
                     android:textColor="@color/auth_text"
-                    android:textSize="14sp"
-                />
+                    android:textSize="14sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -120,16 +114,15 @@
                 app:boxCornerRadiusTopStart="12dp"
                 app:boxStrokeColor="@color/auth_border"
                 app:endIconMode="password_toggle"
-                app:hintTextColor="@color/auth_muted"
-            >
+                app:hintTextColor="@color/auth_muted">
+
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etSignUpPassword"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textPassword"
                     android:textColor="@color/auth_text"
-                    android:textSize="14sp"
-                />
+                    android:textSize="14sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -146,17 +139,17 @@
                 app:boxCornerRadiusTopStart="12dp"
                 app:boxStrokeColor="@color/auth_border"
                 app:endIconMode="password_toggle"
-                app:hintTextColor="@color/auth_muted"
-            >
+                app:hintTextColor="@color/auth_muted">
+
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etSignUpConfirmPassword"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textPassword"
                     android:textColor="@color/auth_text"
-                    android:textSize="14sp"
-                />
+                    android:textSize="14sp" />
             </com.google.android.material.textfield.TextInputLayout>
+
 
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnSignUpSubmit"
@@ -169,37 +162,34 @@
                 android:textAllCaps="false"
                 android:textColor="@color/white"
                 android:textSize="15sp"
-                android:textStyle="bold"
-            />
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="48dp"
                 android:layout_marginTop="20dp"
                 android:gravity="center"
-                android:orientation="horizontal"
-            >
+                android:orientation="horizontal">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/already_have_account"
                     android:textColor="@color/auth_muted"
-                    android:textSize="13sp"
-                />
+                    android:textSize="13sp" />
 
                 <TextView
                     android:id="@+id/tvAlreadyHaveAccount"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_marginStart="5dp"
-                    android:text="@string/log_in"
-                    android:textColor="@color/auth_link"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center"
-                />
+                    android:text="@string/log_in"
+                    android:textColor="@color/auth_link"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

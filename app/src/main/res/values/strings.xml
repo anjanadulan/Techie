@@ -29,62 +29,57 @@
     <string name="login_failed">Unable to log in. Please try again.</string>
     <string name="welcome_name">Welcome, %1$s</string>
     <string name="account_title">You\'re signed in</string>
-    <string name="account_subtitle">
-        Your TechFix account is ready for future bookings and repair updates.
-    </string>
+    <string name="account_subtitle">Your TechFix account is ready for future bookings and repair updates.</string>
     <string name="logout">Log out</string>
 
-    <string name="customer_greeting">Good morning</string>
-    <string name="customer_question">What needs fixing?</string>
-    <string name="search_services">Search repair services</string>
-    <string name="device_categories">Device categories</string>
-    <string name="view_all">View all</string>
-    <string name="active_repair">Active repair</string>
-    <string name="repair_in_progress">Repair in progress</string>
-    <string name="repair_active_summary">Samsung Galaxy S23 · Screen replacement</string>
-    <string name="view_details">View details</string>
-    <string name="popular_services">Popular services</string>
-    <string name="browse_services">Browse services</string>
-    <string name="service_list_subtitle">Clear pricing for the repairs you need.</string>
-    <string name="service_detail">Service detail</string>
-    <string name="screen_replacement">Screen replacement</string>
-    <string name="screen_replacement_description">
-        Restore a cracked, flickering, or unresponsive display with a quality-tested replacement.
-    </string>
-    <string name="starting_price">Starting price</string>
-    <string name="repair_time">Repair time</string>
-    <string name="warranty">Warranty</string>
-    <string name="service_includes">What’s included</string>
-    <string name="book_repair">Book repair</string>
-    <string name="booking_title">Book a repair</string>
-    <string name="booking_subtitle">
-        Tell us about your device and choose a convenient visit.
-    </string>
+    <string name="booking_frontend_message">Repair booking submitted successfully.</string>
+    <string name="profile_title">Profile Settings</string>
+    <string name="profile_subtitle">Manage your personal information</string>
+
+    <string name="booking_title">Book a Repair</string>
+    <string name="booking_subtitle">Fill in the details to schedule your repair</string>
     <string name="device">Device</string>
     <string name="service">Service</string>
-    <string name="preferred_branch">Preferred branch</string>
-    <string name="visit_date">Visit date</string>
-    <string name="visit_time">Visit time</string>
-    <string name="issue_description">Describe the issue</string>
-    <string name="issue_hint">e.g. The screen flickers after the phone is unlocked</string>
-    <string name="add_device_photo">Add a device photo</string>
+    <string name="preferred_branch">Preferred Branch</string>
+    <string name="visit_date">Visit Date</string>
+    <string name="visit_time">Visit Time</string>
+    <string name="issue_description">Issue Description</string>
+    <string name="issue_hint">Describe the problem with your device&#8230;</string>
+    <string name="add_device_photo">Add Device Photo</string>
     <string name="continue_label">Continue</string>
-    <string name="booking_frontend_message">Booking form is ready for backend integration.</string>
-    <string name="track_repair">Track repair</string>
-    <string name="repair_id">Repair #TF-2048</string>
-    <string name="estimated_ready">Estimated ready · Today, 4:30 PM</string>
-    <string name="repair_progress">Repair progress</string>
-    <string name="repair_history">Repair history</string>
-    <string name="history_subtitle">All your completed and previous repair requests.</string>
+    <string name="customer_greeting">Hello, Tech Enthusiast!</string>
+    <string name="customer_question">What can we fix for you today?</string>
+    <string name="search_services">Search services...</string>
+    <string name="device_categories">Device Categories</string>
+    <string name="view_all">View All</string>
+    <string name="phone">Phone</string>
+    <string name="laptop">Laptop</string>
+
+    <string name="tablet">Tablet</string>
+    <string name="active_repair">Active Repair</string>
+    <string name="repair_id">Repair ID: %1$s</string>
+    <string name="repair_in_progress">In Progress</string>
+    <string name="repair_active_summary">Our technicians are currently working on your device.</string>
+    <string name="view_details">View Details</string>
+    <string name="popular_services">Popular Services</string>
+    <string name="screen_replacement">Screen Replacement</string>
+    <string name="repair_history">Repair History</string>
+    <string name="history_subtitle">View your past repair records</string>
+    <string name="track_repair">Track Repair</string>
+    <string name="estimated_ready">Estimated Ready: %1$s</string>
+    <string name="repair_progress">Repair Progress</string>
+    <string name="service_detail">Service Detail</string>
+
+    <string name="screen_replacement_description">Professional screen replacement for all major device models using high-quality parts.</string>
+    <string name="starting_price">Starting from $49</string>
+    <string name="repair_time">Repair Time: 1&#8211;2 hours</string>
+    <string name="warranty">Warranty: 90 Days</string>
+    <string name="service_includes">Service Includes:</string>
+    <string name="book_repair">Book Repair Now</string>
+    <string name="browse_services">Browse Services</string>
+    <string name="service_list_subtitle">Choose the right repair for your device</string>
     <string name="nav_home">Home</string>
     <string name="nav_services">Services</string>
     <string name="nav_bookings">Bookings</string>
     <string name="nav_profile">Profile</string>
-    <string name="back">Back</string>
-    <string name="phone">Phone</string>
-    <string name="laptop">Laptop</string>
-    <string name="tablet">Tablet</string>
-    <string name="desktop">Desktop</string>
-    <string name="profile_title">My profile</string>
-    <string name="profile_subtitle">Manage your TechFix account and repair activity.</string>
 </resources>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Tech-Precision Hybrid Color Palette -->
     <color name="black">#FF000000</color>
@@ -22,24 +22,29 @@
     <color name="auth_button">#050505</color>
     <color name="auth_cloud">#8FFFFFFF</color>
 
+    <color name="bg_charcoal">#1A1A2E</color>
+    <color name="bg_card_dark">#22223B</color>
+    <color name="bg_card_header">#16162A</color>
     <color name="platinum_silver">#E0E1DD</color>
+    <color name="electric_purple">#7209B7</color>
+    <color name="electric_purple_dark">#560BAD</color>
+    <color name="electric_purple_light">#307209B7</color>
     <color name="success_green">#4CAF50</color>
     <color name="subtle_green">#2E4F4F</color>
     <color name="warning_amber">#FFB703</color>
     <color name="input_bg">#2C2C44</color>
 
-    <!-- Customer experience -->
-    <color name="customer_bg">#F2F8FC</color>
-    <color name="customer_surface">#FFFFFFFF</color>
-    <color name="customer_text">#121619</color>
-    <color name="customer_muted">#717B86</color>
-    <color name="customer_border">#E3EAEF</color>
-    <color name="customer_orange">#FF5315</color>
-    <color name="customer_orange_soft">#FFF0E9</color>
-    <color name="customer_blue">#278FE8</color>
-    <color name="customer_blue_soft">#E7F4FD</color>
-    <color name="customer_success">#2C9655</color>
-    <color name="customer_success_soft">#E6F5EB</color>
-    <color name="customer_danger">#C94848</color>
-    <color name="customer_danger_soft">#FCEAEA</color>
+    <color name="customer_text">#1D2939</color>
+    <color name="customer_muted">#667085</color>
+    <color name="customer_orange">#F79009</color>
+    <color name="customer_surface">#FFFFFF</color>
+    <color name="customer_border">#D0D5DD</color>
+    <color name="customer_blue">#3562D7</color>
+    <color name="customer_blue_soft">#EBF0FF</color>
+    <color name="customer_orange_soft">#FFF4E5</color>
+    <color name="customer_bg">#F9FAFB</color>
+    <color name="customer_danger_soft">#FFF1F0</color>
+    <color name="customer_success_soft">#ECFDF3</color>
+    <color name="customer_danger">#F04438</color>
+    <color name="customer_success">#12B76A</color>
 </resources>
