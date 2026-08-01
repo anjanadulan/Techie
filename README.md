@@ -67,8 +67,8 @@
 
 1. **Clone the Repository:**
    ```bash
-   git clone https://github.com/anjanadulan/Techie.git
-   cd Techie
+   git clone <repository-url> TechFix
+   cd TechFix
    ```
 
 2. **Open in Android Studio:**

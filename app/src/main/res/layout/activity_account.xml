@@ -1,13 +1,208 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" android:id="@+id/main" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/customer_bg" android:orientation="vertical" tools:context=".AccountActivity">
-    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:clipToPadding="false" android:overScrollMode="never"><LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="20dp" android:paddingTop="24dp" android:paddingEnd="20dp" android:paddingBottom="28dp">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/profile_title" android:textColor="@color/customer_text" android:textSize="31sp" android:textStyle="bold"/><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="7dp" android:text="@string/profile_subtitle" android:textColor="@color/customer_muted"/>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:background="@drawable/bg_customer_card" android:gravity="center_horizontal" android:orientation="vertical" android:padding="24dp"><ImageView android:layout_width="78dp" android:layout_height="78dp" android:background="@drawable/bg_customer_soft_blue" android:padding="18dp" android:src="@drawable/ic_customer_profile"/><TextView android:id="@+id/tvAccountName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:textColor="@color/customer_text" android:textSize="21sp" android:textStyle="bold" tools:text="Kasun Perera"/><TextView android:id="@+id/tvAccountEmail" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:textColor="@color/customer_muted" tools:text="kasun@example.com"/></LinearLayout>
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="26dp" android:text="Repair overview" android:textColor="@color/customer_text" android:textSize="19sp" android:textStyle="bold"/>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="100dp" android:layout_marginTop="12dp" android:background="@drawable/bg_customer_card" android:gravity="center" android:orientation="horizontal"><LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="01" android:textColor="@color/customer_orange" android:textSize="22sp" android:textStyle="bold"/><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Active" android:textColor="@color/customer_muted"/></LinearLayout><View android:layout_width="1dp" android:layout_height="48dp" android:background="@color/customer_border"/><LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="04" android:textColor="@color/customer_text" android:textSize="22sp" android:textStyle="bold"/><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Completed" android:textColor="@color/customer_muted"/></LinearLayout></LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="64dp" android:layout_marginTop="14dp" android:background="@drawable/bg_customer_card" android:gravity="center_vertical" android:orientation="horizontal" android:paddingHorizontal="18dp"><TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Saved devices" android:textColor="@color/customer_text" android:textStyle="bold"/><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="3  ›" android:textColor="@color/customer_muted"/></LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="64dp" android:layout_marginTop="10dp" android:background="@drawable/bg_customer_card" android:gravity="center_vertical" android:orientation="horizontal" android:paddingHorizontal="18dp"><TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Notifications" android:textColor="@color/customer_text" android:textStyle="bold"/><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="On  ›" android:textColor="@color/customer_muted"/></LinearLayout>
-        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnLogout" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="24dp" android:background="@drawable/bg_customer_nav" android:stateListAnimator="@null" android:text="@string/logout" android:textAllCaps="false" android:textColor="@color/customer_danger" android:textStyle="bold"/>
-    </LinearLayout></ScrollView>
-    <include layout="@layout/view_customer_bottom_nav"/>
+<?xml version="1.0" encoding="utf-8" ?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/customer_bg"
+    android:orientation="vertical"
+    tools:context=".AccountActivity"
+>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+    >
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="20dp"
+            android:paddingTop="24dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="28dp"
+        >
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/profile_title"
+                android:textColor="@color/customer_text"
+                android:textSize="31sp"
+                android:textStyle="bold"
+            />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="7dp"
+                android:text="@string/profile_subtitle"
+                android:textColor="@color/customer_muted"
+            />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:background="@drawable/bg_customer_card"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:padding="24dp"
+            >
+                <ImageView
+                    android:layout_width="78dp"
+                    android:layout_height="78dp"
+                    android:background="@drawable/bg_customer_soft_blue"
+                    android:padding="18dp"
+                    android:src="@drawable/ic_customer_profile"
+                />
+                <TextView
+                    android:id="@+id/tvAccountName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:textColor="@color/customer_text"
+                    android:textSize="21sp"
+                    android:textStyle="bold"
+                    tools:text="Kasun Perera"
+                />
+                <TextView
+                    android:id="@+id/tvAccountEmail"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:textColor="@color/customer_muted"
+                    tools:text="kasun@example.com"
+                />
+            </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="26dp"
+                android:text="Repair overview"
+                android:textColor="@color/customer_text"
+                android:textSize="19sp"
+                android:textStyle="bold"
+            />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_customer_card"
+                android:gravity="center"
+                android:orientation="horizontal"
+            >
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                >
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="01"
+                        android:textColor="@color/customer_orange"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                    />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Active"
+                        android:textColor="@color/customer_muted"
+                    />
+                </LinearLayout>
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="48dp"
+                    android:background="@color/customer_border"
+                />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                >
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="04"
+                        android:textColor="@color/customer_text"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                    />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Completed"
+                        android:textColor="@color/customer_muted"
+                    />
+                </LinearLayout>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_customer_card"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="18dp"
+            >
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Saved devices"
+                    android:textColor="@color/customer_text"
+                    android:textStyle="bold"
+                />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="3  ›"
+                    android:textColor="@color/customer_muted"
+                />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_customer_card"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="18dp"
+            >
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Notifications"
+                    android:textColor="@color/customer_text"
+                    android:textStyle="bold"
+                />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="On  ›"
+                    android:textColor="@color/customer_muted"
+                />
+            </LinearLayout>
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnLogout"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="24dp"
+                android:background="@drawable/bg_customer_nav"
+                android:stateListAnimator="@null"
+                android:text="@string/logout"
+                android:textAllCaps="false"
+                android:textColor="@color/customer_danger"
+                android:textStyle="bold"
+            />
+        </LinearLayout>
+    </ScrollView>
+    <include layout="@layout/view_customer_bottom_nav" />
 </LinearLayout>

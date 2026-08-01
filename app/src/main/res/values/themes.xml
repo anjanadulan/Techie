@@ -1,27 +1,126 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <style name="CustomerNavItem">
-        <item name="android:layout_width">0dp</item><item name="android:layout_height">match_parent</item><item name="android:layout_weight">1</item><item name="android:gravity">center</item><item name="android:orientation">vertical</item><item name="android:paddingTop">7dp</item><item name="android:paddingBottom">5dp</item><item name="android:clickable">true</item><item name="android:focusable">true</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:paddingTop">7dp</item>
+        <item name="android:paddingBottom">5dp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
     </style>
     <style name="CustomerNavIcon">
-        <item name="android:layout_width">22dp</item><item name="android:layout_height">22dp</item>
+        <item name="android:layout_width">22dp</item>
+        <item name="android:layout_height">22dp</item>
     </style>
     <style name="CustomerNavLabel">
-        <item name="android:layout_width">wrap_content</item><item name="android:layout_height">wrap_content</item><item name="android:layout_marginTop">2dp</item><item name="android:textColor">@color/customer_text</item><item name="android:textSize">10sp</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">2dp</item>
+        <item name="android:textColor">@color/customer_text</item>
+        <item name="android:textSize">10sp</item>
     </style>
-    <style name="CustomerFieldLabel"><item name="android:layout_width">wrap_content</item><item name="android:layout_height">wrap_content</item><item name="android:layout_marginTop">16dp</item><item name="android:layout_marginBottom">7dp</item><item name="android:textColor">@color/customer_text</item><item name="android:textSize">13sp</item><item name="android:textStyle">bold</item></style>
-    <style name="CustomerPicker"><item name="android:layout_width">match_parent</item><item name="android:layout_height">54dp</item><item name="android:background">@drawable/bg_customer_input</item><item name="android:gravity">center_vertical</item><item name="android:textColor">@color/customer_text</item><item name="android:textSize">13sp</item></style>
-    <style name="TimelineRow"><item name="android:layout_width">match_parent</item><item name="android:layout_height">66dp</item><item name="android:gravity">center_vertical</item><item name="android:orientation">horizontal</item></style>
-    <style name="TimelineDone"><item name="android:layout_width">34dp</item><item name="android:layout_height">34dp</item><item name="android:background">@drawable/bg_customer_chip_selected</item><item name="android:gravity">center</item><item name="android:textColor">@color/white</item><item name="android:textStyle">bold</item></style>
-    <style name="TimelineCurrent" parent="TimelineDone"><item name="android:textSize">13sp</item></style>
-    <style name="TimelinePending"><item name="android:layout_width">34dp</item><item name="android:layout_height">34dp</item><item name="android:background">@drawable/bg_customer_chip</item><item name="android:gravity">center</item><item name="android:textColor">@color/customer_muted</item></style>
-    <style name="TimelineText"><item name="android:layout_width">0dp</item><item name="android:layout_height">wrap_content</item><item name="android:layout_marginStart">14dp</item><item name="android:layout_weight">1</item><item name="android:orientation">vertical</item></style>
-    <style name="TimelineTitle"><item name="android:layout_width">wrap_content</item><item name="android:layout_height">wrap_content</item><item name="android:textColor">@color/customer_text</item><item name="android:textStyle">bold</item></style>
-    <style name="TimelineSubtitle"><item name="android:layout_width">wrap_content</item><item name="android:layout_height">wrap_content</item><item name="android:layout_marginTop">4dp</item><item name="android:textColor">@color/customer_muted</item><item name="android:textSize">12sp</item></style>
-    <style name="HistoryCard"><item name="android:layout_width">match_parent</item><item name="android:layout_height">wrap_content</item><item name="android:layout_marginTop">14dp</item><item name="android:background">@drawable/bg_customer_card</item><item name="android:clickable">true</item><item name="android:focusable">true</item><item name="android:orientation">vertical</item><item name="android:padding">18dp</item></style>
-    <style name="HistoryId"><item name="android:layout_width">0dp</item><item name="android:layout_height">wrap_content</item><item name="android:layout_weight">1</item><item name="android:textColor">@color/customer_muted</item><item name="android:textSize">12sp</item></style>
-    <style name="HistoryTitle"><item name="android:layout_width">wrap_content</item><item name="android:layout_height">wrap_content</item><item name="android:layout_marginTop">15dp</item><item name="android:textColor">@color/customer_text</item><item name="android:textSize">17sp</item><item name="android:textStyle">bold</item></style>
-    <style name="HistorySubtitle"><item name="android:layout_width">wrap_content</item><item name="android:layout_height">wrap_content</item><item name="android:layout_marginTop">5dp</item><item name="android:textColor">@color/customer_muted</item><item name="android:textSize">13sp</item></style>
-    <style name="HistoryPrice"><item name="android:layout_width">wrap_content</item><item name="android:layout_height">wrap_content</item><item name="android:layout_marginTop">14dp</item><item name="android:textColor">@color/customer_orange</item><item name="android:textStyle">bold</item></style>
+    <style name="CustomerFieldLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">16dp</item>
+        <item name="android:layout_marginBottom">7dp</item>
+        <item name="android:textColor">@color/customer_text</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="CustomerPicker">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">54dp</item>
+        <item name="android:background">@drawable/bg_customer_input</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:textColor">@color/customer_text</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+    <style name="TimelineRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">66dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:orientation">horizontal</item>
+    </style>
+    <style name="TimelineDone">
+        <item name="android:layout_width">34dp</item>
+        <item name="android:layout_height">34dp</item>
+        <item name="android:background">@drawable/bg_customer_chip_selected</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="TimelineCurrent" parent="TimelineDone">
+        <item name="android:textSize">13sp</item>
+    </style>
+    <style name="TimelinePending">
+        <item name="android:layout_width">34dp</item>
+        <item name="android:layout_height">34dp</item>
+        <item name="android:background">@drawable/bg_customer_chip</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/customer_muted</item>
+    </style>
+    <style name="TimelineText">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">14dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+    <style name="TimelineTitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/customer_text</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="TimelineSubtitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:textColor">@color/customer_muted</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+    <style name="HistoryCard">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">14dp</item>
+        <item name="android:background">@drawable/bg_customer_card</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:padding">18dp</item>
+    </style>
+    <style name="HistoryId">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:textColor">@color/customer_muted</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+    <style name="HistoryTitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">15dp</item>
+        <item name="android:textColor">@color/customer_text</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="HistorySubtitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">5dp</item>
+        <item name="android:textColor">@color/customer_muted</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+    <style name="HistoryPrice">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">14dp</item>
+        <item name="android:textColor">@color/customer_orange</item>
+        <item name="android:textStyle">bold</item>
+    </style>
     <!-- Base application theme. -->
     <style name="Base.Theme.TechFix" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->

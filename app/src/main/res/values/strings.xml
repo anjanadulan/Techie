@@ -14,8 +14,8 @@
     <string name="log_in">Log in</string>
 
     <string name="welcome_back">Welcome back</string>
-    <string name="signin_subtitle">Let's continue on your TechFix journey.</string>
-    <string name="no_account">Don't have an account?</string>
+    <string name="signin_subtitle">Let\'s continue on your TechFix journey.</string>
+    <string name="no_account">Don\'t have an account?</string>
     <string name="sign_up">Sign up</string>
     <string name="confirm_new_password">Confirm new password</string>
     <string name="invalid_name">Enter your full name.</string>
@@ -28,8 +28,10 @@
     <string name="invalid_credentials">Incorrect email address or password.</string>
     <string name="login_failed">Unable to log in. Please try again.</string>
     <string name="welcome_name">Welcome, %1$s</string>
-    <string name="account_title">You're signed in</string>
-    <string name="account_subtitle">Your TechFix account is ready for future bookings and repair updates.</string>
+    <string name="account_title">You\'re signed in</string>
+    <string name="account_subtitle">
+        Your TechFix account is ready for future bookings and repair updates.
+    </string>
     <string name="logout">Log out</string>
 
     <string name="customer_greeting">Good morning</string>
@@ -46,14 +48,18 @@
     <string name="service_list_subtitle">Clear pricing for the repairs you need.</string>
     <string name="service_detail">Service detail</string>
     <string name="screen_replacement">Screen replacement</string>
-    <string name="screen_replacement_description">Restore a cracked, flickering, or unresponsive display with a quality-tested replacement.</string>
+    <string name="screen_replacement_description">
+        Restore a cracked, flickering, or unresponsive display with a quality-tested replacement.
+    </string>
     <string name="starting_price">Starting price</string>
     <string name="repair_time">Repair time</string>
     <string name="warranty">Warranty</string>
     <string name="service_includes">What’s included</string>
     <string name="book_repair">Book repair</string>
     <string name="booking_title">Book a repair</string>
-    <string name="booking_subtitle">Tell us about your device and choose a convenient visit.</string>
+    <string name="booking_subtitle">
+        Tell us about your device and choose a convenient visit.
+    </string>
     <string name="device">Device</string>
     <string name="service">Service</string>
     <string name="preferred_branch">Preferred branch</string>
