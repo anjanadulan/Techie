@@ -2,6 +2,8 @@ package com.example.techie;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.Patterns;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -10,7 +12,18 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
+
 public class Signin extends AppCompatActivity {
+
+    public static final String EXTRA_EMAIL = "email";
+
+    private TextInputLayout emailLayout;
+    private TextInputLayout passwordLayout;
+    private TextInputEditText emailInput;
+    private TextInputEditText passwordInput;
+    private UserDatabaseHelper databaseHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,24 +37,86 @@ public class Signin extends AppCompatActivity {
             return insets;
         });
 
-        // Back Button
-        findViewById(R.id.btnBack).setOnClickListener(v -> finish());
+        emailLayout = findViewById(R.id.tilEmail);
+        passwordLayout = findViewById(R.id.tilPassword);
+        emailInput = findViewById(R.id.etEmail);
+        passwordInput = findViewById(R.id.etPassword);
+        databaseHelper = new UserDatabaseHelper(this);
 
-        // Submit Sign In
-        findViewById(R.id.btnSignIn).setOnClickListener(v -> {
-            Toast.makeText(Signin.this, "Signing in...", Toast.LENGTH_SHORT).show();
-        });
+        String registeredEmail = getIntent().getStringExtra(EXTRA_EMAIL);
+        if (registeredEmail != null) {
+            emailInput.setText(registeredEmail);
+            passwordInput.requestFocus();
+        }
 
-        // Navigate to Sign Up Activity
+        findViewById(R.id.btnSignIn).setOnClickListener(v -> logIn());
+
         findViewById(R.id.tvSignUp).setOnClickListener(v -> {
             Intent intent = new Intent(Signin.this, Signup.class);
             startActivity(intent);
             finish();
         });
+    }
 
-        // Forgot password
-        findViewById(R.id.tvForgotPassword).setOnClickListener(v -> {
-            Toast.makeText(Signin.this, "Forgot password clicked", Toast.LENGTH_SHORT).show();
-        });
+    private void logIn() {
+        String email = getValue(emailInput);
+        String password = getValue(passwordInput);
+        emailLayout.setError(null);
+        passwordLayout.setError(null);
+
+        if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            emailLayout.setError(getString(R.string.invalid_email));
+            emailInput.requestFocus();
+            return;
+        }
+
+        if (TextUtils.isEmpty(password)) {
+            passwordLayout.setError(getString(R.string.invalid_password));
+            passwordInput.requestFocus();
+            return;
+        }
+
+        UserDatabaseHelper.AuthenticationResult result =
+                databaseHelper.authenticate(email, password);
+
+        if (result.getStatus() == UserDatabaseHelper.AuthenticationResult.Status.SUCCESS) {
+            User user = result.getUser();
+            new SessionManager(this).startSession(user);
+            Toast.makeText(
+                    this,
+                    getString(R.string.welcome_name, user.getFullName()),
+                    Toast.LENGTH_SHORT
+            ).show();
+            openAccount();
+            return;
+        }
+
+        if (result.getStatus()
+                == UserDatabaseHelper.AuthenticationResult.Status.INVALID_CREDENTIALS) {
+            passwordLayout.setError(getString(R.string.invalid_credentials));
+            passwordInput.requestFocus();
+            return;
+        }
+
+        Toast.makeText(this, R.string.login_failed, Toast.LENGTH_SHORT).show();
+    }
+
+    private String getValue(TextInputEditText input) {
+        return input.getText() == null ? "" : input.getText().toString().trim();
+    }
+
+    private void openAccount() {
+        Intent intent = new Intent(this, AccountActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (databaseHelper != null) {
+            databaseHelper.close();
+        }
+        super.onDestroy();
     }
 }

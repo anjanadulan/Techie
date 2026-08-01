@@ -20,14 +20,19 @@ Developed as part of the **Higher National Diploma in Software Engineering (HNDS
 ### 2. 🔑 Sign In Portal (`Signin`)
 - **"Welcome back"** sheet container.
 - Outlined input fields for **Email** and **Password** with password visibility toggle.
-- *"Remember me"* checkbox and *"Forgot password?"* link.
-- Social login buttons (**Facebook**, **Twitter/X**, **Google**, **Apple**).
+- Validates credentials against the local SQLite user database.
+- Creates a persistent local session after a successful login.
 
 ### 3. 📝 Sign Up Portal (`Signup`)
 - **"Get Started"** onboarding layout.
-- Inputs for **Full Name**, **Email**, and **Password**.
-- *"I agree to the processing of Personal data"* agreement checkbox.
-- Social registration options and direct toggle back to Sign In.
+- Inputs for **Full Name**, **Email**, **Password**, and password confirmation.
+- Creates unique local user accounts with salted PBKDF2 password hashes.
+- Direct navigation back to Sign In.
+
+### 4. 👤 Local Account Session (`AccountActivity`)
+- Displays the signed-in customer name and email.
+- Restores the signed-in session when the app is reopened.
+- Provides a logout action that clears the local session.
 
 ---
 
@@ -36,7 +41,7 @@ Developed as part of the **Higher National Diploma in Software Engineering (HNDS
 - **UI Layout System:** Constructed using structured `LinearLayout`s, custom drawables, and Material 3 components for optimal responsiveness.
 - **Locations & GPS:** Branch distance calculation between Colombo & Galle locations using `FusedLocationProviderClient` and Google Maps API.
 - **Camera & Image Integration:** Attachment support for faulty device photos and repaired device proof images using `CameraX`.
-- **Offline Storage & Caching:** **Room Database** / SQLite for offline repair history and draft bookings.
+- **Offline Storage:** Native SQLite currently stores local user accounts; repair history and draft booking storage are still planned.
 - **Remote Data & Web Services:** REST API / Firebase integration for real-time status tracking and appointment updates.
 
 ---

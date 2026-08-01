@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="@color/auth_sky_end"
+                android:startColor="@color/auth_sky_start" />
+        </shape>
+    </item>
+
+    <item
+        android:bottom="-46dp"
+        android:gravity="bottom|start"
+        android:left="-42dp"
+        android:width="190dp"
+        android:height="105dp">
+        <shape android:shape="oval">
+            <solid android:color="@color/auth_cloud" />
+        </shape>
+    </item>
+
+    <item
+        android:bottom="-32dp"
+        android:gravity="bottom|center_horizontal"
+        android:width="230dp"
+        android:height="92dp">
+        <shape android:shape="oval">
+            <solid android:color="#75FFFFFF" />
+        </shape>
+    </item>
+
+    <item
+        android:bottom="-50dp"
+        android:gravity="bottom|end"
+        android:right="-55dp"
+        android:width="210dp"
+        android:height="115dp">
+        <shape android:shape="oval">
+            <solid android:color="#88FFFFFF" />
+        </shape>
+    </item>
+</layer-list>

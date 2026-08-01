@@ -29,6 +29,9 @@
             android:name=".Signup"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".AccountActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
