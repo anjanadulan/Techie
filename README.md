@@ -6,8 +6,6 @@
 
 **TechFix** is a modern Android mobile application designed for computer and mobile phone repair services in Sri Lanka, supporting branch operations in **Colombo** and **Galle**.
 
-Developed as part of the **Higher National Diploma in Software Engineering (HNDSE)** course at the **National Institute of Business Management (NIBM)** for the *Mobile Application Development (CW1)* module.
-
 ---
 
 ## 📸 Key Features & UI Screens
@@ -36,7 +34,7 @@ Developed as part of the **Higher National Diploma in Software Engineering (HNDS
 
 ---
 
-## 🏗️ Architecture & Core Deliverables
+## 🏗️ Architecture & Features
 
 - **UI Layout System:** Constructed using structured `LinearLayout`s, custom drawables, and Material 3 components for optimal responsiveness following the **Tech-Precision Hybrid** color palette.
 - **Locations & GPS:** Branch distance calculation between Colombo & Galle locations using `FusedLocationProviderClient` and Google Maps API.
