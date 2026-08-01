@@ -19,6 +19,65 @@ service cloud.firestore {
       return signedIn() && request.resource.data.customerUid == request.auth.uid;
     }
 
+    function ownsAppointment(appointmentId) {
+      return signedIn()
+          && get(/databases/$(database)/documents/appointments/$(appointmentId))
+                 .data.customerUid == request.auth.uid;
+    }
+
+    function validCustomerAppointmentCreate(documentId) {
+      return ownsNewRecord()
+          && request.resource.data.remoteId == documentId
+          && request.resource.data.status == "PENDING"
+          && request.resource.data.branchId == null
+          && request.resource.data.technicianId == null
+          && request.resource.data.serviceId is int
+          && (!("serviceRemoteId" in request.resource.data) ||
+              request.resource.data.serviceRemoteId is string)
+          && request.resource.data.appointmentAt is int
+          && request.resource.data.requestLatitude is number
+          && request.resource.data.requestLongitude is number
+          && request.resource.data.keys().hasOnly([
+            "remoteId", "customerUid", "customerEmail", "branchId",
+            "technicianId", "serviceId", "deviceDetails",
+            "serviceRemoteId",
+            "problemDescription", "status", "appointmentAt",
+            "requestLatitude", "requestLongitude", "createdAt", "updatedAt"
+          ]);
+    }
+
+    function validCustomerHistoryCreate(documentId) {
+      return ownsNewRecord()
+          && request.resource.data.remoteId == documentId
+          && request.resource.data.status == "PENDING"
+          && request.resource.data.featured == false
+          && request.resource.data.appointmentRemoteId is string
+          && ownsAppointment(request.resource.data.appointmentRemoteId)
+          && request.resource.data.keys().hasOnly([
+            "remoteId", "appointmentId", "appointmentRemoteId",
+            "customerUid", "status", "notes", "featured", "imagePath",
+            "device", "serviceName", "branchName", "recordedAt", "updatedAt"
+          ]);
+    }
+
+    function customerPaymentMethod(method) {
+      return method == "CARD" || method == "BANK_TRANSFER" ||
+          method == "ONLINE";
+    }
+
+    function validCustomerPaymentCreate(documentId) {
+      return ownsNewRecord()
+          && request.resource.data.remoteId == documentId
+          && request.resource.data.status == "PENDING"
+          && customerPaymentMethod(request.resource.data.method)
+          && request.resource.data.appointmentRemoteId is string
+          && ownsAppointment(request.resource.data.appointmentRemoteId)
+          && request.resource.data.keys().hasOnly([
+            "remoteId", "appointmentId", "appointmentRemoteId",
+            "customerUid", "method", "status", "createdAt", "updatedAt"
+          ]);
+    }
+
     match /users/{userId} {
       allow create: if signedIn()
           && request.auth.uid == userId
@@ -27,7 +86,9 @@ service cloud.firestore {
       allow update: if isManager()
           || (signedIn()
               && request.auth.uid == userId
-              && request.resource.data.role == resource.data.role);
+              && request.resource.data.role == resource.data.role
+              && request.resource.data.diff(resource.data).affectedKeys()
+                  .hasOnly(["fullName", "email", "updatedAt"]));
       allow delete: if false;
     }
 
@@ -56,15 +117,26 @@ service cloud.firestore {
       allow write: if isManager();
     }
 
+    match /servicePartRequirements/{documentId} {
+      allow read: if signedIn();
+      allow write: if isManager();
+    }
+
+    match /appointmentPartReservations/{documentId} {
+      allow read: if isManager()
+          || (signedIn() && resource.data.customerUid == request.auth.uid);
+      allow write: if isManager();
+    }
+
     match /appointments/{documentId} {
       allow read: if isManager() || ownsExistingRecord();
-      allow create: if isManager() || ownsNewRecord();
+      allow create: if isManager() || validCustomerAppointmentCreate(documentId);
       allow update, delete: if isManager();
     }
 
     match /repairHistory/{documentId} {
       allow read: if isManager() || ownsExistingRecord() || resource.data.featured == true;
-      allow create: if isManager() || ownsNewRecord();
+      allow create: if isManager() || validCustomerHistoryCreate(documentId);
       allow update: if isManager()
           || (ownsExistingRecord()
               && request.resource.data.customerUid == request.auth.uid
@@ -75,11 +147,17 @@ service cloud.firestore {
 
     match /payments/{documentId} {
       allow read: if isManager() || ownsExistingRecord();
-      allow create: if isManager() || ownsNewRecord();
+      allow create: if isManager() || validCustomerPaymentCreate(documentId);
       allow update: if isManager()
           || (ownsExistingRecord()
               && ownsNewRecord()
-              && request.resource.data.appointmentId == resource.data.appointmentId);
+              && resource.data.status != "PAID"
+              && request.resource.data.status == "PENDING"
+              && customerPaymentMethod(request.resource.data.method)
+              && request.resource.data.appointmentRemoteId ==
+                  resource.data.appointmentRemoteId
+              && request.resource.data.diff(resource.data).affectedKeys()
+                  .hasOnly(["method", "status", "createdAt", "updatedAt"]));
       allow delete: if isManager();
     }
   }
