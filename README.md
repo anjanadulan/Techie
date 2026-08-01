@@ -41,7 +41,7 @@ Developed as part of the **Higher National Diploma in Software Engineering (HNDS
 - **UI Layout System:** Constructed using structured `LinearLayout`s, custom drawables, and Material 3 components for optimal responsiveness following the **Tech-Precision Hybrid** color palette.
 - **Locations & GPS:** Branch distance calculation between Colombo & Galle locations using `FusedLocationProviderClient` and Google Maps API.
 - **Camera & Image Integration:** Attachment support for faulty device photos and repaired device proof images using `CameraX`.
-- **Offline Storage:** Native SQLite currently stores local user accounts; repair history and draft booking storage are still planned.
+- **Offline Storage:** Native SQLite stores user accounts, branches, technicians, device categories, repair services, branch spare-part inventory, appointments, payments, and repair-history events.
 - **Remote Data & Web Services:** REST API / Firebase integration for real-time status tracking and appointment updates.
 
 ---

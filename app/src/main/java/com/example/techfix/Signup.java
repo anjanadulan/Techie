@@ -25,7 +25,7 @@ public class Signup extends AppCompatActivity {
     private TextInputEditText emailInput;
     private TextInputEditText passwordInput;
     private TextInputEditText confirmPasswordInput;
-    private UserDatabaseHelper databaseHelper;
+    private TechFixDatabaseHelper databaseHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +47,7 @@ public class Signup extends AppCompatActivity {
         emailInput = findViewById(R.id.etSignUpEmail);
         passwordInput = findViewById(R.id.etSignUpPassword);
         confirmPasswordInput = findViewById(R.id.etSignUpConfirmPassword);
-        databaseHelper = new UserDatabaseHelper(this);
+        databaseHelper = new TechFixDatabaseHelper(this);
 
         findViewById(R.id.btnSignUpSubmit).setOnClickListener(v -> createAccount());
 
@@ -89,16 +89,16 @@ public class Signup extends AppCompatActivity {
             return;
         }
 
-        UserDatabaseHelper.RegistrationResult result =
+        TechFixDatabaseHelper.RegistrationResult result =
                 databaseHelper.registerUser(fullName, email, password);
 
-        if (result == UserDatabaseHelper.RegistrationResult.EMAIL_ALREADY_EXISTS) {
+        if (result == TechFixDatabaseHelper.RegistrationResult.EMAIL_ALREADY_EXISTS) {
             emailLayout.setError(getString(R.string.email_already_registered));
             emailInput.requestFocus();
             return;
         }
 
-        if (result == UserDatabaseHelper.RegistrationResult.ERROR) {
+        if (result == TechFixDatabaseHelper.RegistrationResult.ERROR) {
             Toast.makeText(this, R.string.registration_failed, Toast.LENGTH_SHORT).show();
             return;
         }

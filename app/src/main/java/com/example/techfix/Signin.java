@@ -23,7 +23,7 @@ public class Signin extends AppCompatActivity {
     private TextInputLayout passwordLayout;
     private TextInputEditText emailInput;
     private TextInputEditText passwordInput;
-    private UserDatabaseHelper databaseHelper;
+    private TechFixDatabaseHelper databaseHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +41,7 @@ public class Signin extends AppCompatActivity {
         passwordLayout = findViewById(R.id.tilPassword);
         emailInput = findViewById(R.id.etEmail);
         passwordInput = findViewById(R.id.etPassword);
-        databaseHelper = new UserDatabaseHelper(this);
+        databaseHelper = new TechFixDatabaseHelper(this);
 
         String registeredEmail = getIntent().getStringExtra(EXTRA_EMAIL);
         if (registeredEmail != null) {
@@ -76,10 +76,10 @@ public class Signin extends AppCompatActivity {
             return;
         }
 
-        UserDatabaseHelper.AuthenticationResult result =
+        TechFixDatabaseHelper.AuthenticationResult result =
                 databaseHelper.authenticate(email, password);
 
-        if (result.getStatus() == UserDatabaseHelper.AuthenticationResult.Status.SUCCESS) {
+        if (result.getStatus() == TechFixDatabaseHelper.AuthenticationResult.Status.SUCCESS) {
             User user = result.getUser();
             new SessionManager(this).startSession(user);
             Toast.makeText(
@@ -92,7 +92,7 @@ public class Signin extends AppCompatActivity {
         }
 
         if (result.getStatus()
-                == UserDatabaseHelper.AuthenticationResult.Status.INVALID_CREDENTIALS) {
+                == TechFixDatabaseHelper.AuthenticationResult.Status.INVALID_CREDENTIALS) {
             passwordLayout.setError(getString(R.string.invalid_credentials));
             passwordInput.requestFocus();
             return;
