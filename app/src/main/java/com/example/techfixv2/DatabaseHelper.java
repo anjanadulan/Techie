@@ -17,7 +17,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT, role TEXT)");
         db.execSQL("CREATE TABLE repairs (id INTEGER PRIMARY KEY AUTOINCREMENT, repair_id TEXT, device TEXT, status TEXT, cost TEXT, date TEXT)");
 
-        // Insert some initial sample repair data so the list is populated when the app runs offline
+        // test codes. ((((((( deleteeeeeeeeeeeeeeeeeee)
         db.execSQL("INSERT INTO repairs (repair_id, device, status, cost, date) VALUES ('#TF-1042', 'iPhone 13 Pro Screen', 'Completed', 'LKR 18,500', '2026-08-09')");
         db.execSQL("INSERT INTO repairs (repair_id, device, status, cost, date) VALUES ('#TF-1038', 'MacBook Pro M1 Keyboard', 'In Progress', 'LKR 28,500', '2026-08-08')");
         db.execSQL("INSERT INTO repairs (repair_id, device, status, cost, date) VALUES ('#TF-1011', 'iPad Air 4 Battery', 'Pending', 'LKR 12,200', '2026-08-05')");
@@ -30,7 +30,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    // Insert user into local database
+    // Insert to local
     public boolean insertUser(String name, String email, String role) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -42,7 +42,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result != -1;
     }
 
-    // Get user role by email
+    // Get role
     public String getUserRole(String email) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT role FROM users WHERE email=?", new String[]{email});
@@ -57,7 +57,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return "customer";
     }
 
-    // Get user name by email
+    // Get unmae
     public String getUserName(String email) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT name FROM users WHERE email=?", new String[]{email});
@@ -72,7 +72,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return "User";
     }
 
-    // Insert a new repair locally
+    // Insert repair local
     public boolean addRepair(String repairId, String device, String status, String cost, String date) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -86,7 +86,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result != -1;
     }
 
-    // Fetch all repairs from local database
+    // Get all repairs offline
     public Cursor getAllRepairs() {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery("SELECT * FROM repairs ORDER BY id DESC", null);
