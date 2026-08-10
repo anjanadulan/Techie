@@ -109,11 +109,13 @@ public class Signin extends AppCompatActivity {
                                     if ("admin".equalsIgnoreCase(role)) {
                                         Toast.makeText(Signin.this, "Welcome Admin!", Toast.LENGTH_SHORT).show();
                                         Intent intent = new Intent(Signin.this, ManagerDashboard.class);
+                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                         startActivity(intent);
                                         finish();
                                     } else {
                                         Toast.makeText(Signin.this, "Welcome back!", Toast.LENGTH_SHORT).show();
                                         Intent intent = new Intent(Signin.this, CustomerHome.class);
+                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                         startActivity(intent);
                                         finish();
                                     }

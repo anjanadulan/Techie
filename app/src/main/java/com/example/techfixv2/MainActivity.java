@@ -12,6 +12,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import androidx.annotation.NonNull;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -21,11 +22,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         
         mAuth = FirebaseAuth.getInstance();
         dbHelper = new DatabaseHelper(this);
 
-        // 1. Check if user is already logged in (works offline)
+        //Check if user is already logged in (works offline)
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             String email = currentUser.getEmail();
@@ -52,13 +54,13 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        // Navigate to Sign In Activity
+        // sign in
         findViewById(R.id.btnSignIn).setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, Signin.class);
             startActivity(intent);
         });
 
-        // Navigate to Sign Up Activity
+        // sign up
         findViewById(R.id.btnSignUp).setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, Signup.class);
             startActivity(intent);

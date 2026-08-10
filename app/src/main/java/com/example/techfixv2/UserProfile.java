@@ -2,14 +2,21 @@ package com.example.techfixv2;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -84,13 +91,13 @@ public class UserProfile extends AppCompatActivity {
     }
 
     private void showChangePasswordDialog() {
-        android.view.View dialogView = android.view.LayoutInflater.from(this).inflate(R.layout.dialog_change_password, null);
-        com.google.android.material.textfield.TextInputLayout tilNewPassword = dialogView.findViewById(R.id.tilNewPassword);
-        com.google.android.material.textfield.TextInputEditText etNewPassword = dialogView.findViewById(R.id.etNewPassword);
-        android.widget.Button btnCancel = dialogView.findViewById(R.id.btnCancel);
-        android.widget.Button btnUpdate = dialogView.findViewById(R.id.btnUpdate);
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_change_password, null);
+        TextInputLayout tilNewPassword = dialogView.findViewById(R.id.tilNewPassword);
+        TextInputEditText etNewPassword = dialogView.findViewById(R.id.etNewPassword);
+        Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+        Button btnUpdate = dialogView.findViewById(R.id.btnUpdate);
 
-        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+        AlertDialog dialog = new AlertDialog.Builder(this)
                 .setView(dialogView)
                 .create();
 
@@ -116,7 +123,7 @@ public class UserProfile extends AppCompatActivity {
                         .addOnCompleteListener(task -> {
                             btnUpdate.setEnabled(true);
                             if (task.isSuccessful()) {
-                                android.widget.Toast.makeText(this, "Password updated successfully!", android.widget.Toast.LENGTH_SHORT).show();
+                                Toast.makeText(this, "Password updated successfully!", Toast.LENGTH_SHORT).show();
                                 dialog.dismiss();
                             } else {
                                 String err = task.getException() != null ? task.getException().getMessage() : "Failed to update password.";
