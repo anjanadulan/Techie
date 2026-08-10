@@ -164,11 +164,13 @@
     </style>
     <!-- Base application theme. -->
     <style
-        name="Base.Theme.TechFix"
+        name="Base.Theme.TechFixV2"
         parent="Theme.Material3.DayNight.NoActionBar"
     >
         <!-- Customize your light theme here. -->
+        <item name="colorPrimary">@color/primary_blue</item>
     </style>
 
-    <style name="Theme.TechFix" parent="Base.Theme.TechFix" />
+    <style name="Theme.TechFixV2" parent="Base.Theme.TechFixV2" />
+    <style name="Theme.TechFix" parent="Base.Theme.TechFixV2" />
 </resources>

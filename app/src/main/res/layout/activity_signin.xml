@@ -56,9 +56,10 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilEmail"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="34dp"
+                android:layout_marginTop="24dp"
                 android:hint="@string/email_address"
                 app:boxBackgroundColor="@color/white"
                 app:boxBackgroundMode="outline"
@@ -66,13 +67,17 @@
                 app:boxCornerRadiusBottomStart="12dp"
                 app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusTopStart="12dp"
-                app:boxStrokeColor="@color/auth_border"
+                app:boxStrokeWidth="1dp"
+                app:boxStrokeWidthFocused="2dp"
+                app:boxStrokeColor="@color/customer_border"
                 app:hintTextColor="@color/auth_muted">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etEmail"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minHeight="50dp"
+                    android:padding="12dp"
                     android:inputType="textEmailAddress"
                     android:textColor="@color/auth_text"
                     android:textSize="14sp" />
@@ -80,6 +85,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilPassword"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
@@ -90,7 +96,9 @@
                 app:boxCornerRadiusBottomStart="12dp"
                 app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusTopStart="12dp"
-                app:boxStrokeColor="@color/auth_border"
+                app:boxStrokeWidth="1dp"
+                app:boxStrokeWidthFocused="2dp"
+                app:boxStrokeColor="@color/customer_border"
                 app:endIconMode="password_toggle"
                 app:hintTextColor="@color/auth_muted">
 
@@ -98,6 +106,8 @@
                     android:id="@+id/etPassword"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minHeight="50dp"
+                    android:padding="12dp"
                     android:inputType="textPassword"
                     android:textColor="@color/auth_text"
                     android:textSize="14sp" />
@@ -109,6 +119,7 @@
                 android:layout_height="54dp"
                 android:layout_marginTop="26dp"
                 android:background="@drawable/bg_auth_primary_button"
+                android:gravity="center"
                 android:stateListAnimator="@null"
                 android:text="@string/log_in"
                 android:textAllCaps="false"
@@ -131,7 +142,7 @@
                     android:textSize="13sp" />
 
                 <TextView
-                    android:id="@+id/tvSignUp"
+                    android:id="@+id/txtSignup"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_marginStart="5dp"

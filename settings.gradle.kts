@@ -22,5 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "TechFix"
+rootProject.name = "TechFix.V2"
 include(":app")
+ 

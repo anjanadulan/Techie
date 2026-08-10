@@ -34,7 +34,6 @@
             android:paddingBottom="28dp">
 
             <include layout="@layout/view_auth_brand" />
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -54,9 +53,10 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilSignUpFullName"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="26dp"
+                android:layout_marginTop="20dp"
                 android:hint="@string/full_name"
                 app:boxBackgroundColor="@color/white"
                 app:boxBackgroundMode="outline"
@@ -64,13 +64,17 @@
                 app:boxCornerRadiusBottomStart="12dp"
                 app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusTopStart="12dp"
-                app:boxStrokeColor="@color/auth_border"
+                app:boxStrokeWidth="1dp"
+                app:boxStrokeWidthFocused="2dp"
+                app:boxStrokeColor="@color/customer_border"
                 app:hintTextColor="@color/auth_muted">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etFullName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minHeight="50dp"
+                    android:padding="12dp"
                     android:inputType="textPersonName"
                     android:textColor="@color/auth_text"
                     android:textSize="14sp" />
@@ -78,6 +82,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilSignUpEmail"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
@@ -88,13 +93,17 @@
                 app:boxCornerRadiusBottomStart="12dp"
                 app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusTopStart="12dp"
-                app:boxStrokeColor="@color/auth_border"
+                app:boxStrokeWidth="1dp"
+                app:boxStrokeWidthFocused="2dp"
+                app:boxStrokeColor="@color/customer_border"
                 app:hintTextColor="@color/auth_muted">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etSignUpEmail"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minHeight="50dp"
+                    android:padding="12dp"
                     android:inputType="textEmailAddress"
                     android:textColor="@color/auth_text"
                     android:textSize="14sp" />
@@ -102,6 +111,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilSignUpPassword"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
@@ -112,7 +122,9 @@
                 app:boxCornerRadiusBottomStart="12dp"
                 app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusTopStart="12dp"
-                app:boxStrokeColor="@color/auth_border"
+                app:boxStrokeWidth="1dp"
+                app:boxStrokeWidthFocused="2dp"
+                app:boxStrokeColor="@color/customer_border"
                 app:endIconMode="password_toggle"
                 app:hintTextColor="@color/auth_muted">
 
@@ -120,6 +132,8 @@
                     android:id="@+id/etSignUpPassword"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minHeight="50dp"
+                    android:padding="12dp"
                     android:inputType="textPassword"
                     android:textColor="@color/auth_text"
                     android:textSize="14sp" />
@@ -127,6 +141,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilSignUpConfirmPassword"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
@@ -137,7 +152,9 @@
                 app:boxCornerRadiusBottomStart="12dp"
                 app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusTopStart="12dp"
-                app:boxStrokeColor="@color/auth_border"
+                app:boxStrokeWidth="1dp"
+                app:boxStrokeWidthFocused="2dp"
+                app:boxStrokeColor="@color/customer_border"
                 app:endIconMode="password_toggle"
                 app:hintTextColor="@color/auth_muted">
 
@@ -145,11 +162,12 @@
                     android:id="@+id/etSignUpConfirmPassword"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minHeight="50dp"
+                    android:padding="12dp"
                     android:inputType="textPassword"
                     android:textColor="@color/auth_text"
                     android:textSize="14sp" />
             </com.google.android.material.textfield.TextInputLayout>
-
 
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnSignUpSubmit"
@@ -157,6 +175,7 @@
                 android:layout_height="54dp"
                 android:layout_marginTop="22dp"
                 android:background="@drawable/bg_auth_primary_button"
+                android:gravity="center"
                 android:stateListAnimator="@null"
                 android:text="@string/create_account"
                 android:textAllCaps="false"
@@ -179,7 +198,7 @@
                     android:textSize="13sp" />
 
                 <TextView
-                    android:id="@+id/tvAlreadyHaveAccount"
+                    android:id="@+id/txtLogin"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_marginStart="5dp"

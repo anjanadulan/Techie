@@ -7,8 +7,8 @@
     android:layout_height="match_parent"
     android:background="@color/customer_bg"
     android:orientation="vertical"
-    tools:context=".CustomerHomeActivity"
->
+    tools:context=".CustomerHome"
+    >
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -16,7 +16,7 @@
         android:clipToPadding="false"
         android:fillViewport="true"
         android:overScrollMode="never"
-    >
+        >
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -25,26 +25,26 @@
             android:paddingTop="22dp"
             android:paddingEnd="20dp"
             android:paddingBottom="24dp"
-        >
+            >
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-            >
+                >
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical"
-                >
+                    >
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/customer_greeting"
                         android:textColor="@color/customer_muted"
                         android:textSize="14sp"
-                    />
+                        />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -52,7 +52,7 @@
                         android:textColor="@color/customer_text"
                         android:textSize="21sp"
                         android:textStyle="bold"
-                    />
+                        />
                 </LinearLayout>
                 <ImageView
                     android:layout_width="44dp"
@@ -61,7 +61,7 @@
                     android:contentDescription="@string/brand_icon_description"
                     android:padding="10dp"
                     android:src="@drawable/ic_techfix_mark"
-                />
+                    />
             </LinearLayout>
             <TextView
                 android:layout_width="match_parent"
@@ -72,7 +72,7 @@
                 android:textColor="@color/customer_text"
                 android:textSize="34sp"
                 android:textStyle="bold"
-            />
+                />
             <LinearLayout
                 android:id="@+id/searchServices"
                 android:layout_width="match_parent"
@@ -83,13 +83,13 @@
                 android:focusable="true"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-            >
+                >
                 <ImageView
                     android:layout_width="22dp"
                     android:layout_height="22dp"
                     android:contentDescription="@string/search_services"
                     android:src="@drawable/ic_customer_search"
-                />
+                    />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -97,7 +97,7 @@
                     android:text="@string/search_services"
                     android:textColor="@color/customer_muted"
                     android:textSize="14sp"
-                />
+                    />
             </LinearLayout>
             <LinearLayout
                 android:layout_width="match_parent"
@@ -105,7 +105,7 @@
                 android:layout_marginTop="28dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-            >
+                >
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -114,7 +114,7 @@
                     android:textColor="@color/customer_text"
                     android:textSize="19sp"
                     android:textStyle="bold"
-                />
+                    />
                 <TextView
                     android:id="@+id/openServices"
                     android:layout_width="wrap_content"
@@ -124,7 +124,7 @@
                     android:textColor="@color/customer_orange"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                />
+                    />
             </LinearLayout>
             <LinearLayout
                 android:layout_width="match_parent"
@@ -132,7 +132,7 @@
                 android:layout_marginTop="12dp"
                 android:baselineAligned="false"
                 android:orientation="horizontal"
-            >
+                >
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="108dp"
@@ -141,12 +141,12 @@
                     android:background="@drawable/bg_customer_card"
                     android:gravity="center"
                     android:orientation="vertical"
-                >
+                    >
                     <ImageView
                         android:layout_width="34dp"
                         android:layout_height="34dp"
                         android:src="@drawable/ic_customer_phone"
-                    />
+                        />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -154,7 +154,7 @@
                         android:text="@string/phone"
                         android:textColor="@color/customer_text"
                         android:textStyle="bold"
-                    />
+                        />
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="0dp"
@@ -165,12 +165,12 @@
                     android:background="@drawable/bg_customer_card"
                     android:gravity="center"
                     android:orientation="vertical"
-                >
+                    >
                     <ImageView
                         android:layout_width="34dp"
                         android:layout_height="34dp"
                         android:src="@drawable/ic_customer_laptop"
-                    />
+                        />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -178,7 +178,7 @@
                         android:text="@string/laptop"
                         android:textColor="@color/customer_text"
                         android:textStyle="bold"
-                    />
+                        />
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="0dp"
@@ -188,12 +188,12 @@
                     android:background="@drawable/bg_customer_card"
                     android:gravity="center"
                     android:orientation="vertical"
-                >
+                    >
                     <ImageView
                         android:layout_width="34dp"
                         android:layout_height="34dp"
                         android:src="@drawable/ic_customer_phone"
-                    />
+                        />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -201,7 +201,7 @@
                         android:text="@string/tablet"
                         android:textColor="@color/customer_text"
                         android:textStyle="bold"
-                    />
+                        />
                 </LinearLayout>
             </LinearLayout>
             <TextView
@@ -212,7 +212,7 @@
                 android:textColor="@color/customer_text"
                 android:textSize="19sp"
                 android:textStyle="bold"
-            />
+                />
             <LinearLayout
                 android:id="@+id/activeRepairCard"
                 android:layout_width="match_parent"
@@ -224,13 +224,13 @@
                 android:focusable="true"
                 android:orientation="vertical"
                 android:padding="18dp"
-            >
+                >
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                >
+                    >
                     <TextView
                         android:id="@+id/tvActiveRepairId"
                         android:layout_width="0dp"
@@ -239,7 +239,7 @@
                         android:text="@string/repair_id"
                         android:textColor="@color/customer_muted"
                         android:textSize="12sp"
-                    />
+                        />
                     <TextView
                         android:id="@+id/tvActiveRepairStatus"
                         android:layout_width="wrap_content"
@@ -249,7 +249,7 @@
                         android:textColor="@color/customer_success"
                         android:textSize="11sp"
                         android:textStyle="bold"
-                    />
+                        />
                 </LinearLayout>
                 <TextView
                     android:id="@+id/tvActiveRepairSummary"
@@ -260,19 +260,19 @@
                     android:textColor="@color/customer_text"
                     android:textSize="16sp"
                     android:textStyle="bold"
-                />
+                    />
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="6dp"
                     android:layout_marginTop="18dp"
                     android:background="@color/customer_orange_soft"
-                />
+                    />
                 <View
                     android:layout_width="230dp"
                     android:layout_height="6dp"
                     android:layout_marginTop="-6dp"
                     android:background="@color/customer_orange"
-                />
+                    />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -280,7 +280,7 @@
                     android:text="@string/view_details"
                     android:textColor="@color/customer_orange"
                     android:textStyle="bold"
-                />
+                    />
             </LinearLayout>
             <TextView
                 android:layout_width="wrap_content"
@@ -290,7 +290,7 @@
                 android:textColor="@color/customer_text"
                 android:textSize="19sp"
                 android:textStyle="bold"
-            />
+                />
             <LinearLayout
                 android:id="@+id/popularService"
                 android:layout_width="match_parent"
@@ -302,21 +302,21 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:padding="14dp"
-            >
+                >
                 <ImageView
                     android:layout_width="54dp"
                     android:layout_height="54dp"
                     android:background="@drawable/bg_customer_soft_blue"
                     android:padding="11dp"
                     android:src="@drawable/ic_customer_phone"
-                />
+                    />
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="14dp"
                     android:layout_weight="1"
                     android:orientation="vertical"
-                >
+                    >
                     <TextView
                         android:id="@+id/tvPopularServiceName"
                         android:layout_width="wrap_content"
@@ -325,7 +325,7 @@
                         android:textColor="@color/customer_text"
                         android:textSize="15sp"
                         android:textStyle="bold"
-                    />
+                        />
                     <TextView
                         android:id="@+id/tvPopularServiceMeta"
                         android:layout_width="wrap_content"
@@ -334,7 +334,7 @@
                         android:text="From LKR 8,500 · 1–2 hours"
                         android:textColor="@color/customer_muted"
                         android:textSize="12sp"
-                    />
+                        />
                 </LinearLayout>
                 <TextView
                     android:layout_width="wrap_content"
@@ -342,7 +342,7 @@
                     android:text="›"
                     android:textColor="@color/customer_text"
                     android:textSize="30sp"
-                />
+                    />
             </LinearLayout>
             <LinearLayout
                 android:id="@+id/openRepairGallery"
@@ -355,21 +355,21 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:padding="14dp"
-            >
+                >
                 <ImageView
                     android:layout_width="54dp"
                     android:layout_height="54dp"
                     android:background="@drawable/bg_customer_soft_orange"
                     android:padding="11dp"
                     android:src="@drawable/ic_customer_services"
-                />
+                    />
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="14dp"
                     android:layout_weight="1"
                     android:orientation="vertical"
-                >
+                    >
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -377,7 +377,7 @@
                         android:textColor="@color/customer_text"
                         android:textSize="15sp"
                         android:textStyle="bold"
-                    />
+                        />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -385,7 +385,7 @@
                         android:text="See real repairs captured by TechFix"
                         android:textColor="@color/customer_muted"
                         android:textSize="12sp"
-                    />
+                        />
                 </LinearLayout>
                 <TextView
                     android:layout_width="wrap_content"
@@ -393,7 +393,7 @@
                     android:text="›"
                     android:textColor="@color/customer_orange"
                     android:textSize="30sp"
-                />
+                    />
             </LinearLayout>
             <LinearLayout
                 android:id="@+id/openAvailability"
@@ -406,21 +406,21 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:padding="14dp"
-            >
+                >
                 <ImageView
                     android:layout_width="54dp"
                     android:layout_height="54dp"
                     android:background="@drawable/bg_customer_soft_blue"
                     android:padding="11dp"
                     android:src="@drawable/ic_customer_bookings"
-                />
+                    />
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="14dp"
                     android:layout_weight="1"
                     android:orientation="vertical"
-                >
+                    >
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -428,7 +428,7 @@
                         android:textColor="@color/customer_text"
                         android:textSize="15sp"
                         android:textStyle="bold"
-                    />
+                        />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -436,7 +436,7 @@
                         android:text="Browse technicians and spare-part stock"
                         android:textColor="@color/customer_muted"
                         android:textSize="12sp"
-                    />
+                        />
                 </LinearLayout>
                 <TextView
                     android:layout_width="wrap_content"
@@ -444,7 +444,7 @@
                     android:text="›"
                     android:textColor="@color/customer_blue"
                     android:textSize="30sp"
-                />
+                    />
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

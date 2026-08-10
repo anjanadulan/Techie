@@ -1,10 +1,10 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.google.services)
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
-    namespace = "com.example.techfix"
+    namespace = "com.example.techfixv2"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -12,7 +12,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.techfix"
+        applicationId = "com.example.techfixv2"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -37,17 +37,14 @@ android {
 dependencies {
     implementation(libs.activity.ktx)
     implementation(libs.appcompat)
-    implementation(libs.constraintlayout)
-    implementation(libs.material)
     implementation(platform(libs.firebase.bom))
+    implementation(libs.constraintlayout)
+    implementation(libs.credentials)
+    implementation(libs.credentials.play.services.auth)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
-    implementation("com.google.firebase:firebase-functions")
-    implementation(libs.firebase.storage)
-    implementation(libs.work.runtime)
-    implementation(libs.camera.camera2)
-    implementation(libs.camera.lifecycle)
-    implementation(libs.camera.view)
+    implementation(libs.googleid)
+    implementation(libs.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)

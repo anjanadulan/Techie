@@ -7,15 +7,15 @@
     android:layout_height="match_parent"
     android:background="@color/customer_bg"
     android:orientation="vertical"
-    tools:context=".ServicesActivity"
->
+    tools:context=".Services"
+    >
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:clipToPadding="false"
         android:overScrollMode="never"
-    >
+        >
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -23,123 +23,103 @@
             android:paddingStart="20dp"
             android:paddingTop="24dp"
             android:paddingEnd="20dp"
-            android:paddingBottom="24dp"
-        >
+            android:paddingBottom="28dp"
+            >
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/browse_services"
+                android:text="@string/popular_services"
                 android:textColor="@color/customer_text"
                 android:textSize="31sp"
                 android:textStyle="bold"
-            />
+                />
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="7dp"
                 android:text="@string/service_list_subtitle"
                 android:textColor="@color/customer_muted"
-                android:textSize="14sp"
-            />
-            <LinearLayout
+                />
+
+            <!-- Service Item Card 1 -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:background="@drawable/bg_customer_input"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-            >
-                <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:src="@drawable/ic_customer_search"
-                />
-                <EditText
-                    android:id="@+id/etServiceSearch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:background="@null"
-                    android:inputType="text"
-                    android:singleLine="true"
-                    android:text="@string/search_services"
-                    android:textColor="@color/customer_muted"
-                />
-            </LinearLayout>
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:scrollbars="none"
-            >
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
+                style="@style/Widget.Material3.CardView.Elevated"
                 >
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    >
                     <TextView
-                        android:id="@+id/filterAll"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/bg_customer_chip_selected"
-                        android:text="All"
-                        android:textColor="@color/white"
+                        android:text="@string/screen_replacement"
+                        android:textColor="@color/customer_text"
+                        android:textSize="18sp"
                         android:textStyle="bold"
-                    />
+                        />
                     <TextView
-                        android:id="@+id/filterPhone"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/screen_replacement_description"
+                        android:textColor="@color/customer_muted"
+                        android:textSize="14sp"
+                        />
+                    <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:background="@drawable/bg_customer_chip"
-                        android:text="@string/phone"
-                        android:textColor="@color/customer_text"
-                    />
-                    <TextView
-                        android:id="@+id/filterLaptop"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:background="@drawable/bg_customer_chip"
-                        android:text="@string/laptop"
-                        android:textColor="@color/customer_text"
-                    />
-                    <TextView
-                        android:id="@+id/filterTablet"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:background="@drawable/bg_customer_chip"
-                        android:text="@string/tablet"
-                        android:textColor="@color/customer_text"
-                    />
+                        android:layout_marginTop="8dp"
+                        android:text="@string/starting_price"
+                        android:textColor="@color/customer_orange"
+                        android:textStyle="bold"
+                        />
                 </LinearLayout>
-            </HorizontalScrollView>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="28dp"
-                android:text="Recommended repairs"
-                android:textColor="@color/customer_text"
-                android:textSize="18sp"
-                android:textStyle="bold"
-            />
-            <TextView
-                android:id="@+id/tvServicesEmpty"
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Service Item Card 2 -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:gravity="center"
-                android:text="No matching repair services."
-                android:textColor="@color/customer_muted"
-                android:visibility="gone"
-            />
-            <LinearLayout
-                android:id="@+id/servicesList"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-            />
+                android:layout_marginTop="12dp"
+                style="@style/Widget.Material3.CardView.Elevated"
+                >
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    >
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Battery Replacement"
+                        android:textColor="@color/customer_text"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="Restore your device\'s battery life with certified replacements."
+                        android:textColor="@color/customer_muted"
+                        android:textSize="14sp"
+                        />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Starting from $29"
+                        android:textColor="@color/customer_orange"
+                        android:textStyle="bold"
+                        />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </ScrollView>
     <include layout="@layout/view_customer_bottom_nav" />

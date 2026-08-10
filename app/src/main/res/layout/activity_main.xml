@@ -109,10 +109,11 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
+        android:baselineAligned="false"
         android:padding="20dp"
-    >
+        >
         <TextView
-            android:id="@+id/btnSplashSignIn"
+            android:id="@+id/btnSignIn"
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_weight="1"
@@ -123,10 +124,10 @@
             android:gravity="center"
             android:clickable="true"
             android:focusable="true"
-        />
+            />
 
         <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btnSplashSignUp"
+            android:id="@+id/btnSignUp"
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_weight="1"
@@ -134,9 +135,11 @@
             android:text="Sign up"
             android:textAllCaps="false"
             android:textColor="@color/white"
+            android:gravity="center"
             android:textSize="16sp"
             android:textStyle="bold"
             android:elevation="2dp"
-        />
+            />
     </LinearLayout>
+
 </LinearLayout>
