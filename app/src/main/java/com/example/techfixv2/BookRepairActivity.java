@@ -58,6 +58,10 @@ public class BookRepairActivity extends AppCompatActivity {
     private String selectedTime = "";
     private Uri selectedImageUri = null;
 
+    // Edit Mode properties
+    private boolean isEditMode = false;
+    private String bookingId = "";
+
     private static final int PICK_IMAGE_REQUEST = 102;
 
     @Override
@@ -96,6 +100,16 @@ public class BookRepairActivity extends AppCompatActivity {
         addPhotoCard.setOnClickListener(v -> openGalleryPicker());
 
         btnContinue.setOnClickListener(v -> saveBookingToFirestore());
+
+        // Check for edit mode parameters
+        if (getIntent().hasExtra("booking_id")) {
+            bookingId = getIntent().getStringExtra("booking_id");
+            isEditMode = true;
+            if (btnContinue instanceof TextView) {
+                ((TextView) btnContinue).setText("Update Booking");
+            }
+            loadExistingBookingDetails();
+        }
     }
 
     private void fetchOptionsFromFirestore() {
@@ -123,7 +137,7 @@ public class BookRepairActivity extends AppCompatActivity {
                 serviceNames.clear();
                 servicePrices.clear();
                 for (DocumentSnapshot doc : task.getResult().getDocuments()) {
-                    String name = doc.getString("serviceName");
+                    String name = doc.getString("name");
                     Object priceVal = doc.get("estimatedPrice");
                     if (name != null && priceVal != null) {
                         serviceNames.add(name);
@@ -158,6 +172,46 @@ public class BookRepairActivity extends AppCompatActivity {
                 branchList.clear();
                 branchList.add("Colombo");
                 branchList.add("Galle");
+            }
+        });
+    }
+
+    private void loadExistingBookingDetails() {
+        if (bookingId == null || bookingId.isEmpty()) return;
+
+        db.collection("appointments").document(bookingId).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult() != null) {
+                DocumentSnapshot doc = task.getResult();
+                if (doc.exists()) {
+                    selectedDevice = doc.getString("deviceName");
+                    selectedBranch = doc.getString("branch");
+                    selectedDate = doc.getString("date");
+                    selectedTime = doc.getString("time");
+                    
+                    Object costVal = doc.get("cost");
+                    if (costVal != null) {
+                        selectedCost = Double.parseDouble(String.valueOf(costVal));
+                    }
+
+                    String fullDesc = doc.getString("description");
+                    if (fullDesc != null) {
+                        if (fullDesc.contains(" - ")) {
+                            String[] parts = fullDesc.split(" - ", 2);
+                            selectedService = parts[0];
+                            etIssueDescription.setText(parts[1]);
+                        } else {
+                            selectedService = fullDesc;
+                            etIssueDescription.setText("");
+                        }
+                    }
+
+                    // Pre-populate UI dropdown labels
+                    pickerDevice.setText(selectedDevice);
+                    pickerService.setText(selectedService + " (Est: LKR " + (int) selectedCost + ")");
+                    pickerBranch.setText(selectedBranch);
+                    pickerDate.setText(selectedDate);
+                    pickerTime.setText(selectedTime);
+                }
             }
         });
     }
@@ -212,7 +266,6 @@ public class BookRepairActivity extends AppCompatActivity {
                     selectedDate = year + "-" + String.format("%02d", (month + 1)) + "-" + String.format("%02d", dayOfMonth);
                     pickerDate.setText(selectedDate);
                 }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
-        // Prevent booking past dates
         datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
         datePickerDialog.show();
     }
@@ -246,23 +299,23 @@ public class BookRepairActivity extends AppCompatActivity {
     }
 
     private void saveBookingToFirestore() {
-        if (selectedDevice.isEmpty()) {
+        if (selectedDevice.isEmpty() || selectedDevice.contains("Select Device")) {
             Toast.makeText(this, "Please select your device category", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (selectedService.isEmpty()) {
+        if (selectedService.isEmpty() || selectedService.contains("Select Service")) {
             Toast.makeText(this, "Please select a service type", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (selectedBranch.isEmpty()) {
+        if (selectedBranch.isEmpty() || selectedBranch.contains("Select Branch")) {
             Toast.makeText(this, "Please select your preferred branch", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (selectedDate.isEmpty()) {
+        if (selectedDate.isEmpty() || selectedDate.contains("Select Date")) {
             Toast.makeText(this, "Please pick a booking date", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (selectedTime.isEmpty()) {
+        if (selectedTime.isEmpty() || selectedTime.contains("Select Time")) {
             Toast.makeText(this, "Please pick a booking time slot", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -276,13 +329,12 @@ public class BookRepairActivity extends AppCompatActivity {
         String email = user.getEmail();
         String clientName = dbHelper.getUserName(email);
         if (clientName == null || clientName.trim().isEmpty()) {
-            clientName = email.split("@")[0]; // Fallback to email prefix
+            clientName = email.split("@")[0];
         }
 
         String issueDesc = etIssueDescription.getText().toString().trim();
         String fullDescription = selectedService + (issueDesc.isEmpty() ? "" : " - " + issueDesc);
 
-        // Prepare Firestore database values
         Map<String, Object> appointment = new HashMap<>();
         appointment.put("clientName", clientName);
         appointment.put("userEmail", email.trim().toLowerCase());
@@ -296,20 +348,36 @@ public class BookRepairActivity extends AppCompatActivity {
 
         btnContinue.setEnabled(false);
 
-        db.collection("appointments")
-                .add(appointment)
-                .addOnSuccessListener(documentReference -> {
-                    Toast.makeText(BookRepairActivity.this, "Booking created successfully!", Toast.LENGTH_LONG).show();
-                    
-                    // Finish and redirect to CustomerHome
-                    Intent intent = new Intent(BookRepairActivity.this, CustomerHome.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                    startActivity(intent);
-                    finish();
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(BookRepairActivity.this, "Booking failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    btnContinue.setEnabled(true);
-                });
+        if (isEditMode) {
+            db.collection("appointments").document(bookingId)
+                    .set(appointment)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(BookRepairActivity.this, "Booking updated successfully!", Toast.LENGTH_LONG).show();
+                        
+                        Intent intent = new Intent(BookRepairActivity.this, BookingHistory.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                        startActivity(intent);
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(BookRepairActivity.this, "Update failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        btnContinue.setEnabled(true);
+                    });
+        } else {
+            db.collection("appointments")
+                    .add(appointment)
+                    .addOnSuccessListener(documentReference -> {
+                        Toast.makeText(BookRepairActivity.this, "Booking created successfully!", Toast.LENGTH_LONG).show();
+                        
+                        Intent intent = new Intent(BookRepairActivity.this, BookingHistory.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                        startActivity(intent);
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(BookRepairActivity.this, "Booking failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        btnContinue.setEnabled(true);
+                    });
+        }
     }
 }

@@ -48,8 +48,8 @@
     <string name="detecting_branch">Detecting nearest available branch...</string>
     <string name="location_required">Location permission is required for automatic branch assignment.</string>
     <string name="location_unavailable">Current location is unavailable. Tap to try again.</string>
-    <string name="visit_date">Visit Date</string>
-    <string name="visit_time">Visit Time</string>
+    <string name="visit_date">Visiting Date</string>
+    <string name="visit_time">Visiting Time</string>
     <string name="issue_description">Issue Description</string>
     <string name="issue_hint">
         Describe the problem with your device &#8230;
