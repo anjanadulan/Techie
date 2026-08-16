@@ -93,12 +93,17 @@ public class Signin extends AppCompatActivity {
                                     String name = "";
 
                                     if (docTask.isSuccessful() && docTask.getResult() != null && !docTask.getResult().isEmpty()) {
-                                        DocumentSnapshot doc = docTask.getResult().getDocuments().get(0);
-                                        if (doc.contains("role") && doc.getString("role") != null) {
-                                            role = doc.getString("role");
-                                        }
-                                        if (doc.contains("fullName") && doc.getString("fullName") != null) {
-                                            name = doc.getString("fullName");
+                                        for (DocumentSnapshot doc : docTask.getResult().getDocuments()) {
+                                            String docRole = doc.getString("role");
+                                            String docName = doc.getString("fullName");
+                                            if ("admin".equalsIgnoreCase(docRole)) {
+                                                role = "admin";
+                                                if (docName != null) name = docName;
+                                                break; // Prioritize admin and stop scanning
+                                            } else if (docRole != null) {
+                                                role = docRole;
+                                                if (docName != null) name = docName;
+                                            }
                                         }
                                     }
 
