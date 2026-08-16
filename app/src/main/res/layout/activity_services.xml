@@ -41,85 +41,12 @@
                 android:textColor="@color/customer_muted"
                 />
 
-            <!-- Service Item Card 1 -->
-            <com.google.android.material.card.MaterialCardView
+            <LinearLayout
+                android:id="@+id/servicesContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                style="@style/Widget.Material3.CardView.Elevated"
-                >
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp"
-                    >
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/screen_replacement"
-                        android:textColor="@color/customer_text"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        />
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="@string/screen_replacement_description"
-                        android:textColor="@color/customer_muted"
-                        android:textSize="14sp"
-                        />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="@string/starting_price"
-                        android:textColor="@color/customer_orange"
-                        android:textStyle="bold"
-                        />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Service Item Card 2 -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                style="@style/Widget.Material3.CardView.Elevated"
-                >
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp"
-                    >
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Battery Replacement"
-                        android:textColor="@color/customer_text"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        />
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Restore your device\'s battery life with certified replacements."
-                        android:textColor="@color/customer_muted"
-                        android:textSize="14sp"
-                        />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Starting from $29"
-                        android:textColor="@color/customer_orange"
-                        android:textStyle="bold"
-                        />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+                android:orientation="vertical"
+                />
         </LinearLayout>
     </ScrollView>
     <include layout="@layout/view_customer_bottom_nav" />
