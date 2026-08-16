@@ -334,6 +334,7 @@
                         android:text="Service prices"
                         />
                     <TextView
+                        android:id="@+id/tvDashboardPricesMeta"
                         style="@style/ManagementModuleMeta"
                         android:text="5 services"
                         />
