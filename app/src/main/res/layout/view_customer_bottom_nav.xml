@@ -39,6 +39,19 @@
             android:text="@string/nav_services"
         />
     </LinearLayout>
+    <LinearLayout android:id="@+id/navBookRepair" style="@style/CustomerNavItem">
+        <ImageView
+            android:id="@+id/navBookRepairIcon"
+            style="@style/CustomerNavIcon"
+            android:contentDescription="Book Repair"
+            android:src="@drawable/ic_customer_plus"
+        />
+        <TextView
+            android:id="@+id/navBookRepairLabel"
+            style="@style/CustomerNavLabel"
+            android:text="Book"
+        />
+    </LinearLayout>
     <LinearLayout android:id="@+id/navBookings" style="@style/CustomerNavItem">
         <ImageView
             android:id="@+id/navBookingsIcon"

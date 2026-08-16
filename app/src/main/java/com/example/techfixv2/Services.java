@@ -38,6 +38,14 @@ public class Services extends AppCompatActivity {
             finish();
         });
 
+        // Bottom Navigation: Go to BookRepairActivity
+        findViewById(R.id.navBookRepair).setOnClickListener(v -> {
+            Intent intent = new Intent(Services.this, BookRepairActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            finish();
+        });
+
         // Bottom Navigation: Go to Profile
         findViewById(R.id.navProfile).setOnClickListener(v -> {
             Intent intent = new Intent(Services.this, UserProfile.class);

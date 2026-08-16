@@ -77,6 +77,14 @@ public class UserProfile extends AppCompatActivity {
             finish();
         });
 
+        // Bottom Navigation: Go to BookRepairActivity
+        findViewById(R.id.navBookRepair).setOnClickListener(v -> {
+            Intent intent = new Intent(UserProfile.this, BookRepairActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            finish();
+        });
+
         // Sign Out Button
         findViewById(R.id.btnProfileSignOut).setOnClickListener(v -> {
             mAuth.signOut();

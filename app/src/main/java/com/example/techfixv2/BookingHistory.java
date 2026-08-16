@@ -51,6 +51,14 @@ public class BookingHistory extends AppCompatActivity {
             finish();
         });
 
+        // Bottom Navigation click listener to go to BookRepairActivity
+        findViewById(R.id.navBookRepair).setOnClickListener(v -> {
+            Intent intent = new Intent(BookingHistory.this, BookRepairActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            finish();
+        });
+
         // Bottom Navigation click listener to go to Services
         findViewById(R.id.navServices).setOnClickListener(v -> {
             Intent intent = new Intent(BookingHistory.this, Services.class);
