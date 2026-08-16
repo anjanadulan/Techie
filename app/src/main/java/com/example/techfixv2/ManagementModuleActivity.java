@@ -10,7 +10,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -24,7 +23,6 @@ import java.util.Map;
 
 public class ManagementModuleActivity extends AppCompatActivity {
 
-    // Helper structure to hold document metadata
     private static class FirestoreItem {
         String id;
         String title;
@@ -46,11 +44,14 @@ public class ManagementModuleActivity extends AppCompatActivity {
     private SwipeRefreshLayout refreshLayout;
     private View btnModuleAdd;
     
+    // Filter controls
+    private TextView filterAll, filterColombo, filterGalle;
+    private String activeFilter = "All";
+
     private FirebaseFirestore db;
     private String moduleKey = "";
     private boolean isCrud = false;
     
-    // Loaded items list
     private final ArrayList<FirestoreItem> loadedItems = new ArrayList<>();
 
     @Override
@@ -60,7 +61,7 @@ public class ManagementModuleActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
 
-        // Bind layouts
+        // Bind layout headers
         tvModuleEyebrow = findViewById(R.id.tvModuleEyebrow);
         tvModuleTitle = findViewById(R.id.tvModuleTitle);
         tvModuleMetric = findViewById(R.id.tvModuleMetric);
@@ -71,20 +72,24 @@ public class ManagementModuleActivity extends AppCompatActivity {
         refreshLayout = findViewById(R.id.refreshLayout);
         btnModuleAdd = findViewById(R.id.btnModuleAdd);
 
+        // Bind filter chips
+        filterAll = findViewById(R.id.filterAll);
+        filterColombo = findViewById(R.id.filterColombo);
+        filterGalle = findViewById(R.id.filterGalle);
+
         // Parse key
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("module_key")) {
             moduleKey = intent.getStringExtra("module_key");
         }
 
-        // Determine CRUD status
+        // Determine CRUD
         isCrud = "parts".equalsIgnoreCase(moduleKey) ||
                  "technicians".equalsIgnoreCase(moduleKey) ||
                  "prices".equalsIgnoreCase(moduleKey) ||
                  "branches".equalsIgnoreCase(moduleKey) ||
                  "categories".equalsIgnoreCase(moduleKey);
 
-        // Hide '+' for View-Only modules
         if (isCrud) {
             btnModuleAdd.setVisibility(View.VISIBLE);
         } else {
@@ -97,11 +102,43 @@ public class ManagementModuleActivity extends AppCompatActivity {
         // Setup Add Button
         btnModuleAdd.setOnClickListener(v -> showAddDialog());
 
+        // Setup Filter Click Listeners
+        filterAll.setOnClickListener(v -> updateFilterState("All"));
+        filterColombo.setOnClickListener(v -> updateFilterState("Colombo"));
+        filterGalle.setOnClickListener(v -> updateFilterState("Galle"));
+
         // Setup Swipe Refresh
         refreshLayout.setOnRefreshListener(this::loadModuleData);
 
         // Load data
         loadModuleData();
+    }
+
+    private void updateFilterState(String newFilter) {
+        activeFilter = newFilter;
+
+        // Reset all filter views to inactive style
+        filterAll.setBackgroundResource(R.drawable.bg_management_chip);
+        filterAll.setTextColor(getResources().getColor(R.color.management_muted));
+        filterColombo.setBackgroundResource(R.drawable.bg_management_chip);
+        filterColombo.setTextColor(getResources().getColor(R.color.management_muted));
+        filterGalle.setBackgroundResource(R.drawable.bg_management_chip);
+        filterGalle.setTextColor(getResources().getColor(R.color.management_muted));
+
+        // Apply active background and text colors
+        if ("All".equalsIgnoreCase(newFilter)) {
+            filterAll.setBackgroundResource(R.drawable.bg_management_chip_active);
+            filterAll.setTextColor(getResources().getColor(R.color.management_cyan));
+        } else if ("Colombo".equalsIgnoreCase(newFilter)) {
+            filterColombo.setBackgroundResource(R.drawable.bg_management_chip_active);
+            filterColombo.setTextColor(getResources().getColor(R.color.management_cyan));
+        } else if ("Galle".equalsIgnoreCase(newFilter)) {
+            filterGalle.setBackgroundResource(R.drawable.bg_management_chip_active);
+            filterGalle.setTextColor(getResources().getColor(R.color.management_cyan));
+        }
+
+        // Render matching rows locally
+        renderList();
     }
 
     private String getCollectionName() {
@@ -124,7 +161,6 @@ public class ManagementModuleActivity extends AppCompatActivity {
         refreshLayout.setRefreshing(true);
         String collection = getCollectionName();
 
-        // Setup Title Header metadata
         setupHeaderTitles();
 
         db.collection(collection)
@@ -133,28 +169,60 @@ public class ManagementModuleActivity extends AppCompatActivity {
                     refreshLayout.setRefreshing(false);
                     if (task.isSuccessful() && task.getResult() != null) {
                         loadedItems.clear();
-                        managementList.removeAllViews();
-
                         if (task.getResult().isEmpty()) {
-                            // If collection is empty, auto-seed with initial testing values
                             seedInitialData(collection);
                         } else {
-                            int index = 0;
                             for (QueryDocumentSnapshot doc : task.getResult()) {
                                 Map<String, Object> data = doc.getData();
                                 FirestoreItem item = parseDocumentToItem(doc.getId(), data);
                                 loadedItems.add(item);
-                                addListItem(item.title, item.subtitle, item.status, index);
-                                index++;
                             }
-                            // Update dynamic metric counter label
-                            tvModuleMetric.setText(String.valueOf(loadedItems.size()));
+                            // Render list using active filter
+                            renderList();
                         }
                     } else {
                         String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
                         Toast.makeText(this, "Failed to load database: " + errorMsg, Toast.LENGTH_LONG).show();
                     }
                 });
+    }
+
+    private void renderList() {
+        managementList.removeAllViews();
+        int visibleCount = 0;
+
+        for (int i = 0; i < loadedItems.size(); i++) {
+            FirestoreItem item = loadedItems.get(i);
+            boolean matchesFilter = false;
+
+            if ("All".equalsIgnoreCase(activeFilter)) {
+                matchesFilter = true;
+            } else {
+                String itemLoc = "";
+                Map<String, Object> data = item.rawData;
+
+                // Scan parameters in priority order
+                if (data.containsKey("location") && data.get("location") != null) {
+                    itemLoc = String.valueOf(data.get("location"));
+                } else if (data.containsKey("branch") && data.get("branch") != null) {
+                    itemLoc = String.valueOf(data.get("branch"));
+                } else if (data.containsKey("name") && data.get("name") != null) {
+                    itemLoc = String.valueOf(data.get("name"));
+                }
+
+                if (itemLoc.toLowerCase().contains(activeFilter.toLowerCase())) {
+                    matchesFilter = true;
+                }
+            }
+
+            if (matchesFilter) {
+                addListItem(item.title, item.subtitle, item.status, i);
+                visibleCount++;
+            }
+        }
+
+        // Update the metric counter label dynamically
+        tvModuleMetric.setText(String.valueOf(visibleCount));
     }
 
     private void setupHeaderTitles() {
@@ -297,7 +365,6 @@ public class ManagementModuleActivity extends AppCompatActivity {
         tvRowSubtitle.setText(subtitle);
         tvRowStatus.setText(status);
 
-        // Customize dynamic badge color states
         if ("Pending".equalsIgnoreCase(status) || "Low Stock".equalsIgnoreCase(status) || "Busy".equalsIgnoreCase(status) || "Closed".equalsIgnoreCase(status) || "Inactive".equalsIgnoreCase(status) || "Off Duty".equalsIgnoreCase(status)) {
             tvRowStatus.setBackgroundResource(R.drawable.bg_management_status_warning);
             tvRowStatus.setTextColor(getResources().getColor(R.color.management_amber));
@@ -320,9 +387,8 @@ public class ManagementModuleActivity extends AppCompatActivity {
         managementList.addView(row);
     }
 
-    // CRUD: Add Dialog
     private void showAddDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
         builder.setTitle("Add new " + tvModuleTitle.getText().toString());
 
         LinearLayout layout = new LinearLayout(this);
@@ -335,7 +401,6 @@ public class ManagementModuleActivity extends AppCompatActivity {
         for (String field : fields) {
             EditText et = new EditText(this);
             et.setHint(formatFieldName(field));
-            // Apply numeric keyboard for quantities/prices
             if ("quantity".equals(field) || "price".equals(field) || "estimatedPrice".equals(field) || "amount".equals(field)) {
                 et.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
             }
@@ -354,7 +419,6 @@ public class ManagementModuleActivity extends AppCompatActivity {
                     return;
                 }
 
-                // Cast to numeric types
                 if ("quantity".equals(fields[i])) {
                     data.put(fields[i], Integer.parseInt(val));
                 } else if ("price".equals(fields[i]) || "estimatedPrice".equals(fields[i])) {
@@ -381,12 +445,11 @@ public class ManagementModuleActivity extends AppCompatActivity {
         builder.show();
     }
 
-    // CRUD: Edit / Delete Dialog
     private void showEditDeleteDialog(int index) {
         if (index < 0 || index >= loadedItems.size()) return;
         FirestoreItem item = loadedItems.get(index);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
         builder.setTitle("Edit " + tvModuleTitle.getText().toString());
 
         LinearLayout layout = new LinearLayout(this);
@@ -460,12 +523,11 @@ public class ManagementModuleActivity extends AppCompatActivity {
         builder.show();
     }
 
-    // View-Only: Show Details Dialog
     private void showViewDetailsDialog(int index) {
         if (index < 0 || index >= loadedItems.size()) return;
         FirestoreItem item = loadedItems.get(index);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
         builder.setTitle(tvModuleTitle.getText().toString() + " Record Details");
 
         StringBuilder sb = new StringBuilder();
@@ -478,7 +540,6 @@ public class ManagementModuleActivity extends AppCompatActivity {
         builder.show();
     }
 
-    // Maps database keys to user-friendly hints
     private String formatFieldName(String databaseKey) {
         if (databaseKey == null) return "Field";
         switch (databaseKey) {
@@ -508,7 +569,6 @@ public class ManagementModuleActivity extends AppCompatActivity {
         }
     }
 
-    // Get database attributes fields array
     private String[] getFieldsForModule() {
         if (moduleKey == null) return new String[]{};
         switch (moduleKey.toLowerCase()) {
@@ -527,7 +587,6 @@ public class ManagementModuleActivity extends AppCompatActivity {
         }
     }
 
-    // Seeds the database collection if it is completely empty
     private void seedInitialData(String collection) {
         refreshLayout.setRefreshing(true);
         ArrayList<Map<String, Object>> mockList = new ArrayList<>();
@@ -565,7 +624,6 @@ public class ManagementModuleActivity extends AppCompatActivity {
             return;
         }
 
-        // Upload batch to Firestore
         for (int i = 0; i < mockList.size(); i++) {
             final int count = i;
             db.collection(collection)
@@ -578,7 +636,6 @@ public class ManagementModuleActivity extends AppCompatActivity {
         }
     }
 
-    // Helper builders for seeding
     private Map<String, Object> createPartMap(String name, String cat, String loc, int qty, double price) {
         Map<String, Object> map = new HashMap<>();
         map.put("name", name);
