@@ -84,16 +84,16 @@ public class Signin extends AppCompatActivity {
                     if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
                         String uid = mAuth.getCurrentUser().getUid();
 
-                        // 2. Fetch User Role from Firestore
-                        db.collection("users").document(uid).get()
+                        // 2. Fetch User Role from Firestore by Email (immune to UID mismatches)
+                        db.collection("users").whereEqualTo("email", email).get()
                                 .addOnCompleteListener(docTask -> {
                                     btnSignIn.setEnabled(true);
 
                                     String role = "customer";
                                     String name = "";
 
-                                    if (docTask.isSuccessful() && docTask.getResult() != null) {
-                                        DocumentSnapshot doc = docTask.getResult();
+                                    if (docTask.isSuccessful() && docTask.getResult() != null && !docTask.getResult().isEmpty()) {
+                                        DocumentSnapshot doc = docTask.getResult().getDocuments().get(0);
                                         if (doc.contains("role") && doc.getString("role") != null) {
                                             role = doc.getString("role");
                                         }

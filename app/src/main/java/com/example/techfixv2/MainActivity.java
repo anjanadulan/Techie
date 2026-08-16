@@ -12,6 +12,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 import androidx.annotation.NonNull;
 
 public class MainActivity extends AppCompatActivity {
@@ -33,17 +34,12 @@ public class MainActivity extends AppCompatActivity {
             String email = currentUser.getEmail();
             String role = dbHelper.getUserRole(email);
 
-            if ("admin".equalsIgnoreCase(role)) {
-                Intent intent = new Intent(MainActivity.this, ManagerDashboard.class);
-                startActivity(intent);
-                finish();
-                return;
+            if (role != null) {
+                redirectByRole(role);
             } else {
-                Intent intent = new Intent(MainActivity.this, CustomerHome.class);
-                startActivity(intent);
-                finish();
-                return;
+                fetchRoleFromFirestoreAndRedirect(currentUser.getUid(), email);
             }
+            return;
         }
 
         EdgeToEdge.enable(this);
@@ -65,5 +61,48 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, Signup.class);
             startActivity(intent);
         });
+    }
+
+    private void redirectByRole(String role) {
+        if ("admin".equalsIgnoreCase(role)) {
+            Intent intent = new Intent(MainActivity.this, ManagerDashboard.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+        } else {
+            Intent intent = new Intent(MainActivity.this, CustomerHome.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+        }
+    }
+
+    private void fetchRoleFromFirestoreAndRedirect(String uid, String email) {
+        FirebaseFirestore.getInstance()
+                .collection("users")
+                .whereEqualTo("email", email)
+                .get()
+                .addOnCompleteListener(task -> {
+                    String role = "customer";
+                    String name = "User";
+                    if (task.isSuccessful() && task.getResult() != null && !task.getResult().isEmpty()) {
+                        com.google.firebase.firestore.DocumentSnapshot doc = task.getResult().getDocuments().get(0);
+                        String fetchedRole = doc.getString("role");
+                        String fetchedName = doc.getString("fullName");
+                        if (fetchedRole != null) {
+                            role = fetchedRole;
+                        }
+                        if (fetchedName != null) {
+                            name = fetchedName;
+                        }
+                        // Cache it to local SQLite
+                        dbHelper.insertUser(name, email, role);
+                    }
+                    redirectByRole(role);
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(MainActivity.this, "Error fetching user data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    redirectByRole("customer");
+                });
     }
 }

@@ -35,17 +35,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("name", name);
-        values.put("email", email);
+        values.put("email", email != null ? email.trim().toLowerCase() : "");
         values.put("role", role);
 
-        long result = db.insert("users", null, values);
+        long result = db.insertWithOnConflict("users", null, values, SQLiteDatabase.CONFLICT_REPLACE);
         return result != -1;
     }
 
     // Get role
     public String getUserRole(String email) {
+        String cleanEmail = email != null ? email.trim().toLowerCase() : "";
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT role FROM users WHERE email=?", new String[]{email});
+        Cursor cursor = db.rawQuery("SELECT role FROM users WHERE email=?", new String[]{cleanEmail});
         if (cursor != null && cursor.moveToFirst()) {
             String role = cursor.getString(0);
             cursor.close();
@@ -54,13 +55,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (cursor != null) {
             cursor.close();
         }
-        return "customer";
+        return null;
     }
 
     // Get unmae
     public String getUserName(String email) {
+        String cleanEmail = email != null ? email.trim().toLowerCase() : "";
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT name FROM users WHERE email=?", new String[]{email});
+        Cursor cursor = db.rawQuery("SELECT name FROM users WHERE email=?", new String[]{cleanEmail});
         if (cursor != null && cursor.moveToFirst()) {
             String name = cursor.getString(0);
             cursor.close();
