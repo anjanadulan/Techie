@@ -74,7 +74,7 @@
     <string name="view_details">View Details</string>
     <string name="popular_services">Popular Services</string>
     <string name="screen_replacement">Screen Replacement</string>
-    <string name="repair_history">Repair History</string>
+    <string name="booking_history">Booking History</string>
     <string name="history_subtitle">View your past repair records</string>
     <string name="track_repair">Track Repair</string>
     <string name="estimated_ready">Estimated Ready: %1$s</string>

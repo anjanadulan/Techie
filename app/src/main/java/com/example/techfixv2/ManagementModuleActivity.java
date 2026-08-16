@@ -612,8 +612,8 @@ public class ManagementModuleActivity extends AppCompatActivity {
             mockList.add(createCategoryMap("android", "Galle", "active"));
             mockList.add(createCategoryMap("tablet", "Galle", "active"));
         } else if ("appointments".equals(collection)) {
-            mockList.add(createAppointmentMap("Nimal Perera", "MacBook Air M1", "Keyboard replacement", 15000, "Pending"));
-            mockList.add(createAppointmentMap("Sunil Silva", "iPhone 13 Pro", "OLED screen replacement", 35000, "In Progress"));
+            mockList.add(createAppointmentMap("Nimal Perera", "user@gmail.com", "MacBook Air M1", "Keyboard replacement", 15000, "Pending"));
+            mockList.add(createAppointmentMap("Sunil Silva", "user@gmail.com", "iPhone 13 Pro", "OLED screen replacement", 35000, "In Progress"));
         } else if ("payments".equals(collection)) {
             mockList.add(createPaymentMap("INV-1038", "Nimal Perera", 8500, "Paid"));
             mockList.add(createPaymentMap("INV-1041", "Sunil Silva", 15000, "Paid"));
@@ -683,9 +683,10 @@ public class ManagementModuleActivity extends AppCompatActivity {
         return map;
     }
 
-    private Map<String, Object> createAppointmentMap(String client, String device, String desc, double cost, String status) {
+    private Map<String, Object> createAppointmentMap(String client, String email, String device, String desc, double cost, String status) {
         Map<String, Object> map = new HashMap<>();
         map.put("clientName", client);
+        map.put("userEmail", email);
         map.put("deviceName", device);
         map.put("description", desc);
         map.put("cost", cost);
