@@ -1,9 +1,11 @@
 package com.example.techfixv2;
 
+import android.Manifest;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -13,9 +15,12 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -67,6 +72,7 @@ public class BookRepairActivity extends AppCompatActivity {
 
     private static final int PICK_IMAGE_REQUEST = 102;
     private static final int CAMERA_IMAGE_REQUEST = 103;
+    private static final int CAMERA_PERMISSION_CODE = 201;
     private Uri cameraImageUri = null;
 
     @Override
@@ -322,7 +328,7 @@ public class BookRepairActivity extends AppCompatActivity {
             btnOpt1.setText("Take Photo with Camera");
             btnOpt1.setOnClickListener(v -> {
                 dialog.dismiss();
-                openCamera();
+                checkCameraPermissionAndOpen();
             });
         }
 
@@ -339,6 +345,26 @@ public class BookRepairActivity extends AppCompatActivity {
         }
 
         dialog.show();
+    }
+
+    private void checkCameraPermissionAndOpen() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            openCamera();
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == CAMERA_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                openCamera();
+            } else {
+                Toast.makeText(this, "Camera permission is required to capture photos.", Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     private void openCamera() {
