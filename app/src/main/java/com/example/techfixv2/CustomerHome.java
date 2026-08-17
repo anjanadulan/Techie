@@ -5,7 +5,10 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -74,6 +77,73 @@ public class CustomerHome extends AppCompatActivity {
         super.onResume();
         // Load the client's active repair details dynamically
         loadActiveRepairDetails();
+        // Load dynamic popular services list
+        loadPopularServices();
+    }
+
+    private void loadPopularServices() {
+        LinearLayout popularServicesContainer = findViewById(R.id.popularServicesContainer);
+        if (popularServicesContainer == null) return;
+        popularServicesContainer.removeAllViews();
+
+        FirebaseFirestore.getInstance()
+                .collection("service_prices")
+                .limit(6) // retrieve enough documents to filter down to 3 active ones
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        LayoutInflater inflater = LayoutInflater.from(this);
+                        int count = 0;
+                        for (DocumentSnapshot doc : task.getResult().getDocuments()) {
+                            String status = doc.getString("status");
+                            if (status != null && !"active".equalsIgnoreCase(status)) {
+                                continue;
+                            }
+
+                            String name = doc.getString("name");
+                            String category = doc.getString("category");
+                            String estTime = doc.getString("estimatedTime");
+                            Object priceVal = doc.get("estimatedPrice");
+
+                            View itemView = inflater.inflate(R.layout.item_popular_service, popularServicesContainer, false);
+                            
+                            ImageView ivIcon = itemView.findViewById(R.id.ivPopularServiceIcon);
+                            TextView tvName = itemView.findViewById(R.id.tvPopularServiceName);
+                            TextView tvMeta = itemView.findViewById(R.id.tvPopularServiceMeta);
+
+                            if (tvName != null) tvName.setText(name);
+                            double price = priceVal != null ? Double.parseDouble(String.valueOf(priceVal)) : 0.0;
+                            if (tvMeta != null) {
+                                tvMeta.setText("From LKR " + (int) price + " · " + (estTime != null ? estTime : "1-2 hours"));
+                            }
+
+                            // Set dynamic icon and color styling matching the device type
+                            if (ivIcon != null && category != null) {
+                                String catLower = category.toLowerCase();
+                                if (catLower.contains("laptop") || catLower.contains("macbook") || catLower.contains("desktop")) {
+                                    ivIcon.setImageResource(R.drawable.ic_customer_laptop);
+                                    ivIcon.setBackgroundResource(R.drawable.bg_customer_soft_orange);
+                                } else {
+                                    ivIcon.setImageResource(R.drawable.ic_customer_phone);
+                                    ivIcon.setBackgroundResource(R.drawable.bg_customer_soft_blue);
+                                }
+                            }
+
+                            // Click to pre-book this popular service
+                            itemView.setOnClickListener(v -> {
+                                Intent intent = new Intent(CustomerHome.this, BookRepairActivity.class);
+                                intent.putExtra("preselected_service", name);
+                                intent.putExtra("preselected_category", category);
+                                intent.putExtra("preselected_cost", price);
+                                startActivity(intent);
+                            });
+
+                            popularServicesContainer.addView(itemView);
+                            count++;
+                            if (count >= 3) break;
+                        }
+                    }
+                });
     }
 
     private void loadActiveRepairDetails() {
