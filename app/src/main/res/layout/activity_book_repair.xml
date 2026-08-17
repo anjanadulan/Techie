@@ -189,7 +189,7 @@
             <LinearLayout
                 android:id="@+id/addPhotoCard"
                 android:layout_width="match_parent"
-                android:layout_height="84dp"
+                android:layout_height="120dp"
                 android:layout_marginTop="16dp"
                 android:background="@drawable/bg_customer_photo"
                 android:gravity="center"
@@ -197,21 +197,37 @@
                 android:clickable="true"
                 android:focusable="true"
             >
-                <TextView
-                    android:id="@+id/tvPhotoStatus"
+                <ImageView
+                    android:id="@+id/ivPhotoPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone"
+                    android:clipToOutline="true"
+                />
+                <LinearLayout
+                    android:id="@+id/layoutPhotoPlaceholder"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="＋"
-                    android:textColor="@color/customer_blue"
-                    android:textSize="24sp"
-                />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/add_device_photo"
-                    android:textColor="@color/customer_blue"
-                    android:textStyle="bold"
-                />
+                    android:gravity="center"
+                    android:orientation="vertical"
+                >
+                    <TextView
+                        android:id="@+id/tvPhotoStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="＋"
+                        android:textColor="@color/customer_blue"
+                        android:textSize="24sp"
+                    />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/add_device_photo"
+                        android:textColor="@color/customer_blue"
+                        android:textStyle="bold"
+                    />
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

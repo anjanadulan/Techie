@@ -12,6 +12,7 @@ import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,6 +51,8 @@ public class BookRepairActivity extends AppCompatActivity {
     private View addPhotoCard;
     private TextView tvPhotoStatus;
     private View btnContinue;
+    private ImageView ivPhotoPreview;
+    private View layoutPhotoPlaceholder;
 
     // Data lists fetched from Firestore
     private List<String> deviceList = new ArrayList<>();
@@ -95,6 +98,8 @@ public class BookRepairActivity extends AppCompatActivity {
         addPhotoCard = findViewById(R.id.addPhotoCard);
         tvPhotoStatus = findViewById(R.id.tvPhotoStatus);
         btnContinue = findViewById(R.id.btnContinue);
+        ivPhotoPreview = findViewById(R.id.ivPhotoPreview);
+        layoutPhotoPlaceholder = findViewById(R.id.layoutPhotoPlaceholder);
 
         // Fetch picker options from Firestore
         fetchOptionsFromFirestore();
@@ -226,6 +231,12 @@ public class BookRepairActivity extends AppCompatActivity {
                             selectedService = fullDesc;
                             etIssueDescription.setText("");
                         }
+                    }
+
+                    String photoUriStr = doc.getString("photoUri");
+                    if (photoUriStr != null && !photoUriStr.isEmpty()) {
+                        selectedImageUri = Uri.parse(photoUriStr);
+                        showPhotoPreview(selectedImageUri);
                     }
 
                     // Pre-populate UI dropdown labels
@@ -396,15 +407,25 @@ public class BookRepairActivity extends AppCompatActivity {
                 selectedImageUri = data.getData();
                 tvPhotoStatus.setText("Photo attached from Gallery");
                 tvPhotoStatus.setTextColor(getResources().getColor(R.color.customer_success));
+                showPhotoPreview(selectedImageUri);
             } else if (requestCode == CAMERA_IMAGE_REQUEST) {
                 if (cameraImageUri != null) {
                     selectedImageUri = cameraImageUri;
                     tvPhotoStatus.setText("Photo captured from Camera");
                     tvPhotoStatus.setTextColor(getResources().getColor(R.color.customer_success));
+                    showPhotoPreview(selectedImageUri);
                 } else {
                     Toast.makeText(this, "Camera capture failed.", Toast.LENGTH_SHORT).show();
                 }
             }
+        }
+    }
+
+    private void showPhotoPreview(Uri uri) {
+        if (ivPhotoPreview != null && layoutPhotoPlaceholder != null && uri != null) {
+            ivPhotoPreview.setImageURI(uri);
+            layoutPhotoPlaceholder.setVisibility(View.GONE);
+            ivPhotoPreview.setVisibility(View.VISIBLE);
         }
     }
 
@@ -455,6 +476,7 @@ public class BookRepairActivity extends AppCompatActivity {
         appointment.put("time", selectedTime);
         appointment.put("cost", selectedCost);
         appointment.put("status", "Pending");
+        appointment.put("photoUri", selectedImageUri != null ? selectedImageUri.toString() : "");
 
         btnContinue.setEnabled(false);
 
