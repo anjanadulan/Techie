@@ -3,6 +3,7 @@ package com.example.techfixv2;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -78,7 +79,7 @@ public class CustomerHome extends AppCompatActivity {
         // Click listener for Find a Branch card
         View btnOpenBranches = findViewById(R.id.openBranches);
         if (btnOpenBranches != null) {
-            btnOpenBranches.setOnClickListener(v -> showBranchLocationsDialog());
+            btnOpenBranches.setOnClickListener(v -> showBranchSelectorMenu());
         }
 
         // Click listener for Branch Availability card
@@ -134,6 +135,48 @@ public class CustomerHome extends AppCompatActivity {
         }
     }
 
+    private void showBranchSelectorMenu() {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_generic_options, null);
+        TextView tvTitle = dialogView.findViewById(R.id.tvDialogTitle);
+        TextView tvMessage = dialogView.findViewById(R.id.tvDialogMessage);
+        TextView btnOpt1 = dialogView.findViewById(R.id.btnOption1);
+        TextView btnOpt2 = dialogView.findViewById(R.id.btnOption2);
+        View btnCancel = dialogView.findViewById(R.id.btnCancel);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        if (tvTitle != null) tvTitle.setText("Find a Branch");
+        if (tvMessage != null) tvMessage.setText("View branch details or navigate to service centers using GPS Maps.");
+
+        if (btnOpt1 != null) {
+            btnOpt1.setText("View Branch Contact & Hours");
+            btnOpt1.setOnClickListener(v -> {
+                dialog.dismiss();
+                showBranchLocationsDialog();
+            });
+        }
+
+        if (btnOpt2 != null) {
+            btnOpt2.setText("Open GPS Map Navigation");
+            btnOpt2.setOnClickListener(v -> {
+                dialog.dismiss();
+                showMapOptionsDialog();
+            });
+        }
+
+        if (btnCancel != null) {
+            btnCancel.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        dialog.show();
+    }
+
     private void showBranchLocationsDialog() {
         FirebaseFirestore.getInstance().collection("branches").get().addOnCompleteListener(task -> {
             View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_generic_info, null);
@@ -154,6 +197,16 @@ public class CustomerHome extends AppCompatActivity {
                 ((TextView) btnAction).setText("Close");
             }
             btnAction.setOnClickListener(v -> dialog.dismiss());
+
+            TextView btnCancel = dialogView.findViewById(R.id.btnCancel);
+            if (btnCancel != null) {
+                btnCancel.setText("View on Map");
+                btnCancel.setVisibility(View.VISIBLE);
+                btnCancel.setOnClickListener(v -> {
+                    dialog.dismiss();
+                    showMapOptionsDialog();
+                });
+            }
 
             if (task.isSuccessful() && task.getResult() != null && !task.getResult().isEmpty()) {
                 StringBuilder sb = new StringBuilder();
@@ -176,6 +229,65 @@ public class CustomerHome extends AppCompatActivity {
             }
             dialog.show();
         });
+    }
+
+    private void showMapOptionsDialog() {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_generic_options, null);
+        TextView tvTitle = dialogView.findViewById(R.id.tvDialogTitle);
+        TextView tvMessage = dialogView.findViewById(R.id.tvDialogMessage);
+        TextView btnOpt1 = dialogView.findViewById(R.id.btnOption1);
+        TextView btnOpt2 = dialogView.findViewById(R.id.btnOption2);
+        View btnCancel = dialogView.findViewById(R.id.btnCancel);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        if (tvTitle != null) tvTitle.setText("GPS Map Navigation");
+        if (tvMessage != null) tvMessage.setText("Select a service center branch to navigate using Google Maps.");
+
+        if (btnOpt1 != null) {
+            btnOpt1.setText("Colombo Branch Map");
+            btnOpt1.setOnClickListener(v -> {
+                dialog.dismiss();
+                launchGoogleMaps(6.9149, 79.8510, "TechFix Colombo Center");
+            });
+        }
+
+        if (btnOpt2 != null) {
+            btnOpt2.setText("Galle Branch Map");
+            btnOpt2.setOnClickListener(v -> {
+                dialog.dismiss();
+                launchGoogleMaps(6.0367, 80.2170, "TechFix Galle Center");
+            });
+        }
+
+        if (btnCancel != null) {
+            btnCancel.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        dialog.show();
+    }
+
+    private void launchGoogleMaps(double lat, double lon, String label) {
+        try {
+            Uri gmmIntentUri = Uri.parse("geo:" + lat + "," + lon + "?q=" + lat + "," + lon + "(" + Uri.encode(label) + ")");
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+            mapIntent.setPackage("com.google.android.apps.maps");
+            if (mapIntent.resolveActivity(getPackageManager()) != null) {
+                startActivity(mapIntent);
+            } else {
+                Intent webIntent = new Intent(Intent.ACTION_VIEW, 
+                    Uri.parse("https://www.google.com/maps/search/?api=1&query=" + lat + "," + lon));
+                startActivity(webIntent);
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Unable to launch map navigation.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void showAvailabilityDialog() {
