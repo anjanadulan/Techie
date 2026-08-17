@@ -61,7 +61,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:hint="@string/email_address"
-                app:boxBackgroundColor="@color/white"
+                app:boxBackgroundColor="@color/customer_surface"
                 app:boxBackgroundMode="outline"
                 app:boxCornerRadiusBottomEnd="12dp"
                 app:boxCornerRadiusBottomStart="12dp"
@@ -90,7 +90,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
                 android:hint="@string/password"
-                app:boxBackgroundColor="@color/white"
+                app:boxBackgroundColor="@color/customer_surface"
                 app:boxBackgroundMode="outline"
                 app:boxCornerRadiusBottomEnd="12dp"
                 app:boxCornerRadiusBottomStart="12dp"
@@ -123,7 +123,7 @@
                 android:stateListAnimator="@null"
                 android:text="@string/log_in"
                 android:textAllCaps="false"
-                android:textColor="@color/white"
+                android:textColor="@color/auth_button_text"
                 android:textSize="15sp"
                 android:textStyle="bold" />
 

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<resources>
+    <!-- Base Color Overrides for Dark Mode -->
+    <color name="text_primary">#F3F4F6</color>
+    <color name="text_secondary">#9CA3AF</color>
+    <color name="input_outline">#374151</color>
+    <color name="social_icon_bg">#1F2937</color>
+    <color name="divider_color">#374151</color>
+    <color name="auth_text">#F3F4F6</color>
+    <color name="auth_muted">#9CA3AF</color>
+    <color name="auth_border">#374151</color>
+    <color name="auth_button">#FFFFFF</color>
+    <color name="auth_button_text">#050505</color>
+    <color name="auth_sky_start">#111827</color>
+    <color name="auth_sky_end">#1F2937</color>
+    <color name="auth_cloud_left">#15FFFFFF</color>
+    <color name="auth_cloud_center">#0DFFFFFF</color>
+    <color name="auth_cloud_right">#10FFFFFF</color>
+
+    <!-- Customer Interface Overrides for Dark Mode -->
+    <color name="customer_bg">#121212</color>
+    <color name="customer_surface">#1F2937</color>
+    <color name="customer_text">#F3F4F6</color>
+    <color name="customer_muted">#9CA3AF</color>
+    <color name="customer_border">#374151</color>
+    
+    <color name="customer_blue_soft">#1E293B</color>
+    <color name="customer_orange_soft">#2D231E</color>
+    <color name="customer_danger_soft">#2D1F20</color>
+    <color name="customer_success_soft">#1C2D24</color>
+
+    <!-- Management/Admin Interface Overrides for Dark Mode -->
+    <color name="management_bg">#121212</color>
+    <color name="management_surface">#1F2937</color>
+    <color name="management_surface_high">#2D3748</color>
+    <color name="management_border">#374151</color>
+    <color name="management_text">#F3F4F6</color>
+    <color name="management_muted">#9CA3AF</color>
+</resources>

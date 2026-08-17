@@ -16,7 +16,7 @@
         android:width="190dp"
         android:height="105dp">
         <shape android:shape="oval">
-            <solid android:color="@color/auth_cloud" />
+            <solid android:color="@color/auth_cloud_left" />
         </shape>
     </item>
 
@@ -26,7 +26,7 @@
         android:width="230dp"
         android:height="92dp">
         <shape android:shape="oval">
-            <solid android:color="#75FFFFFF" />
+            <solid android:color="@color/auth_cloud_center" />
         </shape>
     </item>
 
@@ -37,7 +37,7 @@
         android:width="210dp"
         android:height="115dp">
         <shape android:shape="oval">
-            <solid android:color="#88FFFFFF" />
+            <solid android:color="@color/auth_cloud_right" />
         </shape>
     </item>
 </layer-list>

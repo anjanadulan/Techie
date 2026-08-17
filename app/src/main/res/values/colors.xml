@@ -20,7 +20,11 @@
     <color name="auth_muted">#777777</color>
     <color name="auth_border">#D9DDE2</color>
     <color name="auth_button">#050505</color>
+    <color name="auth_button_text">#FFFFFF</color>
     <color name="auth_cloud">#8FFFFFFF</color>
+    <color name="auth_cloud_left">#8FFFFFFF</color>
+    <color name="auth_cloud_center">#75FFFFFF</color>
+    <color name="auth_cloud_right">#88FFFFFF</color>
 
     <color name="bg_charcoal">#1A1A2E</color>
     <color name="bg_card_dark">#22223B</color>
