@@ -8,6 +8,7 @@
     android:background="@color/customer_bg"
     android:orientation="vertical"
     tools:context=".BookRepairActivity"
+    android:paddingTop="20dp"
 >
     <LinearLayout
         android:layout_width="match_parent"

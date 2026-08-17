@@ -109,6 +109,18 @@ public class BookRepairActivity extends AppCompatActivity {
                 ((TextView) btnContinue).setText("Update Booking");
             }
             loadExistingBookingDetails();
+        } else if (getIntent().hasExtra("preselected_service")) {
+            selectedService = getIntent().getStringExtra("preselected_service");
+            String preselectedCategory = getIntent().getStringExtra("preselected_category");
+            selectedCost = getIntent().getDoubleExtra("preselected_cost", 0.0);
+
+            // Pre-populate UI picker displays
+            pickerService.setText(selectedService + " (Est: LKR " + (int) selectedCost + ")");
+
+            if (preselectedCategory != null) {
+                selectedDevice = preselectedCategory.toLowerCase();
+                pickerDevice.setText(selectedDevice);
+            }
         }
     }
 

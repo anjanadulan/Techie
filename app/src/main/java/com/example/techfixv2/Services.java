@@ -271,10 +271,19 @@ public class Services extends AppCompatActivity {
                 tvServiceDescription.setText("Category: " + (category != null ? category : "General") + 
                         " · Repair time: " + (estTime != null ? estTime : "1-2 hours"));
             }
+            double priceDouble = priceVal != null ? Double.parseDouble(String.valueOf(priceVal)) : 0.0;
             if (tvServicePrice != null) {
-                int price = priceVal != null ? (int) Double.parseDouble(String.valueOf(priceVal)) : 0;
-                tvServicePrice.setText("Starting from LKR " + price);
+                tvServicePrice.setText("Starting from LKR " + (int) priceDouble);
             }
+
+            // Click to pre-book this service
+            itemView.setOnClickListener(v -> {
+                Intent intent = new Intent(Services.this, BookRepairActivity.class);
+                intent.putExtra("preselected_service", name);
+                intent.putExtra("preselected_category", category);
+                intent.putExtra("preselected_cost", priceDouble);
+                startActivity(intent);
+            });
 
             servicesList.addView(itemView);
         }
