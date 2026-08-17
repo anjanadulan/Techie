@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -25,6 +26,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CustomerHome extends AppCompatActivity {
 
@@ -69,6 +73,120 @@ public class CustomerHome extends AppCompatActivity {
         findViewById(R.id.navProfile).setOnClickListener(v -> {
             Intent intent = new Intent(CustomerHome.this, UserProfile.class);
             startActivity(intent);
+        });
+
+        // Click listener for Find a Branch card
+        View btnOpenBranches = findViewById(R.id.openBranches);
+        if (btnOpenBranches != null) {
+            btnOpenBranches.setOnClickListener(v -> showBranchLocationsDialog());
+        }
+
+        // Click listener for Branch Availability card
+        View btnOpenAvailability = findViewById(R.id.openAvailability);
+        if (btnOpenAvailability != null) {
+            btnOpenAvailability.setOnClickListener(v -> showAvailabilityDialog());
+        }
+    }
+
+    private void showBranchLocationsDialog() {
+        FirebaseFirestore.getInstance().collection("branches").get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult() != null && !task.getResult().isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                for (DocumentSnapshot doc : task.getResult().getDocuments()) {
+                    String name = doc.getString("name");
+                    String address = doc.getString("address");
+                    String phone = doc.getString("phoneNumber");
+                    String status = doc.getString("status");
+
+                    sb.append("📍 ").append(name != null ? name : "Branch").append(" Branch\n")
+                      .append("Address: ").append(address != null ? address : "N/A").append("\n")
+                      .append("Contact: ").append(phone != null ? phone : "N/A").append("\n")
+                      .append("Status: ").append(status != null ? status.toUpperCase() : "OPEN").append("\n\n");
+                }
+                new AlertDialog.Builder(this)
+                        .setTitle("TechFix Centers near you")
+                        .setMessage(sb.toString().trim())
+                        .setPositiveButton("Close", null)
+                        .show();
+            } else {
+                new AlertDialog.Builder(this)
+                        .setTitle("TechFix Branches")
+                        .setMessage("1. Colombo Branch\nAddress: Galle Road, Colombo 03\nContact: 0112345678\n\n2. Galle Branch\nAddress: Wakwella Road, Galle\nContact: 0912345678")
+                        .setPositiveButton("Close", null)
+                        .show();
+            }
+        });
+    }
+
+    private void showAvailabilityDialog() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        
+        db.collection("branches").get().addOnCompleteListener(branchTask -> {
+            if (branchTask.isSuccessful() && branchTask.getResult() != null) {
+                List<DocumentSnapshot> branches = branchTask.getResult().getDocuments();
+                
+                db.collection("technicians").get().addOnCompleteListener(techTask -> {
+                    List<DocumentSnapshot> techs = techTask.isSuccessful() && techTask.getResult() != null ?
+                            techTask.getResult().getDocuments() : new ArrayList<>();
+                            
+                    db.collection("parts").get().addOnCompleteListener(partsTask -> {
+                        List<DocumentSnapshot> parts = partsTask.isSuccessful() && partsTask.getResult() != null ?
+                                partsTask.getResult().getDocuments() : new ArrayList<>();
+                                
+                        StringBuilder sb = new StringBuilder();
+                        for (DocumentSnapshot bDoc : branches) {
+                            String bName = bDoc.getString("name");
+                            String bAddr = bDoc.getString("address");
+                            String bPhone = bDoc.getString("phoneNumber");
+                            String bStatus = bDoc.getString("status");
+                            
+                            sb.append("📍 ").append(bName != null ? bName : "Branch").append(" Branch\n")
+                              .append("Status: ").append(bStatus != null ? bStatus.toUpperCase() : "OPEN").append("\n")
+                              .append("Address: ").append(bAddr != null ? bAddr : "N/A").append("\n")
+                              .append("Phone: ").append(bPhone != null ? bPhone : "N/A").append("\n\n");
+                              
+                            // Technicians Roster
+                            sb.append("👨‍🔧 Roster Technicians:\n");
+                            boolean hasTech = false;
+                            for (DocumentSnapshot tDoc : techs) {
+                                String tLoc = tDoc.getString("location");
+                                if (bName != null && bName.equalsIgnoreCase(tLoc)) {
+                                    String tName = tDoc.getString("name");
+                                    String tAvail = tDoc.getString("availability");
+                                    sb.append(" - ").append(tName).append(" (").append(tAvail != null ? tAvail : "On Duty").append(")\n");
+                                    hasTech = true;
+                                }
+                            }
+                            if (!hasTech) sb.append(" - No technicians registered\n");
+                            
+                            // Parts Stock
+                            sb.append("\n📦 Spare-Part Inventory:\n");
+                            boolean hasPart = false;
+                            for (DocumentSnapshot pDoc : parts) {
+                                String pLoc = pDoc.getString("location");
+                                if (bName != null && bName.equalsIgnoreCase(pLoc)) {
+                                    String pName = pDoc.getString("name");
+                                    Object qtyVal = pDoc.get("quantity");
+                                    int qty = qtyVal != null ? (int) Double.parseDouble(String.valueOf(qtyVal)) : 0;
+                                    sb.append(" - ").append(pName).append(" (Qty: ").append(qty).append(")\n");
+                                    hasPart = true;
+                                }
+                            }
+                            if (!hasPart) sb.append(" - Out of stock\n");
+                            
+                            sb.append("\n----------------------------------\n\n");
+                        }
+                        
+                        new AlertDialog.Builder(this)
+                                .setTitle("TechFix Branch Availability")
+                                .setMessage(sb.toString().trim())
+                                .setPositiveButton("Close", null)
+                                .show();
+                    });
+                });
+            } else {
+                Toast.makeText(this, "Failed to load branch list.", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
