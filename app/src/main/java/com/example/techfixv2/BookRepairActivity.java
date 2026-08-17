@@ -2,9 +2,12 @@ package com.example.techfixv2;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -63,6 +66,8 @@ public class BookRepairActivity extends AppCompatActivity {
     private String bookingId = "";
 
     private static final int PICK_IMAGE_REQUEST = 102;
+    private static final int CAMERA_IMAGE_REQUEST = 103;
+    private Uri cameraImageUri = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,7 +102,7 @@ public class BookRepairActivity extends AppCompatActivity {
         pickerDate.setOnClickListener(v -> openDatePicker());
         pickerTime.setOnClickListener(v -> openTimePicker());
 
-        addPhotoCard.setOnClickListener(v -> openGalleryPicker());
+        addPhotoCard.setOnClickListener(v -> showImageSourceSelector());
 
         btnContinue.setOnClickListener(v -> saveBookingToFirestore());
 
@@ -294,6 +299,63 @@ public class BookRepairActivity extends AppCompatActivity {
         timePickerDialog.show();
     }
 
+    private void showImageSourceSelector() {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_generic_options, null);
+        TextView tvTitle = dialogView.findViewById(R.id.tvDialogTitle);
+        TextView tvMessage = dialogView.findViewById(R.id.tvDialogMessage);
+        TextView btnOpt1 = dialogView.findViewById(R.id.btnOption1);
+        TextView btnOpt2 = dialogView.findViewById(R.id.btnOption2);
+        View btnCancel = dialogView.findViewById(R.id.btnCancel);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        if (tvTitle != null) tvTitle.setText("Add Device Photo");
+        if (tvMessage != null) tvMessage.setText("Capture a real-time diagnostic photo with your camera or select an existing image from your gallery.");
+
+        if (btnOpt1 != null) {
+            btnOpt1.setText("Take Photo with Camera");
+            btnOpt1.setOnClickListener(v -> {
+                dialog.dismiss();
+                openCamera();
+            });
+        }
+
+        if (btnOpt2 != null) {
+            btnOpt2.setText("Choose from Gallery");
+            btnOpt2.setOnClickListener(v -> {
+                dialog.dismiss();
+                openGalleryPicker();
+            });
+        }
+
+        if (btnCancel != null) {
+            btnCancel.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        dialog.show();
+    }
+
+    private void openCamera() {
+        try {
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Images.Media.TITLE, "TechFix Device Diagnostic");
+            values.put(MediaStore.Images.Media.DESCRIPTION, "Captured by TechFix Repair App");
+            cameraImageUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraImageUri);
+            startActivityForResult(intent, CAMERA_IMAGE_REQUEST);
+        } catch (Exception e) {
+            Toast.makeText(this, "Failed to initialize camera: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
     private void openGalleryPicker() {
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
@@ -303,10 +365,20 @@ public class BookRepairActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
-            selectedImageUri = data.getData();
-            tvPhotoStatus.setText("Photo attached successfully");
-            tvPhotoStatus.setTextColor(getResources().getColor(R.color.customer_success));
+        if (resultCode == RESULT_OK) {
+            if (requestCode == PICK_IMAGE_REQUEST && data != null && data.getData() != null) {
+                selectedImageUri = data.getData();
+                tvPhotoStatus.setText("Photo attached from Gallery");
+                tvPhotoStatus.setTextColor(getResources().getColor(R.color.customer_success));
+            } else if (requestCode == CAMERA_IMAGE_REQUEST) {
+                if (cameraImageUri != null) {
+                    selectedImageUri = cameraImageUri;
+                    tvPhotoStatus.setText("Photo captured from Camera");
+                    tvPhotoStatus.setTextColor(getResources().getColor(R.color.customer_success));
+                } else {
+                    Toast.makeText(this, "Camera capture failed.", Toast.LENGTH_SHORT).show();
+                }
+            }
         }
     }
 
