@@ -53,6 +53,7 @@ public class BookRepairActivity extends AppCompatActivity {
     private View btnContinue;
     private ImageView ivPhotoPreview;
     private View layoutPhotoPlaceholder;
+    private View layoutRetakeOverlay;
 
     // Data lists fetched from Firestore
     private List<String> deviceList = new ArrayList<>();
@@ -100,6 +101,7 @@ public class BookRepairActivity extends AppCompatActivity {
         btnContinue = findViewById(R.id.btnContinue);
         ivPhotoPreview = findViewById(R.id.ivPhotoPreview);
         layoutPhotoPlaceholder = findViewById(R.id.layoutPhotoPlaceholder);
+        layoutRetakeOverlay = findViewById(R.id.layoutRetakeOverlay);
 
         // Fetch picker options from Firestore
         fetchOptionsFromFirestore();
@@ -114,6 +116,9 @@ public class BookRepairActivity extends AppCompatActivity {
         pickerTime.setOnClickListener(v -> openTimePicker());
 
         addPhotoCard.setOnClickListener(v -> showImageSourceSelector());
+        if (layoutRetakeOverlay != null) {
+            layoutRetakeOverlay.setOnClickListener(v -> showImageSourceSelector());
+        }
 
         btnContinue.setOnClickListener(v -> saveBookingToFirestore());
 
@@ -426,6 +431,9 @@ public class BookRepairActivity extends AppCompatActivity {
             ivPhotoPreview.setImageURI(uri);
             layoutPhotoPlaceholder.setVisibility(View.GONE);
             ivPhotoPreview.setVisibility(View.VISIBLE);
+            if (layoutRetakeOverlay != null) {
+                layoutRetakeOverlay.setVisibility(View.VISIBLE);
+            }
         }
     }
 

@@ -186,14 +186,12 @@
                 android:textColorHint="@color/customer_muted"
                 android:textSize="13sp"
             />
-            <LinearLayout
+            <FrameLayout
                 android:id="@+id/addPhotoCard"
                 android:layout_width="match_parent"
-                android:layout_height="120dp"
+                android:layout_height="160dp"
                 android:layout_marginTop="16dp"
                 android:background="@drawable/bg_customer_photo"
-                android:gravity="center"
-                android:orientation="vertical"
                 android:clickable="true"
                 android:focusable="true"
             >
@@ -205,10 +203,36 @@
                     android:visibility="gone"
                     android:clipToOutline="true"
                 />
+                
+                <!-- Retake Floating Overlay Button -->
+                <LinearLayout
+                    android:id="@+id/layoutRetakeOverlay"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|end"
+                    android:layout_margin="12dp"
+                    android:background="@drawable/bg_customer_chip_selected"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="7dp"
+                    android:visibility="gone"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                >
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🔄 Retake Photo"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                    />
+                </LinearLayout>
+
                 <LinearLayout
                     android:id="@+id/layoutPhotoPlaceholder"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center"
                     android:gravity="center"
                     android:orientation="vertical"
                 >
@@ -228,7 +252,7 @@
                         android:textStyle="bold"
                     />
                 </LinearLayout>
-            </LinearLayout>
+            </FrameLayout>
         </LinearLayout>
     </ScrollView>
     <androidx.appcompat.widget.AppCompatButton
