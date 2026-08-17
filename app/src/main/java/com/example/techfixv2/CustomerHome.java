@@ -90,6 +90,25 @@ public class CustomerHome extends AppCompatActivity {
 
     private void showBranchLocationsDialog() {
         FirebaseFirestore.getInstance().collection("branches").get().addOnCompleteListener(task -> {
+            View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_generic_info, null);
+            TextView tvTitle = dialogView.findViewById(R.id.tvDialogTitle);
+            TextView tvMessage = dialogView.findViewById(R.id.tvDialogMessage);
+            View btnAction = dialogView.findViewById(R.id.btnAction);
+
+            AlertDialog dialog = new AlertDialog.Builder(this)
+                    .setView(dialogView)
+                    .create();
+
+            if (dialog.getWindow() != null) {
+                dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            }
+
+            if (tvTitle != null) tvTitle.setText("TechFix Centers");
+            if (btnAction instanceof TextView) {
+                ((TextView) btnAction).setText("Close");
+            }
+            btnAction.setOnClickListener(v -> dialog.dismiss());
+
             if (task.isSuccessful() && task.getResult() != null && !task.getResult().isEmpty()) {
                 StringBuilder sb = new StringBuilder();
                 for (DocumentSnapshot doc : task.getResult().getDocuments()) {
@@ -103,18 +122,13 @@ public class CustomerHome extends AppCompatActivity {
                       .append("Contact: ").append(phone != null ? phone : "N/A").append("\n")
                       .append("Status: ").append(status != null ? status.toUpperCase() : "OPEN").append("\n\n");
                 }
-                new AlertDialog.Builder(this)
-                        .setTitle("TechFix Centers near you")
-                        .setMessage(sb.toString().trim())
-                        .setPositiveButton("Close", null)
-                        .show();
+                if (tvMessage != null) tvMessage.setText(sb.toString().trim());
             } else {
-                new AlertDialog.Builder(this)
-                        .setTitle("TechFix Branches")
-                        .setMessage("1. Colombo Branch\nAddress: Galle Road, Colombo 03\nContact: 0112345678\n\n2. Galle Branch\nAddress: Wakwella Road, Galle\nContact: 0912345678")
-                        .setPositiveButton("Close", null)
-                        .show();
+                if (tvMessage != null) {
+                    tvMessage.setText("1. Colombo Branch\nAddress: Galle Road, Colombo 03\nContact: 0112345678\n\n2. Galle Branch\nAddress: Wakwella Road, Galle\nContact: 0912345678");
+                }
             }
+            dialog.show();
         });
     }
 
@@ -133,6 +147,25 @@ public class CustomerHome extends AppCompatActivity {
                         List<DocumentSnapshot> parts = partsTask.isSuccessful() && partsTask.getResult() != null ?
                                 partsTask.getResult().getDocuments() : new ArrayList<>();
                                 
+                        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_generic_info, null);
+                        TextView tvTitle = dialogView.findViewById(R.id.tvDialogTitle);
+                        TextView tvMessage = dialogView.findViewById(R.id.tvDialogMessage);
+                        View btnAction = dialogView.findViewById(R.id.btnAction);
+
+                        AlertDialog dialog = new AlertDialog.Builder(this)
+                                .setView(dialogView)
+                                .create();
+
+                        if (dialog.getWindow() != null) {
+                            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+                        }
+
+                        if (tvTitle != null) tvTitle.setText("Branch Availability");
+                        if (btnAction instanceof TextView) {
+                            ((TextView) btnAction).setText("Close");
+                        }
+                        btnAction.setOnClickListener(v -> dialog.dismiss());
+
                         StringBuilder sb = new StringBuilder();
                         for (DocumentSnapshot bDoc : branches) {
                             String bName = bDoc.getString("name");
@@ -177,11 +210,8 @@ public class CustomerHome extends AppCompatActivity {
                             sb.append("\n----------------------------------\n\n");
                         }
                         
-                        new AlertDialog.Builder(this)
-                                .setTitle("TechFix Branch Availability")
-                                .setMessage(sb.toString().trim())
-                                .setPositiveButton("Close", null)
-                                .show();
+                        if (tvMessage != null) tvMessage.setText(sb.toString().trim());
+                        dialog.show();
                     });
                 });
             } else {

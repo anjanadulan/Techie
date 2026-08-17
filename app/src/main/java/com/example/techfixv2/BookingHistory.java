@@ -245,23 +245,67 @@ public class BookingHistory extends AppCompatActivity {
 
     private void showBookingActionDialog(String docId, String device, String desc, String status, String cost, String date, String branch, String time) {
         if ("Pending".equalsIgnoreCase(status)) {
-            // Customer can manage (Edit/Delete) Pending bookings
-            String[] options = {"Edit Appointment Details", "Cancel/Delete Appointment", "Dismiss"};
-            new AlertDialog.Builder(this)
-                    .setTitle("Manage Appointment (" + status + ")")
-                    .setItems(options, (dialog, which) -> {
-                        if (which == 0) {
-                            // Edit: Open BookRepairActivity passing booking doc ID
-                            Intent intent = new Intent(BookingHistory.this, BookRepairActivity.class);
-                            intent.putExtra("booking_id", docId);
-                            startActivity(intent);
-                        } else if (which == 1) {
-                            // Delete: Remove booking from Firestore
-                            confirmCancelBooking(docId);
-                        }
-                    }).show();
+            View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_generic_options, null);
+            TextView tvTitle = dialogView.findViewById(R.id.tvDialogTitle);
+            TextView tvMessage = dialogView.findViewById(R.id.tvDialogMessage);
+            TextView btnOpt1 = dialogView.findViewById(R.id.btnOption1);
+            TextView btnOpt2 = dialogView.findViewById(R.id.btnOption2);
+            View btnCancel = dialogView.findViewById(R.id.btnCancel);
+
+            AlertDialog dialog = new AlertDialog.Builder(this)
+                    .setView(dialogView)
+                    .create();
+
+            if (dialog.getWindow() != null) {
+                dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            }
+
+            if (tvTitle != null) tvTitle.setText("Manage Appointment");
+            if (tvMessage != null) tvMessage.setText("Select an action to perform on your pending repair booking.");
+
+            if (btnOpt1 != null) {
+                btnOpt1.setText("Edit Appointment Details");
+                btnOpt1.setOnClickListener(v -> {
+                    dialog.dismiss();
+                    Intent intent = new Intent(BookingHistory.this, BookRepairActivity.class);
+                    intent.putExtra("booking_id", docId);
+                    startActivity(intent);
+                });
+            }
+
+            if (btnOpt2 != null) {
+                btnOpt2.setText("Cancel / Delete Appointment");
+                btnOpt2.setOnClickListener(v -> {
+                    dialog.dismiss();
+                    confirmCancelBooking(docId);
+                });
+            }
+
+            if (btnCancel != null) {
+                btnCancel.setOnClickListener(v -> dialog.dismiss());
+            }
+
+            dialog.show();
         } else {
-            // Locked: Read-only details
+            View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_generic_info, null);
+            TextView tvTitle = dialogView.findViewById(R.id.tvDialogTitle);
+            TextView tvMessage = dialogView.findViewById(R.id.tvDialogMessage);
+            View btnAction = dialogView.findViewById(R.id.btnAction);
+
+            AlertDialog dialog = new AlertDialog.Builder(this)
+                    .setView(dialogView)
+                    .create();
+
+            if (dialog.getWindow() != null) {
+                dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            }
+
+            if (tvTitle != null) tvTitle.setText("Repair Details");
+            if (btnAction instanceof TextView) {
+                ((TextView) btnAction).setText("Close");
+            }
+            btnAction.setOnClickListener(v -> dialog.dismiss());
+
             String info = "Device: " + device + "\n" +
                     "Details: " + (desc != null ? desc : "None") + "\n" +
                     "Assigned Branch: " + (branch != null ? branch : "Colombo") + "\n" +
@@ -270,30 +314,55 @@ public class BookingHistory extends AppCompatActivity {
                     "Current Status: " + status + "\n\n" +
                     "Note: This repair has been accepted or is underway. Please contact your branch for any schedule changes.";
 
-            new AlertDialog.Builder(this)
-                    .setTitle("Repair Details")
-                    .setMessage(info)
-                    .setPositiveButton("Close", null)
-                    .show();
+            if (tvMessage != null) tvMessage.setText(info);
+            dialog.show();
         }
     }
 
     private void confirmCancelBooking(String docId) {
-        new AlertDialog.Builder(this)
-                .setTitle("Cancel Appointment")
-                .setMessage("Are you sure you want to cancel and delete this repair appointment?")
-                .setPositiveButton("Yes, Cancel", (dialog, which) -> {
-                    db.collection("appointments").document(docId)
-                            .delete()
-                            .addOnSuccessListener(aVoid -> {
-                                Toast.makeText(BookingHistory.this, "Appointment cancelled successfully.", Toast.LENGTH_SHORT).show();
-                                loadFirestoreBookingHistory();
-                            })
-                            .addOnFailureListener(e -> {
-                                Toast.makeText(BookingHistory.this, "Failed to cancel: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                            });
-                })
-                .setNegativeButton("No", null)
-                .show();
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_generic_options, null);
+        TextView tvTitle = dialogView.findViewById(R.id.tvDialogTitle);
+        TextView tvMessage = dialogView.findViewById(R.id.tvDialogMessage);
+        TextView btnOpt1 = dialogView.findViewById(R.id.btnOption1);
+        TextView btnOpt2 = dialogView.findViewById(R.id.btnOption2);
+        View btnCancel = dialogView.findViewById(R.id.btnCancel);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        if (tvTitle != null) tvTitle.setText("Cancel Appointment");
+        if (tvMessage != null) tvMessage.setText("Are you sure you want to cancel and delete this repair appointment?");
+
+        if (btnOpt1 != null) {
+            btnOpt1.setText("No, Keep Appointment");
+            btnOpt1.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        if (btnOpt2 != null) {
+            btnOpt2.setText("Yes, Cancel Appointment");
+            btnOpt2.setOnClickListener(v -> {
+                dialog.dismiss();
+                db.collection("appointments").document(docId)
+                        .delete()
+                        .addOnSuccessListener(aVoid -> {
+                            Toast.makeText(BookingHistory.this, "Appointment cancelled successfully.", Toast.LENGTH_SHORT).show();
+                            loadFirestoreBookingHistory();
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(BookingHistory.this, "Failed to cancel: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        });
+            });
+        }
+
+        if (btnCancel != null) {
+            btnCancel.setVisibility(View.GONE);
+        }
+
+        dialog.show();
     }
 }
