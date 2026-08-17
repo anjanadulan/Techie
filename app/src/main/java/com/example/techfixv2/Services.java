@@ -74,6 +74,12 @@ public class Services extends AppCompatActivity {
         // Search text watcher for live in-memory searching
         setupSearchTextWatcher();
 
+        // Check if a category redirect filter was passed from Customer Home
+        if (getIntent().hasExtra("filter_category")) {
+            activeCategory = getIntent().getStringExtra("filter_category");
+            updateCategoryChipsUI();
+        }
+
         // Fetch dynamic service prices list from Firestore
         loadLiveServicePrices();
 

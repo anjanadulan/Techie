@@ -134,6 +134,7 @@
                 android:orientation="horizontal"
                 >
                 <LinearLayout
+                    android:id="@+id/catPhoneCard"
                     android:layout_width="0dp"
                     android:layout_height="108dp"
                     android:layout_marginEnd="7dp"
@@ -141,6 +142,8 @@
                     android:background="@drawable/bg_customer_card"
                     android:gravity="center"
                     android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true"
                     >
                     <ImageView
                         android:layout_width="34dp"
@@ -157,6 +160,7 @@
                         />
                 </LinearLayout>
                 <LinearLayout
+                    android:id="@+id/catLaptopCard"
                     android:layout_width="0dp"
                     android:layout_height="108dp"
                     android:layout_marginStart="7dp"
@@ -165,6 +169,8 @@
                     android:background="@drawable/bg_customer_card"
                     android:gravity="center"
                     android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true"
                     >
                     <ImageView
                         android:layout_width="34dp"
@@ -181,6 +187,7 @@
                         />
                 </LinearLayout>
                 <LinearLayout
+                    android:id="@+id/catTabletCard"
                     android:layout_width="0dp"
                     android:layout_height="108dp"
                     android:layout_marginStart="7dp"
@@ -188,6 +195,8 @@
                     android:background="@drawable/bg_customer_card"
                     android:gravity="center"
                     android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true"
                     >
                     <ImageView
                         android:layout_width="34dp"

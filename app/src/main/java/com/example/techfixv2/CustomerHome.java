@@ -86,6 +86,52 @@ public class CustomerHome extends AppCompatActivity {
         if (btnOpenAvailability != null) {
             btnOpenAvailability.setOnClickListener(v -> showAvailabilityDialog());
         }
+
+        // Click listener for "View All" services
+        View btnOpenServices = findViewById(R.id.openServices);
+        if (btnOpenServices != null) {
+            btnOpenServices.setOnClickListener(v -> {
+                Intent intent = new Intent(CustomerHome.this, Services.class);
+                startActivity(intent);
+            });
+        }
+
+        // Click listener for Search bar container redirect
+        View searchServices = findViewById(R.id.searchServices);
+        if (searchServices != null) {
+            searchServices.setOnClickListener(v -> {
+                Intent intent = new Intent(CustomerHome.this, Services.class);
+                startActivity(intent);
+            });
+        }
+
+        // Category Cards Redirect bindings
+        View btnCatPhone = findViewById(R.id.catPhoneCard);
+        if (btnCatPhone != null) {
+            btnCatPhone.setOnClickListener(v -> {
+                Intent intent = new Intent(CustomerHome.this, Services.class);
+                intent.putExtra("filter_category", "Phone");
+                startActivity(intent);
+            });
+        }
+
+        View btnCatLaptop = findViewById(R.id.catLaptopCard);
+        if (btnCatLaptop != null) {
+            btnCatLaptop.setOnClickListener(v -> {
+                Intent intent = new Intent(CustomerHome.this, Services.class);
+                intent.putExtra("filter_category", "Laptop");
+                startActivity(intent);
+            });
+        }
+
+        View btnCatTablet = findViewById(R.id.catTabletCard);
+        if (btnCatTablet != null) {
+            btnCatTablet.setOnClickListener(v -> {
+                Intent intent = new Intent(CustomerHome.this, Services.class);
+                intent.putExtra("filter_category", "Tablet");
+                startActivity(intent);
+            });
+        }
     }
 
     private void showBranchLocationsDialog() {
