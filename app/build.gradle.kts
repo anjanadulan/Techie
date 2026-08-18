@@ -46,6 +46,7 @@ dependencies {
     implementation(libs.googleid)
     implementation(libs.material)
     implementation(libs.swiperefreshlayout)
+    implementation(libs.play.services.maps)
     testImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)

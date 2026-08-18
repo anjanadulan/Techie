@@ -166,7 +166,7 @@ public class CustomerHome extends AppCompatActivity {
             btnOpt2.setText("Open GPS Map Navigation");
             btnOpt2.setOnClickListener(v -> {
                 dialog.dismiss();
-                showMapOptionsDialog();
+                launchGoogleMaps();
             });
         }
 
@@ -204,7 +204,7 @@ public class CustomerHome extends AppCompatActivity {
                 btnCancel.setVisibility(View.VISIBLE);
                 btnCancel.setOnClickListener(v -> {
                     dialog.dismiss();
-                    showMapOptionsDialog();
+                    launchGoogleMaps();
                 });
             }
 
@@ -231,62 +231,12 @@ public class CustomerHome extends AppCompatActivity {
         });
     }
 
-    private void showMapOptionsDialog() {
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_generic_options, null);
-        TextView tvTitle = dialogView.findViewById(R.id.tvDialogTitle);
-        TextView tvMessage = dialogView.findViewById(R.id.tvDialogMessage);
-        TextView btnOpt1 = dialogView.findViewById(R.id.btnOption1);
-        TextView btnOpt2 = dialogView.findViewById(R.id.btnOption2);
-        View btnCancel = dialogView.findViewById(R.id.btnCancel);
-
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setView(dialogView)
-                .create();
-
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        }
-
-        if (tvTitle != null) tvTitle.setText("GPS Map Navigation");
-        if (tvMessage != null) tvMessage.setText("Select a service center branch to navigate using Google Maps.");
-
-        if (btnOpt1 != null) {
-            btnOpt1.setText("Colombo Branch Map");
-            btnOpt1.setOnClickListener(v -> {
-                dialog.dismiss();
-                launchGoogleMaps(6.9149, 79.8510, "TechFix Colombo Center");
-            });
-        }
-
-        if (btnOpt2 != null) {
-            btnOpt2.setText("Galle Branch Map");
-            btnOpt2.setOnClickListener(v -> {
-                dialog.dismiss();
-                launchGoogleMaps(6.0367, 80.2170, "TechFix Galle Center");
-            });
-        }
-
-        if (btnCancel != null) {
-            btnCancel.setOnClickListener(v -> dialog.dismiss());
-        }
-
-        dialog.show();
-    }
-
-    private void launchGoogleMaps(double lat, double lon, String label) {
+    private void launchGoogleMaps() {
         try {
-            Uri gmmIntentUri = Uri.parse("geo:" + lat + "," + lon + "?q=" + lat + "," + lon + "(" + Uri.encode(label) + ")");
-            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-            mapIntent.setPackage("com.google.android.apps.maps");
-            if (mapIntent.resolveActivity(getPackageManager()) != null) {
-                startActivity(mapIntent);
-            } else {
-                Intent webIntent = new Intent(Intent.ACTION_VIEW, 
-                    Uri.parse("https://www.google.com/maps/search/?api=1&query=" + lat + "," + lon));
-                startActivity(webIntent);
-            }
+            Intent intent = new Intent(CustomerHome.this, MapsActivity.class);
+            startActivity(intent);
         } catch (Exception e) {
-            Toast.makeText(this, "Unable to launch map navigation.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Unable to load map screen.", Toast.LENGTH_SHORT).show();
         }
     }
 

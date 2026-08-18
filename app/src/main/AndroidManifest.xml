@@ -73,6 +73,15 @@
             android:name=".BookRepairActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDbhEuQ5tB8T2OBJE85GM8r3PuLE0cZ2YE" />
+
+        <activity
+            android:name=".MapsActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>
