@@ -10,7 +10,7 @@
     android:background="@drawable/bg_header_gradient"
     tools:context=".MainActivity"
 >
-    <!-- Top & Ambient Floating Bubbles -->
+    <!-- bubbles -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -45,7 +45,7 @@
             android:background="@drawable/bg_circle_overlay"
         />
 
-        <!-- Center Branding Layout -->
+        <!-- center -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -53,7 +53,7 @@
             android:orientation="vertical"
             android:gravity="center"
         >
-            <!-- App Logo Icon Frame -->
+            <!-- logo frame -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="100dp"
                 android:layout_height="100dp"
@@ -71,7 +71,7 @@
                 />
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- App Title (Platinum Silver #E0E1DD) -->
+            <!-- title -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -83,7 +83,6 @@
                 android:layout_marginBottom="8dp"
             />
 
-            <!-- Subtitle -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -93,7 +92,7 @@
                 android:layout_marginBottom="32dp"
             />
 
-            <!-- Loading indicator -->
+            <!-- animation -->
             <ProgressBar
                 android:id="@+id/progressBar"
                 android:layout_width="36dp"
@@ -103,7 +102,7 @@
         </LinearLayout>
     </RelativeLayout>
 
-    <!-- Bottom Action Navigation Bar -->
+    <!-- nav -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -6,7 +6,6 @@
     android:orientation="vertical"
     android:paddingTop="30dp">
 
-    <!-- Header Toolbar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="60dp"
@@ -43,7 +42,7 @@
             android:layout_height="48dp" />
     </LinearLayout>
 
-    <!-- Support Map Fragment -->
+
     <fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"

@@ -144,7 +144,8 @@ public class ManagementModuleActivity extends AppCompatActivity {
     private String getCollectionName() {
         if (moduleKey == null) return "unknown";
         switch (moduleKey.toLowerCase()) {
-            case "appointments": return "appointments";
+            case "appointments":
+            case "statuses": return "appointments";
             case "technicians": return "technicians";
             case "branches": return "branches";
             case "categories": return "device_categories";
@@ -152,7 +153,6 @@ public class ManagementModuleActivity extends AppCompatActivity {
             case "parts": return "spare_parts";
             case "images": return "repair_images";
             case "payments": return "payments";
-            case "statuses": return "repair_statuses";
             default: return "unknown";
         }
     }
@@ -333,6 +333,7 @@ public class ManagementModuleActivity extends AppCompatActivity {
                 break;
 
             case "appointments":
+            case "statuses":
                 title = "Client: " + data.get("clientName");
                 subtitle = "Device: " + data.get("deviceName") + " · Desc: " + data.get("description") + " · Est: LKR " + data.get("cost");
                 status = String.valueOf(data.get("status"));
@@ -377,7 +378,9 @@ public class ManagementModuleActivity extends AppCompatActivity {
         }
 
         row.setOnClickListener(v -> {
-            if (isCrud) {
+            if ("statuses".equalsIgnoreCase(moduleKey)) {
+                showStatusUpdateDialog(index);
+            } else if (isCrud) {
                 showEditDeleteDialog(index);
             } else {
                 showViewDetailsDialog(index);
@@ -537,6 +540,48 @@ public class ManagementModuleActivity extends AppCompatActivity {
 
         builder.setMessage(sb.toString().trim());
         builder.setPositiveButton("Close", null);
+        builder.show();
+    }
+
+    private void showStatusUpdateDialog(int index) {
+        if (index < 0 || index >= loadedItems.size()) return;
+        FirestoreItem item = loadedItems.get(index);
+
+        final String[] statusOptions = {"Pending", "Approved", "In Progress", "Completed"};
+        
+        int checkedItem = 0;
+        for (int i = 0; i < statusOptions.length; i++) {
+            if (statusOptions[i].equalsIgnoreCase(item.status)) {
+                checkedItem = i;
+                break;
+            }
+        }
+
+        final int[] selectedIndex = {checkedItem};
+
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        builder.setTitle("Update Repair Status");
+        builder.setSingleChoiceItems(statusOptions, checkedItem, (dialog, which) -> {
+            selectedIndex[0] = which;
+        });
+
+        builder.setPositiveButton("Update", (dialog, which) -> {
+            String newStatus = statusOptions[selectedIndex[0]];
+            
+            refreshLayout.setRefreshing(true);
+            db.collection("appointments").document(item.id)
+                    .update("status", newStatus)
+                    .addOnSuccessListener(aVoid -> {
+                        loadModuleData();
+                        Toast.makeText(this, "Status updated to " + newStatus, Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        refreshLayout.setRefreshing(false);
+                        Toast.makeText(this, "Failed to update status: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        });
+
+        builder.setNegativeButton("Cancel", null);
         builder.show();
     }
 
