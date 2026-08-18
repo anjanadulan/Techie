@@ -530,17 +530,38 @@ public class ManagementModuleActivity extends AppCompatActivity {
         if (index < 0 || index >= loadedItems.size()) return;
         FirestoreItem item = loadedItems.get(index);
 
-        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
-        builder.setTitle(tvModuleTitle.getText().toString() + " Record Details");
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_generic_info, null);
+        TextView tvTitle = dialogView.findViewById(R.id.tvDialogTitle);
+        TextView tvMessage = dialogView.findViewById(R.id.tvDialogMessage);
+        View btnAction = dialogView.findViewById(R.id.btnAction);
+
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        if (tvTitle != null) {
+            tvTitle.setText(tvModuleTitle.getText().toString() + " Details");
+        }
 
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<String, Object> entry : item.rawData.entrySet()) {
-            sb.append(formatFieldName(entry.getKey())).append(": ").append(entry.getValue()).append("\n\n");
+            sb.append("• ").append(formatFieldName(entry.getKey())).append(": ").append(entry.getValue()).append("\n\n");
         }
 
-        builder.setMessage(sb.toString().trim());
-        builder.setPositiveButton("Close", null);
-        builder.show();
+        if (tvMessage != null) {
+            tvMessage.setText(sb.toString().trim());
+        }
+
+        if (btnAction instanceof TextView) {
+            ((TextView) btnAction).setText("Close");
+        }
+        btnAction.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
     }
 
     private void showStatusUpdateDialog(int index) {
