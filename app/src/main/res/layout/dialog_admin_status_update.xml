@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_rounded"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <!-- Header: Eyebrow, Title and Dismiss (X) Button -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="WORKFLOW PIPELINE"
+                android:textColor="@color/customer_orange"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvStatusDialogTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Update Repair Status"
+                android:textColor="@color/customer_text"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/btnStatusDismiss"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="✕"
+            android:textColor="@color/customer_muted"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <RadioGroup
+        android:id="@+id/rgStatusOptions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp">
+
+        <RadioButton
+            android:id="@+id/rbPending"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="6dp"
+            android:background="@drawable/bg_customer_input"
+            android:paddingStart="12dp"
+            android:text="⏳ Pending (Under Initial Review)"
+            android:textColor="@color/customer_text"
+            android:textSize="13sp" />
+
+        <RadioButton
+            android:id="@+id/rbApproved"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="6dp"
+            android:background="@drawable/bg_customer_input"
+            android:paddingStart="12dp"
+            android:text="✓ Approved (Parts Confirmed)"
+            android:textColor="@color/customer_text"
+            android:textSize="13sp" />
+
+        <RadioButton
+            android:id="@+id/rbInProgress"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="6dp"
+            android:background="@drawable/bg_customer_input"
+            android:paddingStart="12dp"
+            android:text="🔧 In Progress (On Technician Workbench)"
+            android:textColor="@color/customer_text"
+            android:textSize="13sp" />
+
+        <RadioButton
+            android:id="@+id/rbCompleted"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="6dp"
+            android:background="@drawable/bg_customer_input"
+            android:paddingStart="12dp"
+            android:text="★ Completed (Ready for Pickup / Delivery)"
+            android:textColor="@color/customer_text"
+            android:textSize="13sp" />
+
+        <RadioButton
+            android:id="@+id/rbCancelled"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_customer_input"
+            android:paddingStart="12dp"
+            android:text="✕ Cancelled (Booking Terminated)"
+            android:textColor="@color/customer_text"
+            android:textSize="13sp" />
+    </RadioGroup>
+
+    <!-- Bottom Actions -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnStatusCancel"
+            android:layout_width="0dp"
+            android:layout_height="46dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_customer_input"
+            android:text="Cancel"
+            android:textAllCaps="false"
+            android:textColor="@color/customer_text"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnStatusUpdate"
+            android:layout_width="0dp"
+            android:layout_height="46dp"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1.3"
+            android:background="@drawable/bg_customer_primary"
+            android:text="Confirm Update"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+</LinearLayout>

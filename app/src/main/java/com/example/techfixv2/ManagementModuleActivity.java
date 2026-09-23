@@ -12,6 +12,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import android.graphics.Typeface;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -513,152 +517,25 @@ public class ManagementModuleActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Display modern Material Design dialog for creating a new record in Cloud Firestore.
+     * Generates input form fields dynamically based on the current active module schema.
+     * Incorporates custom background drawables, validation rules, and asynchronous persistence.
+     */
     private void showAddDialog() {
-        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
-        builder.setTitle("Add new " + tvModuleTitle.getText().toString());
+        // Inflate custom modern card dialog layout
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_admin_form, null);
 
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(40, 20, 40, 20);
+        TextView tvFormEyebrow = dialogView.findViewById(R.id.tvFormEyebrow);
+        TextView tvFormTitle = dialogView.findViewById(R.id.tvFormTitle);
+        View btnFormDismiss = dialogView.findViewById(R.id.btnFormDismiss);
+        LinearLayout formFieldsContainer = dialogView.findViewById(R.id.formFieldsContainer);
+        View btnFormDelete = dialogView.findViewById(R.id.btnFormDelete);
+        View btnFormCancel = dialogView.findViewById(R.id.btnFormCancel);
+        TextView btnFormSubmit = dialogView.findViewById(R.id.btnFormSubmit);
 
-        final ArrayList<EditText> inputs = new ArrayList<>();
-        final String[] fields = getFieldsForModule();
-
-        for (String field : fields) {
-            EditText et = new EditText(this);
-            et.setHint(formatFieldName(field));
-            if ("quantity".equals(field) || "price".equals(field) || "estimatedPrice".equals(field) || "amount".equals(field)) {
-                et.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-            }
-            layout.addView(et);
-            inputs.add(et);
-        }
-
-        builder.setView(layout);
-
-        builder.setPositiveButton("Create", (dialog, which) -> {
-            Map<String, Object> data = new HashMap<>();
-            for (int i = 0; i < fields.length; i++) {
-                String val = inputs.get(i).getText().toString().trim();
-                if (val.isEmpty()) {
-                    Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                if ("quantity".equals(fields[i])) {
-                    data.put(fields[i], Integer.parseInt(val));
-                } else if ("price".equals(fields[i]) || "estimatedPrice".equals(fields[i])) {
-                    data.put(fields[i], Double.parseDouble(val));
-                } else {
-                    data.put(fields[i], val);
-                }
-            }
-
-            refreshLayout.setRefreshing(true);
-            db.collection(getCollectionName())
-                    .add(data)
-                    .addOnSuccessListener(ref -> {
-                        loadModuleData();
-                        Toast.makeText(this, "Created in Firestore!", Toast.LENGTH_SHORT).show();
-                    })
-                    .addOnFailureListener(e -> {
-                        refreshLayout.setRefreshing(false);
-                        Toast.makeText(this, "Fail: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    });
-        });
-
-        builder.setNegativeButton("Cancel", null);
-        builder.show();
-    }
-
-    private void showEditDeleteDialog(int index) {
-        if (index < 0 || index >= loadedItems.size()) return;
-        FirestoreItem item = loadedItems.get(index);
-
-        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
-        builder.setTitle("Edit " + tvModuleTitle.getText().toString());
-
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(40, 20, 40, 20);
-
-        final ArrayList<EditText> inputs = new ArrayList<>();
-        final String[] fields = getFieldsForModule();
-
-        for (String field : fields) {
-            EditText et = new EditText(this);
-            et.setHint(formatFieldName(field));
-            Object currentVal = item.rawData.get(field);
-            et.setText(currentVal != null ? String.valueOf(currentVal) : "");
-            
-            if ("quantity".equals(field) || "price".equals(field) || "estimatedPrice".equals(field)) {
-                et.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-            }
-            layout.addView(et);
-            inputs.add(et);
-        }
-
-        builder.setView(layout);
-
-        builder.setPositiveButton("Update", (dialog, which) -> {
-            Map<String, Object> data = new HashMap<>();
-            for (int i = 0; i < fields.length; i++) {
-                String val = inputs.get(i).getText().toString().trim();
-                if (val.isEmpty()) {
-                    Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                if ("quantity".equals(fields[i])) {
-                    data.put(fields[i], Integer.parseInt(val));
-                } else if ("price".equals(fields[i]) || "estimatedPrice".equals(fields[i])) {
-                    data.put(fields[i], Double.parseDouble(val));
-                } else {
-                    data.put(fields[i], val);
-                }
-            }
-
-            refreshLayout.setRefreshing(true);
-            db.collection(getCollectionName()).document(item.id)
-                    .update(data)
-                    .addOnSuccessListener(aVoid -> {
-                        loadModuleData();
-                        Toast.makeText(this, "Updated in Firestore!", Toast.LENGTH_SHORT).show();
-                    })
-                    .addOnFailureListener(e -> {
-                        refreshLayout.setRefreshing(false);
-                        Toast.makeText(this, "Fail: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    });
-        });
-
-        builder.setNeutralButton("Delete", (dialog, which) -> {
-            refreshLayout.setRefreshing(true);
-            db.collection(getCollectionName()).document(item.id)
-                    .delete()
-                    .addOnSuccessListener(aVoid -> {
-                        loadModuleData();
-                        Toast.makeText(this, "Deleted from Firestore!", Toast.LENGTH_SHORT).show();
-                    })
-                    .addOnFailureListener(e -> {
-                        refreshLayout.setRefreshing(false);
-                        Toast.makeText(this, "Fail: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    });
-        });
-
-        builder.setNegativeButton("Cancel", null);
-        builder.show();
-    }
-
-    private void showViewDetailsDialog(int index) {
-        if (index < 0 || index >= loadedItems.size()) return;
-        FirestoreItem item = loadedItems.get(index);
-
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_generic_info, null);
-        TextView tvTitle = dialogView.findViewById(R.id.tvDialogTitle);
-        TextView tvMessage = dialogView.findViewById(R.id.tvDialogMessage);
-        View btnAction = dialogView.findViewById(R.id.btnAction);
-
-        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+        // Initialize Android Material Alert Dialog with transparent window to support 24dp rounded corners
+        AlertDialog dialog = new AlertDialog.Builder(this)
                 .setView(dialogView)
                 .create();
 
@@ -666,28 +543,421 @@ public class ManagementModuleActivity extends AppCompatActivity {
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
 
-        if (tvTitle != null) {
-            tvTitle.setText(tvModuleTitle.getText().toString() + " Details");
+        // Configure dialog header texts
+        tvFormEyebrow.setText("RECORD CREATION");
+        tvFormTitle.setText("Add New " + tvModuleTitle.getText().toString());
+        btnFormDelete.setVisibility(View.GONE); // Delete button not applicable during creation
+        btnFormSubmit.setText("Create Record");
+
+        // Dynamically instantiate and bind EditText input fields for the active administrative module
+        final ArrayList<EditText> inputs = new ArrayList<>();
+        final String[] fields = getFieldsForModule();
+
+        float density = getResources().getDisplayMetrics().density;
+        int padH = (int) (14 * density);
+        int padV = (int) (12 * density);
+        int marginB = (int) (12 * density);
+        int labelMarginB = (int) (4 * density);
+
+        for (int i = 0; i < fields.length; i++) {
+            String field = fields[i];
+
+            // Descriptive attribute label
+            TextView tvLabel = new TextView(this);
+            tvLabel.setText(formatFieldName(field));
+            tvLabel.setTextSize(12);
+            tvLabel.setTypeface(null, Typeface.BOLD);
+            tvLabel.setTextColor(getResources().getColor(R.color.customer_muted));
+            LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            labelParams.setMargins(0, i == 0 ? 0 : (int) (8 * density), 0, labelMarginB);
+            tvLabel.setLayoutParams(labelParams);
+            formFieldsContainer.addView(tvLabel);
+
+            // Styled input field matching customer theme
+            EditText et = new EditText(this);
+            et.setHint("Enter " + formatFieldName(field).toLowerCase());
+            et.setHintTextColor(getResources().getColor(R.color.customer_muted));
+            et.setTextColor(getResources().getColor(R.color.customer_text));
+            et.setTextSize(13);
+            et.setBackgroundResource(R.drawable.bg_customer_input);
+            et.setPadding(padH, padV, padH, padV);
+
+            // Configure numeric input keyboards where appropriate for data validation
+            if ("quantity".equals(field) || "price".equals(field) || "estimatedPrice".equals(field) || "amount".equals(field)) {
+                et.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+            }
+
+            LinearLayout.LayoutParams inputParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            inputParams.setMargins(0, 0, 0, marginB);
+            et.setLayoutParams(inputParams);
+
+            formFieldsContainer.addView(et);
+            inputs.add(et);
         }
 
-        StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, Object> entry : item.rawData.entrySet()) {
-            sb.append("• ").append(formatFieldName(entry.getKey())).append(": ").append(entry.getValue()).append("\n\n");
-        }
+        // Close dialog on dismiss or cancel button click
+        btnFormDismiss.setOnClickListener(v -> dialog.dismiss());
+        btnFormCancel.setOnClickListener(v -> dialog.dismiss());
 
-        if (tvMessage != null) {
-            tvMessage.setText(sb.toString().trim());
-        }
+        // Process creation payload and persist to Cloud Firestore
+        btnFormSubmit.setOnClickListener(v -> {
+            Map<String, Object> data = new HashMap<>();
+            for (int i = 0; i < fields.length; i++) {
+                String val = inputs.get(i).getText().toString().trim();
+                if (val.isEmpty()) {
+                    Toast.makeText(this, "Please fill in all required fields", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-        if (btnAction instanceof TextView) {
-            ((TextView) btnAction).setText("Close");
-        }
-        btnAction.setOnClickListener(v -> dialog.dismiss());
+                if ("quantity".equals(fields[i])) {
+                    try {
+                        data.put(fields[i], Integer.parseInt(val));
+                    } catch (Exception e) {
+                        data.put(fields[i], 0);
+                    }
+                } else if ("price".equals(fields[i]) || "estimatedPrice".equals(fields[i]) || "amount".equals(fields[i])) {
+                    try {
+                        data.put(fields[i], Double.parseDouble(val));
+                    } catch (Exception e) {
+                        data.put(fields[i], 0.0);
+                    }
+                } else {
+                    data.put(fields[i], val);
+                }
+            }
+
+            dialog.dismiss();
+            refreshLayout.setRefreshing(true);
+
+            // Cloud Firestore asynchronous document insertion
+            db.collection(getCollectionName())
+                    .add(data)
+                    .addOnSuccessListener(ref -> {
+                        loadModuleData();
+                        Toast.makeText(this, "Record created successfully in Firestore!", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        refreshLayout.setRefreshing(false);
+                        Toast.makeText(this, "Failed to create: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        });
 
         dialog.show();
     }
 
+    /**
+     * Display modern Material Design dialog for modifying or deleting an existing record in Cloud Firestore.
+     * Pre-populates all existing document attributes into styled input fields.
+     */
+    private void showEditDeleteDialog(int index) {
+        if (index < 0 || index >= loadedItems.size()) return;
+        FirestoreItem item = loadedItems.get(index);
+
+        // Inflate custom modern card dialog layout
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_admin_form, null);
+
+        TextView tvFormEyebrow = dialogView.findViewById(R.id.tvFormEyebrow);
+        TextView tvFormTitle = dialogView.findViewById(R.id.tvFormTitle);
+        View btnFormDismiss = dialogView.findViewById(R.id.btnFormDismiss);
+        LinearLayout formFieldsContainer = dialogView.findViewById(R.id.formFieldsContainer);
+        View btnFormDelete = dialogView.findViewById(R.id.btnFormDelete);
+        View btnFormCancel = dialogView.findViewById(R.id.btnFormCancel);
+        TextView btnFormSubmit = dialogView.findViewById(R.id.btnFormSubmit);
+
+        // Initialize Android Material Alert Dialog with transparent window to support 24dp rounded corners
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        // Configure dialog header texts
+        tvFormEyebrow.setText("RECORD MUTATION & AUDITING");
+        tvFormTitle.setText("Edit " + tvModuleTitle.getText().toString());
+        btnFormDelete.setVisibility(View.VISIBLE); // Reveal delete action button in edit mode
+        btnFormSubmit.setText("Save Changes");
+
+        // Dynamically instantiate and bind EditText input fields with existing document values
+        final ArrayList<EditText> inputs = new ArrayList<>();
+        final String[] fields = getFieldsForModule();
+
+        float density = getResources().getDisplayMetrics().density;
+        int padH = (int) (14 * density);
+        int padV = (int) (12 * density);
+        int marginB = (int) (12 * density);
+        int labelMarginB = (int) (4 * density);
+
+        for (int i = 0; i < fields.length; i++) {
+            String field = fields[i];
+
+            // Descriptive attribute label
+            TextView tvLabel = new TextView(this);
+            tvLabel.setText(formatFieldName(field));
+            tvLabel.setTextSize(12);
+            tvLabel.setTypeface(null, Typeface.BOLD);
+            tvLabel.setTextColor(getResources().getColor(R.color.customer_muted));
+            LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            labelParams.setMargins(0, i == 0 ? 0 : (int) (8 * density), 0, labelMarginB);
+            tvLabel.setLayoutParams(labelParams);
+            formFieldsContainer.addView(tvLabel);
+
+            // Styled input field pre-filled with existing data
+            EditText et = new EditText(this);
+            et.setHint("Enter " + formatFieldName(field).toLowerCase());
+            et.setHintTextColor(getResources().getColor(R.color.customer_muted));
+            et.setTextColor(getResources().getColor(R.color.customer_text));
+            et.setTextSize(13);
+            et.setBackgroundResource(R.drawable.bg_customer_input);
+            et.setPadding(padH, padV, padH, padV);
+
+            Object currentVal = item.rawData.get(field);
+            et.setText(currentVal != null ? String.valueOf(currentVal) : "");
+
+            // Configure numeric input keyboards where appropriate for data validation
+            if ("quantity".equals(field) || "price".equals(field) || "estimatedPrice".equals(field) || "amount".equals(field)) {
+                et.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+            }
+
+            LinearLayout.LayoutParams inputParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            inputParams.setMargins(0, 0, 0, marginB);
+            et.setLayoutParams(inputParams);
+
+            formFieldsContainer.addView(et);
+            inputs.add(et);
+        }
+
+        // Close dialog on dismiss or cancel button click
+        btnFormDismiss.setOnClickListener(v -> dialog.dismiss());
+        btnFormCancel.setOnClickListener(v -> dialog.dismiss());
+
+        // Trigger modern confirmation dialog when Delete button is pressed
+        btnFormDelete.setOnClickListener(v -> showDeleteConfirmDialog(item, dialog));
+
+        // Process update payload and synchronize with Cloud Firestore
+        btnFormSubmit.setOnClickListener(v -> {
+            Map<String, Object> data = new HashMap<>();
+            for (int i = 0; i < fields.length; i++) {
+                String val = inputs.get(i).getText().toString().trim();
+                if (val.isEmpty()) {
+                    Toast.makeText(this, "Please fill in all required fields", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if ("quantity".equals(fields[i])) {
+                    try {
+                        data.put(fields[i], Integer.parseInt(val));
+                    } catch (Exception e) {
+                        data.put(fields[i], 0);
+                    }
+                } else if ("price".equals(fields[i]) || "estimatedPrice".equals(fields[i]) || "amount".equals(fields[i])) {
+                    try {
+                        data.put(fields[i], Double.parseDouble(val));
+                    } catch (Exception e) {
+                        data.put(fields[i], 0.0);
+                    }
+                } else {
+                    data.put(fields[i], val);
+                }
+            }
+
+            dialog.dismiss();
+            refreshLayout.setRefreshing(true);
+
+            // Cloud Firestore asynchronous document update
+            db.collection(getCollectionName()).document(item.id)
+                    .update(data)
+                    .addOnSuccessListener(aVoid -> {
+                        loadModuleData();
+                        Toast.makeText(this, "Record updated in Firestore!", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        refreshLayout.setRefreshing(false);
+                        Toast.makeText(this, "Failed to update: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        });
+
+        dialog.show();
+    }
+
+    /**
+     * Display high-finish confirmation dialog to prevent accidental deletion of database entries.
+     * Uses danger-accented styling to alert the administrator of permanent Firestore removal.
+     */
+    private void showDeleteConfirmDialog(FirestoreItem item, AlertDialog parentDialog) {
+        View confirmView = LayoutInflater.from(this).inflate(R.layout.dialog_admin_delete_confirm, null);
+
+        TextView tvDeleteDialogTitle = confirmView.findViewById(R.id.tvDeleteDialogTitle);
+        TextView tvDeleteDialogMessage = confirmView.findViewById(R.id.tvDeleteDialogMessage);
+        View btnDeleteCancel = confirmView.findViewById(R.id.btnDeleteCancel);
+        View btnDeleteConfirm = confirmView.findViewById(R.id.btnDeleteConfirm);
+
+        AlertDialog confirmDialog = new AlertDialog.Builder(this)
+                .setView(confirmView)
+                .create();
+
+        if (confirmDialog.getWindow() != null) {
+            confirmDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        String itemLabel = item.title != null && !item.title.isEmpty() ? item.title : "this record";
+        tvDeleteDialogTitle.setText("Delete " + itemLabel + "?");
+        tvDeleteDialogMessage.setText("Are you sure you want to permanently remove this " +
+                tvModuleTitle.getText().toString().toLowerCase() +
+                " entry from Cloud Firestore? This action cannot be undone.");
+
+        btnDeleteCancel.setOnClickListener(v -> confirmDialog.dismiss());
+
+        // Perform irreversible Firestore document deletion
+        btnDeleteConfirm.setOnClickListener(v -> {
+            confirmDialog.dismiss();
+            if (parentDialog != null) {
+                parentDialog.dismiss();
+            }
+
+            refreshLayout.setRefreshing(true);
+            db.collection(getCollectionName()).document(item.id)
+                    .delete()
+                    .addOnSuccessListener(aVoid -> {
+                        loadModuleData();
+                        Toast.makeText(this, "Record permanently deleted from Firestore!", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        refreshLayout.setRefreshing(false);
+                        Toast.makeText(this, "Deletion failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        });
+
+        confirmDialog.show();
+    }
+
+    /**
+     * Display detailed read-only modal for administrative inspection.
+     * Renders key-value metadata pairs and previews hardware or media photos if present.
+     */
+    private void showViewDetailsDialog(int index) {
+        if (index < 0 || index >= loadedItems.size()) return;
+        FirestoreItem item = loadedItems.get(index);
+
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_admin_details, null);
+
+        TextView tvDetailsEyebrow = dialogView.findViewById(R.id.tvDetailsEyebrow);
+        TextView tvDetailsTitle = dialogView.findViewById(R.id.tvDetailsTitle);
+        TextView tvDetailsStatus = dialogView.findViewById(R.id.tvDetailsStatus);
+        View btnDetailsDismiss = dialogView.findViewById(R.id.btnDetailsDismiss);
+        View cardDetailsImageContainer = dialogView.findViewById(R.id.cardDetailsImageContainer);
+        ImageView ivDetailsImage = dialogView.findViewById(R.id.ivDetailsImage);
+        LinearLayout detailsRowsContainer = dialogView.findViewById(R.id.detailsRowsContainer);
+        View btnDetailsClose = dialogView.findViewById(R.id.btnDetailsClose);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        // Configure header metadata
+        tvDetailsEyebrow.setText(tvModuleTitle.getText().toString().toUpperCase() + " AUDIT TRAIL");
+        tvDetailsTitle.setText(item.title != null && !item.title.isEmpty() ? item.title : "Record Information");
+
+        // Status badge configuration
+        if (item.status != null && !item.status.isEmpty()) {
+            tvDetailsStatus.setVisibility(View.VISIBLE);
+            tvDetailsStatus.setText(item.status);
+            applyStatusBadgeStyle(tvDetailsStatus, item.status);
+        } else {
+            tvDetailsStatus.setVisibility(View.GONE);
+        }
+
+        // Inspection image preview (e.g. Gallery images or Repair photo attachments)
+        String imageUriStr = "";
+        if (item.rawData.containsKey("imageUrl") && item.rawData.get("imageUrl") != null) {
+            imageUriStr = String.valueOf(item.rawData.get("imageUrl")).trim();
+        } else if (item.rawData.containsKey("photoUri") && item.rawData.get("photoUri") != null) {
+            imageUriStr = String.valueOf(item.rawData.get("photoUri")).trim();
+        }
+
+        if (!imageUriStr.isEmpty() && !"null".equalsIgnoreCase(imageUriStr)) {
+            try {
+                Uri uri = Uri.parse(imageUriStr);
+                ivDetailsImage.setImageURI(uri);
+                cardDetailsImageContainer.setVisibility(View.VISIBLE);
+            } catch (Exception e) {
+                cardDetailsImageContainer.setVisibility(View.GONE);
+            }
+        } else {
+            cardDetailsImageContainer.setVisibility(View.GONE);
+        }
+
+        // Dynamically populate key-value rows in the details container
+        float density = getResources().getDisplayMetrics().density;
+        int rowPadV = (int) (8 * density);
+        boolean isFirst = true;
+
+        for (Map.Entry<String, Object> entry : item.rawData.entrySet()) {
+            String key = entry.getKey();
+            if ("imageUrl".equals(key) || "photoUri".equals(key)) continue; // Already rendered in image card preview
+
+            if (!isFirst) {
+                // Divider line between attribute rows
+                View divider = new View(this);
+                divider.setLayoutParams(new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, (int) (1 * density)));
+                divider.setBackgroundColor(getResources().getColor(R.color.divider_color));
+                detailsRowsContainer.addView(divider);
+            }
+            isFirst = false;
+
+            LinearLayout rowLayout = new LinearLayout(this);
+            rowLayout.setOrientation(LinearLayout.HORIZONTAL);
+            rowLayout.setPadding(0, rowPadV, 0, rowPadV);
+
+            // Attribute Key Label
+            TextView tvKey = new TextView(this);
+            tvKey.setText(formatFieldName(key));
+            tvKey.setTextSize(12);
+            tvKey.setTextColor(getResources().getColor(R.color.customer_muted));
+            tvKey.setTypeface(null, Typeface.BOLD);
+            LinearLayout.LayoutParams keyParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
+            tvKey.setLayoutParams(keyParams);
+
+            // Attribute Value Label
+            TextView tvVal = new TextView(this);
+            Object rawVal = entry.getValue();
+            tvVal.setText(rawVal != null ? String.valueOf(rawVal) : "—");
+            tvVal.setTextSize(13);
+            tvVal.setTextColor(getResources().getColor(R.color.customer_text));
+            tvVal.setTypeface(null, Typeface.BOLD);
+            tvVal.setGravity(android.view.Gravity.END);
+            LinearLayout.LayoutParams valParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.4f);
+            tvVal.setLayoutParams(valParams);
+
+            rowLayout.addView(tvKey);
+            rowLayout.addView(tvVal);
+            detailsRowsContainer.addView(rowLayout);
+        }
+
+        // Dismiss action handlers
+        btnDetailsDismiss.setOnClickListener(v -> dialog.dismiss());
+        btnDetailsClose.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
+    }
+
+    /**
+     * Display comprehensive inspection modal for customer repair appointments.
+     * Incorporates inline hardware damage photo preview, full customer credentials,
+     * diagnostic issue narrative, quotation estimation, and direct status transition triggers.
+     */
     private void showAppointmentDetailDialog(FirestoreItem item) {
+        // Inflate custom modern appointment detail dialog layout
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_appointment_detail, null);
 
         TextView tvDetailApptId = dialogView.findViewById(R.id.tvDetailApptId);
@@ -709,7 +979,8 @@ public class ManagementModuleActivity extends AppCompatActivity {
         View btnDetailClose = dialogView.findViewById(R.id.btnDetailClose);
         View btnDetailUpdateStatus = dialogView.findViewById(R.id.btnDetailUpdateStatus);
 
-        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+        // Initialize Android Material Alert Dialog with transparent window to support 24dp rounded corners
+        AlertDialog dialog = new AlertDialog.Builder(this)
                 .setView(dialogView)
                 .create();
 
@@ -719,23 +990,23 @@ public class ManagementModuleActivity extends AppCompatActivity {
 
         Map<String, Object> data = item.rawData;
 
-        // Tracking ID
+        // Repair Tracking ID formatted with prefix (#TF-XXXXX)
         String repairId = item.id != null && item.id.length() > 5 ? 
                 "#TF-" + item.id.substring(0, 5).toUpperCase() : 
                 (item.id != null ? "#TF-" + item.id.toUpperCase() : "#TF-0000");
         tvDetailApptId.setText(repairId);
 
-        // Device
+        // Hardware device identifier
         String deviceName = data.containsKey("deviceName") && data.get("deviceName") != null ? 
                 String.valueOf(data.get("deviceName")) : "Hardware Device";
         tvDetailDeviceName.setText(deviceName);
 
-        // Status badge
+        // Visual status badge with context-aware color mapping
         String status = item.status != null ? item.status : "Pending";
         tvDetailStatus.setText(status);
         applyStatusBadgeStyle(tvDetailStatus, status);
 
-        // Client
+        // Customer contact information
         String client = data.containsKey("clientName") && data.get("clientName") != null ? 
                 String.valueOf(data.get("clientName")) : "Client";
         String email = data.containsKey("userEmail") && data.get("userEmail") != null ? 
@@ -743,11 +1014,12 @@ public class ManagementModuleActivity extends AppCompatActivity {
         tvDetailClientName.setText(client);
         tvDetailClientEmail.setText(!email.isEmpty() ? " (" + email + ")" : "");
 
-        // Branch & Financials
+        // Service branch location
         String branch = data.containsKey("branch") && data.get("branch") != null ? 
                 String.valueOf(data.get("branch")) : "Colombo";
         tvDetailBranch.setText("📍 Branch: " + branch);
 
+        // Financial repair quotation calculation
         Object costVal = data.get("cost");
         if (costVal != null) {
             try {
@@ -759,18 +1031,18 @@ public class ManagementModuleActivity extends AppCompatActivity {
             tvDetailCost.setText("Cost TBD");
         }
 
-        // Schedule
+        // Repair slot scheduling metadata
         String dateStr = data.containsKey("date") && data.get("date") != null ? String.valueOf(data.get("date")) : "";
         String timeStr = data.containsKey("time") && data.get("time") != null ? String.valueOf(data.get("time")) : "";
         String schedule = (dateStr + (!dateStr.isEmpty() && !timeStr.isEmpty() ? " • " : "") + timeStr).trim();
         tvDetailSchedule.setText("📅 Scheduled: " + (schedule.isEmpty() ? "Date unassigned" : schedule));
 
-        // Description
+        // Customer diagnostic problem description
         String desc = data.containsKey("description") && data.get("description") != null ? 
                 String.valueOf(data.get("description")) : "No issue description provided";
         tvDetailDescription.setText(desc);
 
-        // Hardware Damage Photo View
+        // Hardware damage photo preview safely handled via content/storage URI parsing
         Object photoObj = data.get("photoUri");
         String photoUriStr = photoObj != null ? String.valueOf(photoObj).trim() : "";
         if (!photoUriStr.isEmpty() && !"null".equalsIgnoreCase(photoUriStr)) {
@@ -788,10 +1060,11 @@ public class ManagementModuleActivity extends AppCompatActivity {
             layoutNoPhotoPlaceholder.setVisibility(View.VISIBLE);
         }
 
-        // Click handlers
+        // Dismiss action handlers
         btnDetailDismiss.setOnClickListener(v -> dialog.dismiss());
         btnDetailClose.setOnClickListener(v -> dialog.dismiss());
 
+        // Launch modern status update dialog directly from detail viewer
         btnDetailUpdateStatus.setOnClickListener(v -> {
             dialog.dismiss();
             showStatusUpdateDialogForItem(item);
@@ -800,39 +1073,90 @@ public class ManagementModuleActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    /**
+     * Helper dispatcher for index-based status update requests.
+     */
     private void showStatusUpdateDialog(int index) {
         if (index < 0 || index >= loadedItems.size()) return;
         showStatusUpdateDialogForItem(loadedItems.get(index));
     }
 
+    /**
+     * Display modern Material Design status transition dialog for repair appointments.
+     * Incorporates custom radio option selector, pipeline stage descriptions, and real-time Firestore mutation.
+     */
     private void showStatusUpdateDialogForItem(FirestoreItem item) {
-        final String[] statusOptions = {"Pending", "Approved", "In Progress", "Completed", "Cancelled"};
-        
-        int checkedItem = 0;
-        for (int i = 0; i < statusOptions.length; i++) {
-            if (statusOptions[i].equalsIgnoreCase(item.status)) {
-                checkedItem = i;
-                break;
-            }
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_admin_status_update, null);
+
+        TextView tvStatusDialogTitle = dialogView.findViewById(R.id.tvStatusDialogTitle);
+        View btnStatusDismiss = dialogView.findViewById(R.id.btnStatusDismiss);
+        RadioButton rbPending = dialogView.findViewById(R.id.rbPending);
+        RadioButton rbApproved = dialogView.findViewById(R.id.rbApproved);
+        RadioButton rbInProgress = dialogView.findViewById(R.id.rbInProgress);
+        RadioButton rbCompleted = dialogView.findViewById(R.id.rbCompleted);
+        RadioButton rbCancelled = dialogView.findViewById(R.id.rbCancelled);
+        View btnStatusCancel = dialogView.findViewById(R.id.btnStatusCancel);
+        View btnStatusUpdate = dialogView.findViewById(R.id.btnStatusUpdate);
+
+        // Initialize Android Material Alert Dialog with transparent window to support 24dp rounded corners
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
 
-        final int[] selectedIndex = {checkedItem};
+        // Set repair tracking identifier in dialog title
+        String repairId = item.id != null && item.id.length() > 5 ? 
+                "#TF-" + item.id.substring(0, 5).toUpperCase() : 
+                (item.id != null ? "#TF-" + item.id.toUpperCase() : "#TF-0000");
+        tvStatusDialogTitle.setText("Status: " + repairId);
 
-        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
-        builder.setTitle("Update Repair Status");
-        builder.setSingleChoiceItems(statusOptions, checkedItem, (dialog, which) -> {
-            selectedIndex[0] = which;
-        });
+        // Pre-select current workflow stage in radio group
+        String currentStatus = item.status != null ? item.status : "Pending";
+        if ("Approved".equalsIgnoreCase(currentStatus)) {
+            rbApproved.setChecked(true);
+        } else if ("In Progress".equalsIgnoreCase(currentStatus)) {
+            rbInProgress.setChecked(true);
+        } else if ("Completed".equalsIgnoreCase(currentStatus)) {
+            rbCompleted.setChecked(true);
+        } else if ("Cancelled".equalsIgnoreCase(currentStatus)) {
+            rbCancelled.setChecked(true);
+        } else {
+            rbPending.setChecked(true);
+        }
 
-        builder.setPositiveButton("Update", (dialog, which) -> {
-            String newStatus = statusOptions[selectedIndex[0]];
-            
+        // Dismiss action handlers
+        btnStatusDismiss.setOnClickListener(v -> dialog.dismiss());
+        btnStatusCancel.setOnClickListener(v -> dialog.dismiss());
+
+        // Execute status transition mutation against Cloud Firestore
+        btnStatusUpdate.setOnClickListener(v -> {
+            String selectedStatus = "Pending";
+            if (rbApproved.isChecked()) {
+                selectedStatus = "Approved";
+            } else if (rbInProgress.isChecked()) {
+                selectedStatus = "In Progress";
+            } else if (rbCompleted.isChecked()) {
+                selectedStatus = "Completed";
+            } else if (rbCancelled.isChecked()) {
+                selectedStatus = "Cancelled";
+            }
+
+            final String newStatus = selectedStatus;
+            dialog.dismiss();
             refreshLayout.setRefreshing(true);
-            db.collection("appointments").document(item.id)
+
+            // Synchronize status mutation across Firestore appointments collection
+            String targetCollection = "appointments".equalsIgnoreCase(moduleKey) || "statuses".equalsIgnoreCase(moduleKey) ?
+                    "appointments" : getCollectionName();
+
+            db.collection(targetCollection).document(item.id)
                     .update("status", newStatus)
                     .addOnSuccessListener(aVoid -> {
                         loadModuleData();
-                        Toast.makeText(this, "Status updated to " + newStatus, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Workflow status updated to " + newStatus, Toast.LENGTH_SHORT).show();
                     })
                     .addOnFailureListener(e -> {
                         refreshLayout.setRefreshing(false);
@@ -840,8 +1164,7 @@ public class ManagementModuleActivity extends AppCompatActivity {
                     });
         });
 
-        builder.setNegativeButton("Cancel", null);
-        builder.show();
+        dialog.show();
     }
 
     private String formatFieldName(String databaseKey) {
