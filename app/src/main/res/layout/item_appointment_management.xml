@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="12dp"
+    android:background="@drawable/bg_management_card"
+    android:clickable="true"
+    android:focusable="true"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Top Row: Repair ID + Date/Time + Status Chip -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvApptId"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="#TF-1042"
+            android:textColor="@color/customer_orange"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvApptDateTime"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:text="2026-09-24 • 10:30 AM"
+            android:textColor="@color/customer_muted"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tvApptStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_management_status"
+            android:gravity="center"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            android:text="In Progress"
+            android:textColor="@color/customer_blue"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Middle: Device Name + Branch Badge -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/ivApptDeviceIcon"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:background="@drawable/bg_customer_soft_blue"
+            android:padding="5dp"
+            android:src="@drawable/ic_customer_phone" />
+
+        <TextView
+            android:id="@+id/tvApptDeviceName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:text="iPhone 13 Pro"
+            android:textColor="@color/customer_text"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvApptBranch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_customer_chip"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:text="📍 Colombo"
+            android:textColor="@color/customer_text"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <!-- Client & Contact -->
+    <TextView
+        android:id="@+id/tvApptClient"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="Customer: Nimal Perera (user@gmail.com)"
+        android:textColor="@color/customer_muted"
+        android:textSize="12sp" />
+
+    <!-- Description Excerpt -->
+    <TextView
+        android:id="@+id/tvApptDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:text="Screen replacement with genuine panel and ultrasonic cleaning."
+        android:textColor="@color/customer_text"
+        android:textSize="13sp" />
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginVertical="10dp"
+        android:background="@color/divider_color" />
+
+    <!-- Bottom Row: Estimated Cost + Photo Badge + Tap hint -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvApptCost"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="LKR 18,500"
+            android:textColor="@color/customer_text"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvApptPhotoBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/bg_customer_soft_orange"
+            android:paddingHorizontal="7dp"
+            android:paddingVertical="3dp"
+            android:text="📷 Photo Attached"
+            android:textColor="@color/customer_orange"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="View Details ›"
+            android:textColor="@color/customer_orange"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+</LinearLayout>

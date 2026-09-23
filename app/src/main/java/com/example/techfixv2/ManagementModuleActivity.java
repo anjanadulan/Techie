@@ -1,11 +1,13 @@
 package com.example.techfixv2;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -215,7 +217,11 @@ public class ManagementModuleActivity extends AppCompatActivity {
             }
 
             if (matchesFilter) {
-                addListItem(item.title, item.subtitle, item.status, i);
+                if ("appointments".equalsIgnoreCase(moduleKey) || "statuses".equalsIgnoreCase(moduleKey)) {
+                    addAppointmentListItem(item, i);
+                } else {
+                    addListItem(item.title, item.subtitle, item.status, i);
+                }
                 visibleCount++;
             }
         }
@@ -395,6 +401,118 @@ public class ManagementModuleActivity extends AppCompatActivity {
         managementList.addView(row);
     }
 
+    private void addAppointmentListItem(FirestoreItem item, int index) {
+        View row = LayoutInflater.from(this).inflate(R.layout.item_appointment_management, managementList, false);
+
+        TextView tvApptId = row.findViewById(R.id.tvApptId);
+        TextView tvApptDateTime = row.findViewById(R.id.tvApptDateTime);
+        TextView tvApptStatus = row.findViewById(R.id.tvApptStatus);
+        TextView tvApptDeviceName = row.findViewById(R.id.tvApptDeviceName);
+        ImageView ivApptDeviceIcon = row.findViewById(R.id.ivApptDeviceIcon);
+        TextView tvApptBranch = row.findViewById(R.id.tvApptBranch);
+        TextView tvApptClient = row.findViewById(R.id.tvApptClient);
+        TextView tvApptDescription = row.findViewById(R.id.tvApptDescription);
+        TextView tvApptCost = row.findViewById(R.id.tvApptCost);
+        TextView tvApptPhotoBadge = row.findViewById(R.id.tvApptPhotoBadge);
+
+        Map<String, Object> data = item.rawData;
+
+        // Repair Tracking ID (#TF-XXXX)
+        String repairId = item.id != null && item.id.length() > 5 ? 
+                "#TF-" + item.id.substring(0, 5).toUpperCase() : 
+                (item.id != null ? "#TF-" + item.id.toUpperCase() : "#TF-0000");
+        tvApptId.setText(repairId);
+
+        // Date and Time schedule
+        String dateStr = data.containsKey("date") && data.get("date") != null ? String.valueOf(data.get("date")) : "";
+        String timeStr = data.containsKey("time") && data.get("time") != null ? String.valueOf(data.get("time")) : "";
+        String dateTime = (dateStr + (!dateStr.isEmpty() && !timeStr.isEmpty() ? " • " : "") + timeStr).trim();
+        tvApptDateTime.setText(dateTime.isEmpty() ? "Schedule pending" : dateTime);
+
+        // Status badge styling
+        String status = item.status != null ? item.status : "Pending";
+        tvApptStatus.setText(status);
+        applyStatusBadgeStyle(tvApptStatus, status);
+
+        // Device name & category-specific icon
+        String deviceName = data.containsKey("deviceName") && data.get("deviceName") != null ? 
+                String.valueOf(data.get("deviceName")) : "Hardware Device";
+        tvApptDeviceName.setText(deviceName);
+
+        String devLower = deviceName.toLowerCase();
+        if (devLower.contains("laptop") || devLower.contains("macbook") || devLower.contains("desktop") || devLower.contains("computer")) {
+            ivApptDeviceIcon.setImageResource(R.drawable.ic_customer_laptop);
+            ivApptDeviceIcon.setBackgroundResource(R.drawable.bg_customer_soft_orange);
+        } else {
+            ivApptDeviceIcon.setImageResource(R.drawable.ic_customer_phone);
+            ivApptDeviceIcon.setBackgroundResource(R.drawable.bg_customer_soft_blue);
+        }
+
+        // Service Center Branch
+        String branch = data.containsKey("branch") && data.get("branch") != null ? 
+                String.valueOf(data.get("branch")) : "Colombo";
+        tvApptBranch.setText("📍 " + branch);
+
+        // Client credentials
+        String client = data.containsKey("clientName") && data.get("clientName") != null ? 
+                String.valueOf(data.get("clientName")) : "Client";
+        String email = data.containsKey("userEmail") && data.get("userEmail") != null ? 
+                String.valueOf(data.get("userEmail")) : "";
+        tvApptClient.setText("Client: " + client + (!email.isEmpty() ? " (" + email + ")" : ""));
+
+        // Description excerpt
+        String desc = data.containsKey("description") && data.get("description") != null ? 
+                String.valueOf(data.get("description")) : "No diagnostic description provided";
+        tvApptDescription.setText(desc);
+
+        // Financial quotation
+        Object costVal = data.get("cost");
+        if (costVal != null) {
+            try {
+                tvApptCost.setText("LKR " + (int) Double.parseDouble(String.valueOf(costVal)));
+            } catch (Exception e) {
+                tvApptCost.setText("LKR " + String.valueOf(costVal));
+            }
+        } else {
+            tvApptCost.setText("Cost TBD");
+        }
+
+        // Photo indicator badge
+        Object photoObj = data.get("photoUri");
+        if (photoObj != null && !String.valueOf(photoObj).trim().isEmpty() && !"null".equalsIgnoreCase(String.valueOf(photoObj).trim())) {
+            tvApptPhotoBadge.setVisibility(View.VISIBLE);
+        } else {
+            tvApptPhotoBadge.setVisibility(View.GONE);
+        }
+
+        // Click listener opens the detailed modal with photo & status actions
+        row.setOnClickListener(v -> showAppointmentDetailDialog(item));
+
+        managementList.addView(row);
+    }
+
+    private void applyStatusBadgeStyle(TextView tv, String status) {
+        if ("Pending".equalsIgnoreCase(status)) {
+            tv.setBackgroundResource(R.drawable.bg_management_status_warning);
+            tv.setTextColor(getResources().getColor(R.color.customer_orange));
+        } else if ("Completed".equalsIgnoreCase(status)) {
+            tv.setBackgroundResource(R.drawable.bg_status_success);
+            tv.setTextColor(getResources().getColor(R.color.customer_success));
+        } else if ("In Progress".equalsIgnoreCase(status)) {
+            tv.setBackgroundResource(R.drawable.bg_customer_soft_blue);
+            tv.setTextColor(getResources().getColor(R.color.customer_blue));
+        } else if ("Approved".equalsIgnoreCase(status)) {
+            tv.setBackgroundResource(R.drawable.bg_management_status);
+            tv.setTextColor(getResources().getColor(R.color.management_cyan));
+        } else if ("Cancelled".equalsIgnoreCase(status)) {
+            tv.setBackgroundResource(R.drawable.bg_status_cancelled);
+            tv.setTextColor(getResources().getColor(R.color.customer_danger));
+        } else {
+            tv.setBackgroundResource(R.drawable.bg_management_status);
+            tv.setTextColor(getResources().getColor(R.color.management_cyan));
+        }
+    }
+
     private void showAddDialog() {
         androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
         builder.setTitle("Add new " + tvModuleTitle.getText().toString());
@@ -569,11 +687,126 @@ public class ManagementModuleActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    private void showAppointmentDetailDialog(FirestoreItem item) {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_appointment_detail, null);
+
+        TextView tvDetailApptId = dialogView.findViewById(R.id.tvDetailApptId);
+        TextView tvDetailDeviceName = dialogView.findViewById(R.id.tvDetailDeviceName);
+        TextView tvDetailStatus = dialogView.findViewById(R.id.tvDetailStatus);
+        View btnDetailDismiss = dialogView.findViewById(R.id.btnDetailDismiss);
+
+        TextView tvDetailClientName = dialogView.findViewById(R.id.tvDetailClientName);
+        TextView tvDetailClientEmail = dialogView.findViewById(R.id.tvDetailClientEmail);
+        TextView tvDetailBranch = dialogView.findViewById(R.id.tvDetailBranch);
+        TextView tvDetailCost = dialogView.findViewById(R.id.tvDetailCost);
+        TextView tvDetailSchedule = dialogView.findViewById(R.id.tvDetailSchedule);
+        TextView tvDetailDescription = dialogView.findViewById(R.id.tvDetailDescription);
+
+        View cardPhotoContainer = dialogView.findViewById(R.id.cardPhotoContainer);
+        ImageView ivDetailPhoto = dialogView.findViewById(R.id.ivDetailPhoto);
+        View layoutNoPhotoPlaceholder = dialogView.findViewById(R.id.layoutNoPhotoPlaceholder);
+
+        View btnDetailClose = dialogView.findViewById(R.id.btnDetailClose);
+        View btnDetailUpdateStatus = dialogView.findViewById(R.id.btnDetailUpdateStatus);
+
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        Map<String, Object> data = item.rawData;
+
+        // Tracking ID
+        String repairId = item.id != null && item.id.length() > 5 ? 
+                "#TF-" + item.id.substring(0, 5).toUpperCase() : 
+                (item.id != null ? "#TF-" + item.id.toUpperCase() : "#TF-0000");
+        tvDetailApptId.setText(repairId);
+
+        // Device
+        String deviceName = data.containsKey("deviceName") && data.get("deviceName") != null ? 
+                String.valueOf(data.get("deviceName")) : "Hardware Device";
+        tvDetailDeviceName.setText(deviceName);
+
+        // Status badge
+        String status = item.status != null ? item.status : "Pending";
+        tvDetailStatus.setText(status);
+        applyStatusBadgeStyle(tvDetailStatus, status);
+
+        // Client
+        String client = data.containsKey("clientName") && data.get("clientName") != null ? 
+                String.valueOf(data.get("clientName")) : "Client";
+        String email = data.containsKey("userEmail") && data.get("userEmail") != null ? 
+                String.valueOf(data.get("userEmail")) : "";
+        tvDetailClientName.setText(client);
+        tvDetailClientEmail.setText(!email.isEmpty() ? " (" + email + ")" : "");
+
+        // Branch & Financials
+        String branch = data.containsKey("branch") && data.get("branch") != null ? 
+                String.valueOf(data.get("branch")) : "Colombo";
+        tvDetailBranch.setText("📍 Branch: " + branch);
+
+        Object costVal = data.get("cost");
+        if (costVal != null) {
+            try {
+                tvDetailCost.setText("Est: LKR " + (int) Double.parseDouble(String.valueOf(costVal)));
+            } catch (Exception e) {
+                tvDetailCost.setText("Est: LKR " + String.valueOf(costVal));
+            }
+        } else {
+            tvDetailCost.setText("Cost TBD");
+        }
+
+        // Schedule
+        String dateStr = data.containsKey("date") && data.get("date") != null ? String.valueOf(data.get("date")) : "";
+        String timeStr = data.containsKey("time") && data.get("time") != null ? String.valueOf(data.get("time")) : "";
+        String schedule = (dateStr + (!dateStr.isEmpty() && !timeStr.isEmpty() ? " • " : "") + timeStr).trim();
+        tvDetailSchedule.setText("📅 Scheduled: " + (schedule.isEmpty() ? "Date unassigned" : schedule));
+
+        // Description
+        String desc = data.containsKey("description") && data.get("description") != null ? 
+                String.valueOf(data.get("description")) : "No issue description provided";
+        tvDetailDescription.setText(desc);
+
+        // Hardware Damage Photo View
+        Object photoObj = data.get("photoUri");
+        String photoUriStr = photoObj != null ? String.valueOf(photoObj).trim() : "";
+        if (!photoUriStr.isEmpty() && !"null".equalsIgnoreCase(photoUriStr)) {
+            try {
+                Uri uri = Uri.parse(photoUriStr);
+                ivDetailPhoto.setImageURI(uri);
+                cardPhotoContainer.setVisibility(View.VISIBLE);
+                layoutNoPhotoPlaceholder.setVisibility(View.GONE);
+            } catch (Exception e) {
+                cardPhotoContainer.setVisibility(View.GONE);
+                layoutNoPhotoPlaceholder.setVisibility(View.VISIBLE);
+            }
+        } else {
+            cardPhotoContainer.setVisibility(View.GONE);
+            layoutNoPhotoPlaceholder.setVisibility(View.VISIBLE);
+        }
+
+        // Click handlers
+        btnDetailDismiss.setOnClickListener(v -> dialog.dismiss());
+        btnDetailClose.setOnClickListener(v -> dialog.dismiss());
+
+        btnDetailUpdateStatus.setOnClickListener(v -> {
+            dialog.dismiss();
+            showStatusUpdateDialogForItem(item);
+        });
+
+        dialog.show();
+    }
+
     private void showStatusUpdateDialog(int index) {
         if (index < 0 || index >= loadedItems.size()) return;
-        FirestoreItem item = loadedItems.get(index);
+        showStatusUpdateDialogForItem(loadedItems.get(index));
+    }
 
-        final String[] statusOptions = {"Pending", "Approved", "In Progress", "Completed"};
+    private void showStatusUpdateDialogForItem(FirestoreItem item) {
+        final String[] statusOptions = {"Pending", "Approved", "In Progress", "Completed", "Cancelled"};
         
         int checkedItem = 0;
         for (int i = 0; i < statusOptions.length; i++) {
