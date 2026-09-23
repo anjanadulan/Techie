@@ -5,9 +5,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Represents a completed device repair record with diagnostic details and showcase photo.
- */
+// encap
 public class RepairedDevice {
     private String id;
     private String name;
@@ -31,9 +29,7 @@ public class RepairedDevice {
         this.status = status;
     }
 
-    /**
-     * Factory method to deserialize a Firestore DocumentSnapshot into a typed RepairedDevice instance.
-     */
+    // firestore
     public static RepairedDevice fromDocument(DocumentSnapshot doc) {
         if (doc == null || !doc.exists()) return null;
         RepairedDevice device = new RepairedDevice();
@@ -56,9 +52,7 @@ public class RepairedDevice {
         return device;
     }
 
-    /**
-     * Converts instance into a Map for Firestore persistence.
-     */
+    // to map
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
         map.put("name", name);
@@ -75,7 +69,7 @@ public class RepairedDevice {
         return "LKR " + (int) price;
     }
 
-    // Getters and Setters
+    // getters setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 

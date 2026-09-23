@@ -38,9 +38,7 @@ public class RepairAppointment {
         this.repairId = generateRepairId(documentId);
     }
 
-    /**
-     * firestore
-     */
+    // firestore
     public static RepairAppointment fromDocument(DocumentSnapshot doc) {
         if (doc == null || !doc.exists()) return null;
         RepairAppointment appt = new RepairAppointment();
@@ -67,9 +65,7 @@ public class RepairAppointment {
         return appt;
     }
 
-    /**
-     * convert
-     */
+    // to map
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
         map.put("clientName", clientName != null ? clientName : "Client");
@@ -110,7 +106,7 @@ public class RepairAppointment {
         return isPending();
     }
 
-    // Getters and Setters
+    // getters setters
     public String getDocumentId() { return documentId; }
     public void setDocumentId(String documentId) { this.documentId = documentId; }
 

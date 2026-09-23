@@ -18,9 +18,7 @@ import com.example.techfixv2.models.RepairedDevice;
 
 import java.util.List;
 
-/**
- * Custom PagerAdapter displaying recently completed device repairs.
- */
+// custom pager adapter
 public class RepairGalleryAdapter extends PagerAdapter {
 
     private final Context context;
@@ -60,13 +58,13 @@ public class RepairGalleryAdapter extends PagerAdapter {
         TextView tvRepairedCost = view.findViewById(R.id.tvRepairedCost);
         View btnRequestSimilar = view.findViewById(R.id.btnRequestSimilar);
 
-        // Populate text details
+        // set text
         tvRepairedDeviceName.setText(device.getName());
         tvRepairedDescription.setText(device.getDescription());
         tvRepairedBranch.setText("📍 " + device.getLocation() + " Branch");
         tvRepairedCost.setText(device.getFormattedPrice());
 
-        // Set device image or fallback illustration
+        // set image or placeholder
         String imgUriStr = device.getImageUrl();
         if (imgUriStr != null && !imgUriStr.trim().isEmpty()) {
             try {
@@ -80,7 +78,7 @@ public class RepairGalleryAdapter extends PagerAdapter {
             showCategoryPlaceholder(ivRepairedPlaceholder, device.getCategory());
         }
 
-        // Direct Booking CTA
+        // book similar
         btnRequestSimilar.setOnClickListener(v -> {
             Intent intent = new Intent(context, BookRepairActivity.class);
             intent.putExtra("preselected_service", device.getName());

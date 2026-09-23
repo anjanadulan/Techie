@@ -46,7 +46,7 @@ public class CustomerHome extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Request storage permission when landing on the customer home dashboard
+        // req storage permission
         checkStoragePermission();
 
         EdgeToEdge.enable(this);
@@ -59,43 +59,43 @@ public class CustomerHome extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
 
-        // Bottom Navigation click listener to go to BookingHistory
+        // nav bookings
         findViewById(R.id.navBookings).setOnClickListener(v -> {
             Intent intent = new Intent(CustomerHome.this, BookingHistory.class);
             startActivity(intent);
         });
 
-        // Bottom Navigation click listener to go to BookRepairActivity
+        // nav book repair
         findViewById(R.id.navBookRepair).setOnClickListener(v -> {
             Intent intent = new Intent(CustomerHome.this, BookRepairActivity.class);
             startActivity(intent);
         });
 
-        // Bottom Navigation click listener to go to Services
+        // nav services
         findViewById(R.id.navServices).setOnClickListener(v -> {
             Intent intent = new Intent(CustomerHome.this, Services.class);
             startActivity(intent);
         });
 
-        // Bottom Navigation click listener to go to Profile
+        // nav profile
         findViewById(R.id.navProfile).setOnClickListener(v -> {
             Intent intent = new Intent(CustomerHome.this, UserProfile.class);
             startActivity(intent);
         });
 
-        // Click listener for Find a Branch card
+        // branch selector
         View btnOpenBranches = findViewById(R.id.openBranches);
         if (btnOpenBranches != null) {
             btnOpenBranches.setOnClickListener(v -> showBranchSelectorMenu());
         }
 
-        // Click listener for Branch Availability card
+        // branch availability
         View btnOpenAvailability = findViewById(R.id.openAvailability);
         if (btnOpenAvailability != null) {
             btnOpenAvailability.setOnClickListener(v -> showAvailabilityDialog());
         }
 
-        // Click listener for "View All" services
+        // view all services
         View btnOpenServices = findViewById(R.id.openServices);
         if (btnOpenServices != null) {
             btnOpenServices.setOnClickListener(v -> {
@@ -104,7 +104,7 @@ public class CustomerHome extends AppCompatActivity {
             });
         }
 
-        // Click listener for Search bar container redirect
+        // search bar redirect
         View searchServices = findViewById(R.id.searchServices);
         if (searchServices != null) {
             searchServices.setOnClickListener(v -> {
@@ -113,7 +113,7 @@ public class CustomerHome extends AppCompatActivity {
             });
         }
 
-        // Category Cards Redirect bindings
+        // category cards
         View btnCatPhone = findViewById(R.id.catPhoneCard);
         if (btnCatPhone != null) {
             btnCatPhone.setOnClickListener(v -> {
@@ -281,13 +281,13 @@ public class CustomerHome extends AppCompatActivity {
                         }
                         btnAction.setOnClickListener(v -> dialog.dismiss());
 
-                        // Populate Domain Models and establish 1-to-many aggregations
+                        // domain models
                         List<Branch> branchList = new ArrayList<>();
                         for (DocumentSnapshot bDoc : branches) {
                             Branch branch = Branch.fromDocument(bDoc);
                             if (branch == null) continue;
 
-                            // Associate roster technicians located at this branch
+                            // tech roster
                             for (DocumentSnapshot tDoc : techs) {
                                 Technician tech = Technician.fromDocument(tDoc);
                                 if (tech != null && branch.getName().equalsIgnoreCase(tech.getLocation())) {
@@ -295,7 +295,7 @@ public class CustomerHome extends AppCompatActivity {
                                 }
                             }
 
-                            // Associate spare parts stored at this branch
+                            // parts stock
                             for (DocumentSnapshot pDoc : parts) {
                                 SparePart part = SparePart.fromDocument(pDoc);
                                 if (part != null && branch.getName().equalsIgnoreCase(part.getLocation())) {
@@ -313,7 +313,7 @@ public class CustomerHome extends AppCompatActivity {
                               .append("Address: ").append(b.getAddress()).append("\n")
                               .append("Phone: ").append(b.getPhoneNumber()).append("\n\n");
 
-                            // Technicians Roster using Technician domain model
+                            // tech model
                             sb.append("👨‍🔧 Roster Technicians:\n");
                             if (b.getTechnicians().isEmpty()) {
                                 sb.append(" - No technicians registered\n");
@@ -323,7 +323,7 @@ public class CustomerHome extends AppCompatActivity {
                                 }
                             }
 
-                            // Parts Stock using SparePart domain model
+                            // parts model
                             sb.append("\n📦 Spare-Part Inventory:\n");
                             if (b.getSpareParts().isEmpty()) {
                                 sb.append(" - Out of stock\n");
@@ -350,11 +350,11 @@ public class CustomerHome extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Load the client's active repair details dynamically
+        // active repair
         loadActiveRepairDetails();
-        // Load dynamic popular services list
+        // popular services
         loadPopularServices();
-        // Load recent completed repairs showcase using RepairGalleryAdapter
+        // gallery showcase
         loadRepairedDevicesGallery();
     }
 
@@ -375,7 +375,7 @@ public class CustomerHome extends AppCompatActivity {
                             }
                         }
                     } else {
-                        // Fallback defaults if database collection is empty
+                        // fallbacks
                         devices.add(new RepairedDevice("1", "iPhone 13 Pro OLED Display", "Phone", "Colombo",
                                 "Cracked display replaced with genuine OEM panel. Restored 120Hz ProMotion touch response.", 18500, "", "Completed"));
                         devices.add(new RepairedDevice("2", "MacBook Pro M1 Keyboard & Cleaning", "Laptop", "Colombo",
@@ -383,7 +383,7 @@ public class CustomerHome extends AppCompatActivity {
                         devices.add(new RepairedDevice("3", "iPad Air 4 Battery Replacement", "Tablet", "Galle",
                                 "Swollen degraded battery replaced with new OEM cell. Battery health restored to 100%.", 12200, "", "Completed"));
 
-                        // Seed into Firestore so Admin can see them in Management module too!
+                        // seed firestore
                         for (RepairedDevice d : devices) {
                             FirebaseFirestore.getInstance().collection("repair_images").add(d.toMap());
                         }
@@ -420,7 +420,7 @@ public class CustomerHome extends AppCompatActivity {
 
         FirebaseFirestore.getInstance()
                 .collection("service_prices")
-                .limit(6) // retrieve enough documents to filter down to 3 active ones
+                .limit(6) // firestore
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult() != null) {
@@ -449,7 +449,7 @@ public class CustomerHome extends AppCompatActivity {
                                 tvMeta.setText("From LKR " + (int) price + " · " + (estTime != null ? estTime : "1-2 hours"));
                             }
 
-                            // Set dynamic icon and color styling matching the device type
+                            // set icon style
                             if (ivIcon != null && category != null) {
                                 String catLower = category.toLowerCase();
                                 if (catLower.contains("laptop") || catLower.contains("macbook") || catLower.contains("desktop")) {
@@ -461,7 +461,7 @@ public class CustomerHome extends AppCompatActivity {
                                 }
                             }
 
-                            // Click to pre-book this popular service
+                            // pre-book service
                             itemView.setOnClickListener(v -> {
                                 Intent intent = new Intent(CustomerHome.this, BookRepairActivity.class);
                                 intent.putExtra("preselected_service", name);
@@ -496,7 +496,7 @@ public class CustomerHome extends AppCompatActivity {
         String email = user.getEmail();
         if (email == null) return;
 
-        // Fetch user's latest appointment from Firestore
+        // fetch appointments
         FirebaseFirestore.getInstance()
                 .collection("appointments")
                 .whereEqualTo("userEmail", email.trim().toLowerCase())
@@ -505,7 +505,7 @@ public class CustomerHome extends AppCompatActivity {
                     if (task.isSuccessful() && task.getResult() != null && !task.getResult().isEmpty()) {
                         DocumentSnapshot activeDoc = null;
 
-                        // Try to find the first in-progress or pending appointment
+                        // find pending
                         for (DocumentSnapshot doc : task.getResult().getDocuments()) {
                             String status = doc.getString("status");
                             if (!"Completed".equalsIgnoreCase(status)) {
@@ -514,7 +514,7 @@ public class CustomerHome extends AppCompatActivity {
                             }
                         }
 
-                        // If all are completed, default to the most recent one
+                        // default recent
                         if (activeDoc == null) {
                             int size = task.getResult().size();
                             activeDoc = task.getResult().getDocuments().get(size - 1);
@@ -530,7 +530,7 @@ public class CustomerHome extends AppCompatActivity {
                         tvActiveRepairStatus.setText(status != null ? status : "Pending");
                         tvActiveRepairSummary.setText(device + (desc != null && !desc.isEmpty() ? " · " + desc : ""));
 
-                        // Apply color styles to status badge
+                        // status badge
                         if ("completed".equalsIgnoreCase(status)) {
                             tvActiveRepairStatus.setBackgroundResource(R.drawable.bg_status_success);
                             tvActiveRepairStatus.setTextColor(getResources().getColor(R.color.customer_success));
@@ -542,7 +542,7 @@ public class CustomerHome extends AppCompatActivity {
                             tvActiveRepairStatus.setTextColor(getResources().getColor(R.color.customer_muted));
                         }
                     } else {
-                        // Display clean placeholder values if no repair is booked
+                        // empty state
                         tvActiveRepairId.setText("No Active Repairs");
                         tvActiveRepairStatus.setText("Idle");
                         tvActiveRepairStatus.setBackgroundResource(R.drawable.bg_customer_chip);

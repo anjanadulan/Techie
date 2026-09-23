@@ -9,9 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Encap
- */
+// encap
 public class Branch {
     private String id;
     private String name;
@@ -21,7 +19,7 @@ public class Branch {
     private double latitude;
     private double longitude;
 
-    // Aggregations: 1-to-many relationships
+    // 1-to-many list
     private List<Technician> technicians = new ArrayList<>();
     private List<SparePart> spareParts = new ArrayList<>();
 
@@ -37,9 +35,7 @@ public class Branch {
         this.longitude = longitude;
     }
 
-    /**
-     * firestore
-     */
+    // firestore
     public static Branch fromDocument(DocumentSnapshot doc) {
         if (doc == null || !doc.exists()) return null;
         Branch branch = new Branch();
@@ -49,7 +45,7 @@ public class Branch {
         branch.setPhoneNumber(doc.getString("phoneNumber"));
         branch.setStatus(doc.getString("status"));
 
-        // Default coordinates
+        // coordinates
         if ("Colombo".equalsIgnoreCase(branch.getName())) {
             branch.setLatitude(6.9149);
             branch.setLongitude(79.8510);
@@ -60,9 +56,7 @@ public class Branch {
         return branch;
     }
 
-    /**
-     * convert
-     */
+    // to map
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
         map.put("name", name);
@@ -102,7 +96,7 @@ public class Branch {
         return false;
     }
 
-    // Getters and Setters
+    // getters setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 

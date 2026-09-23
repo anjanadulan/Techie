@@ -44,7 +44,7 @@ public class ManagementModuleActivity extends AppCompatActivity {
     private SwipeRefreshLayout refreshLayout;
     private View btnModuleAdd;
     
-    // Filter controls
+    // filter controls
     private TextView filterAll, filterColombo, filterGalle;
     private String activeFilter = "All";
 
@@ -61,7 +61,7 @@ public class ManagementModuleActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
 
-        // Bind layout headers
+        // layout headers
         tvModuleEyebrow = findViewById(R.id.tvModuleEyebrow);
         tvModuleTitle = findViewById(R.id.tvModuleTitle);
         tvModuleMetric = findViewById(R.id.tvModuleMetric);
@@ -72,18 +72,18 @@ public class ManagementModuleActivity extends AppCompatActivity {
         refreshLayout = findViewById(R.id.refreshLayout);
         btnModuleAdd = findViewById(R.id.btnModuleAdd);
 
-        // Bind filter chips
+        // filter chips
         filterAll = findViewById(R.id.filterAll);
         filterColombo = findViewById(R.id.filterColombo);
         filterGalle = findViewById(R.id.filterGalle);
 
-        // Parse key
+        // parse key
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("module_key")) {
             moduleKey = intent.getStringExtra("module_key");
         }
 
-        // Determine CRUD
+        // crud check
         isCrud = "parts".equalsIgnoreCase(moduleKey) ||
                  "technicians".equalsIgnoreCase(moduleKey) ||
                  "prices".equalsIgnoreCase(moduleKey) ||
@@ -97,28 +97,28 @@ public class ManagementModuleActivity extends AppCompatActivity {
             btnModuleAdd.setVisibility(View.GONE);
         }
 
-        // Setup Back Button
+        // back btn
         findViewById(R.id.btnModuleBack).setOnClickListener(v -> finish());
 
-        // Setup Add Button
+        // add btn
         btnModuleAdd.setOnClickListener(v -> showAddDialog());
 
-        // Setup Filter Click Listeners
+        // filter listeners
         filterAll.setOnClickListener(v -> updateFilterState("All"));
         filterColombo.setOnClickListener(v -> updateFilterState("Colombo"));
         filterGalle.setOnClickListener(v -> updateFilterState("Galle"));
 
-        // Setup Swipe Refresh
+        // swipe refresh
         refreshLayout.setOnRefreshListener(this::loadModuleData);
 
-        // Load data
+        // load data
         loadModuleData();
     }
 
     private void updateFilterState(String newFilter) {
         activeFilter = newFilter;
 
-        // Reset all filter views to inactive style
+        // reset filter style
         filterAll.setBackgroundResource(R.drawable.bg_management_chip);
         filterAll.setTextColor(getResources().getColor(R.color.management_muted));
         filterColombo.setBackgroundResource(R.drawable.bg_management_chip);
@@ -126,7 +126,7 @@ public class ManagementModuleActivity extends AppCompatActivity {
         filterGalle.setBackgroundResource(R.drawable.bg_management_chip);
         filterGalle.setTextColor(getResources().getColor(R.color.management_muted));
 
-        // Apply active background and text colors
+        // active filter style
         if ("All".equalsIgnoreCase(newFilter)) {
             filterAll.setBackgroundResource(R.drawable.bg_management_chip_active);
             filterAll.setTextColor(getResources().getColor(R.color.management_cyan));
@@ -138,7 +138,7 @@ public class ManagementModuleActivity extends AppCompatActivity {
             filterGalle.setTextColor(getResources().getColor(R.color.management_cyan));
         }
 
-        // Render matching rows locally
+        // render rows
         renderList();
     }
 
@@ -178,7 +178,7 @@ public class ManagementModuleActivity extends AppCompatActivity {
                                 FirestoreItem item = parseDocumentToItem(doc.getId(), data);
                                 loadedItems.add(item);
                             }
-                            // Render list using active filter
+                            // render list
                             renderList();
                         }
                     } else {
@@ -202,7 +202,7 @@ public class ManagementModuleActivity extends AppCompatActivity {
                 String itemLoc = "";
                 Map<String, Object> data = item.rawData;
 
-                // Scan parameters in priority order
+                // scan params
                 if (data.containsKey("location") && data.get("location") != null) {
                     itemLoc = String.valueOf(data.get("location"));
                 } else if (data.containsKey("branch") && data.get("branch") != null) {
@@ -222,7 +222,7 @@ public class ManagementModuleActivity extends AppCompatActivity {
             }
         }
 
-        // Update the metric counter label dynamically
+        // update counter
         tvModuleMetric.setText(String.valueOf(visibleCount));
     }
 

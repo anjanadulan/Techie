@@ -31,13 +31,13 @@ public class Services extends AppCompatActivity {
     private LinearLayout servicesList;
     private TextView tvServicesEmpty;
 
-    // Filter Category Chips
+    // category chips
     private TextView filterAll, filterPhone, filterLaptop, filterTablet;
 
     private FirebaseFirestore db;
     private List<DocumentSnapshot> allServiceDocs = new ArrayList<>();
 
-    // Current filter states
+    // filter state
     private String activeCategory = "All"; // "All", "Phone", "Laptop", "Tablet"
     private String searchQuery = "";
 
@@ -54,7 +54,7 @@ public class Services extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
 
-        // Initialize Views
+        // init ui
         refreshLayout = findViewById(R.id.refreshLayout);
         etServiceSearch = findViewById(R.id.etServiceSearch);
         servicesList = findViewById(R.id.servicesList);
@@ -65,25 +65,25 @@ public class Services extends AppCompatActivity {
         filterLaptop = findViewById(R.id.filterLaptop);
         filterTablet = findViewById(R.id.filterTablet);
 
-        // Swipe refresh setup
+        // refresh listener
         refreshLayout.setOnRefreshListener(this::loadLiveServicePrices);
 
-        // Bind Category Chips click listeners
+        // category listeners
         setupCategoryChipListeners();
 
-        // Search text watcher for live in-memory searching
+        // search watcher
         setupSearchTextWatcher();
 
-        // Check if a category redirect filter was passed from Customer Home
+        // category intent check
         if (getIntent().hasExtra("filter_category")) {
             activeCategory = getIntent().getStringExtra("filter_category");
             updateCategoryChipsUI();
         }
 
-        // Fetch dynamic service prices list from Firestore
+        // fetch service prices
         loadLiveServicePrices();
 
-        // Bottom Navigation click listener: Go to Home
+        // nav home
         findViewById(R.id.navHome).setOnClickListener(v -> {
             Intent intent = new Intent(Services.this, CustomerHome.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -91,7 +91,7 @@ public class Services extends AppCompatActivity {
             finish();
         });
 
-        // Bottom Navigation click listener: Go to Bookings
+        // nav bookings
         findViewById(R.id.navBookings).setOnClickListener(v -> {
             Intent intent = new Intent(Services.this, BookingHistory.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -99,7 +99,7 @@ public class Services extends AppCompatActivity {
             finish();
         });
 
-        // Bottom Navigation click listener: Go to BookRepairActivity
+        // nav book repair
         findViewById(R.id.navBookRepair).setOnClickListener(v -> {
             Intent intent = new Intent(Services.this, BookRepairActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -107,7 +107,7 @@ public class Services extends AppCompatActivity {
             finish();
         });
 
-        // Bottom Navigation click listener: Go to Profile
+        // nav profile
         findViewById(R.id.navProfile).setOnClickListener(v -> {
             Intent intent = new Intent(Services.this, UserProfile.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -145,7 +145,7 @@ public class Services extends AppCompatActivity {
     }
 
     private void updateCategoryChipsUI() {
-        // Reset all category chips to unselected design
+        // reset chips
         TextView[] chips = {filterAll, filterPhone, filterLaptop, filterTablet};
         for (TextView chip : chips) {
             chip.setBackgroundResource(R.drawable.bg_customer_chip);
@@ -153,7 +153,7 @@ public class Services extends AppCompatActivity {
             chip.setTypeface(null, android.graphics.Typeface.NORMAL);
         }
 
-        // Apply selected design highlight to active category chip
+        // active chip highlight
         if ("All".equals(activeCategory)) {
             filterAll.setBackgroundResource(R.drawable.bg_customer_chip_selected);
             filterAll.setTextColor(getResources().getColor(R.color.white));
@@ -180,7 +180,7 @@ public class Services extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                // Ignore hint placeholder value if match
+                // search filter
                 String txt = s.toString();
                 if (txt.equals(getString(R.string.search_services))) {
                     searchQuery = "";
@@ -194,7 +194,7 @@ public class Services extends AppCompatActivity {
             public void afterTextChanged(Editable s) {}
         });
 
-        // Clear query if user starts typing in search input field
+        // clear focus
         etServiceSearch.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus && etServiceSearch.getText().toString().equals(getString(R.string.search_services))) {
                 etServiceSearch.setText("");
@@ -233,12 +233,12 @@ public class Services extends AppCompatActivity {
             Object priceVal = doc.get("estimatedPrice");
             String status = doc.getString("status");
 
-            // 1. Skip inactive service categories
+            // skip inactive
             if (status != null && !"active".equalsIgnoreCase(status)) {
                 continue;
             }
 
-            // 2. Apply Category Filters (smart mapping to accommodate seeded inputs)
+            // category filter
             if (!"All".equals(activeCategory)) {
                 String dbCat = category != null ? category.toLowerCase() : "";
                 if ("Phone".equals(activeCategory)) {
@@ -256,7 +256,7 @@ public class Services extends AppCompatActivity {
                 }
             }
 
-            // 3. Apply Keyword Search Query Filter
+            // search query filter
             if (!searchQuery.isEmpty()) {
                 String searchTarget = (name != null ? name.toLowerCase() : "") + " " + (category != null ? category.toLowerCase() : "");
                 if (!searchTarget.contains(searchQuery.toLowerCase())) {
@@ -264,7 +264,7 @@ public class Services extends AppCompatActivity {
                 }
             }
 
-            // Render matching service card
+            // render card
             matchCount++;
             View itemView = inflater.inflate(R.layout.item_service_price, servicesList, false);
 
@@ -282,7 +282,7 @@ public class Services extends AppCompatActivity {
                 tvServicePrice.setText("Starting from LKR " + (int) priceDouble);
             }
 
-            // Click to pre-book this service
+            // pre-book service
             itemView.setOnClickListener(v -> {
                 Intent intent = new Intent(Services.this, BookRepairActivity.class);
                 intent.putExtra("preselected_service", name);
@@ -294,7 +294,7 @@ public class Services extends AppCompatActivity {
             servicesList.addView(itemView);
         }
 
-        // Show empty placeholder layout if no matching repairs found
+        // empty state
         if (matchCount == 0) {
             tvServicesEmpty.setVisibility(View.VISIBLE);
         } else {

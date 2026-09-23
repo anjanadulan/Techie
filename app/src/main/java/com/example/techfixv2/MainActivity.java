@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         dbHelper = new DatabaseHelper(this);
 
-        // Run the robust auto sign-in workflow
+        // auto sign in
         handleAutoSignIn();
     }
 
@@ -46,8 +46,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // Bypassing SQLite cache for auto sign-in to prevent stale state issues.
-        // Query Firestore for all documents matching this email.
+        // query users firestore
         FirebaseFirestore.getInstance()
                 .collection("users")
                 .whereEqualTo("email", email.trim().toLowerCase())
@@ -57,25 +56,25 @@ public class MainActivity extends AppCompatActivity {
                         String finalRole = "customer";
                         String finalName = "User";
 
-                        // Scan all documents matching this email. If ANY document has the admin role, authorize as admin.
+                        // check admin
                         for (DocumentSnapshot doc : task.getResult().getDocuments()) {
                             String role = doc.getString("role");
                             String name = doc.getString("fullName");
                             if ("admin".equalsIgnoreCase(role)) {
                                 finalRole = "admin";
                                 if (name != null) finalName = name;
-                                break; // Stop scanning once admin status is confirmed
+                                break; // admin match
                             } else if (role != null) {
                                 finalRole = role;
                                 if (name != null) finalName = name;
                             }
                         }
 
-                        // Sync the resolved role to local SQLite database
+                        // sqlite
                         dbHelper.insertUser(finalName, email, finalRole);
                         navigateByRole(finalRole);
                     } else {
-                        // If query by email failed, try checking by UID directly as a final fallback
+                        // fallback check uid
                         FirebaseFirestore.getInstance()
                                 .collection("users")
                                 .document(currentUser.getUid())
@@ -92,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
 
-                                    // Both checks failed. Display error, sign out, and show landing page.
+                                    // fallback sign out
                                     String errorMsg = "Could not verify your role on the server.";
                                     if (task.getException() != null) {
                                         errorMsg = task.getException().getMessage();
@@ -134,13 +133,13 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        // Manual Sign In
+        // sign in btn
         findViewById(R.id.btnSignIn).setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, Signin.class);
             startActivity(intent);
         });
 
-        // Manual Sign Up
+        // sign up btn
         findViewById(R.id.btnSignUp).setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, Signup.class);
             startActivity(intent);

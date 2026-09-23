@@ -48,7 +48,7 @@ public class BookRepairActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
 
-    // View Components
+    // views
     private TextView btnBack;
     private TextView pickerDevice;
     private TextView pickerService;
@@ -63,13 +63,13 @@ public class BookRepairActivity extends AppCompatActivity {
     private View layoutPhotoPlaceholder;
     private View layoutRetakeOverlay;
 
-    // Data lists fetched from Firestore
+    // data lists
     private List<String> deviceList = new ArrayList<>();
     private List<String> serviceNames = new ArrayList<>();
     private List<Double> servicePrices = new ArrayList<>();
     private List<String> branchList = new ArrayList<>();
 
-    // Selected Values
+    // selected values
     private String selectedDevice = "";
     private String selectedService = "";
     private double selectedCost = 0.0;
@@ -78,7 +78,7 @@ public class BookRepairActivity extends AppCompatActivity {
     private String selectedTime = "";
     private Uri selectedImageUri = null;
 
-    // Edit Mode properties
+    // edit mode
     private boolean isEditMode = false;
     private String bookingId = "";
 
@@ -88,7 +88,7 @@ public class BookRepairActivity extends AppCompatActivity {
     private static final int LOCATION_PERMISSION_CODE = 202;
     private Uri cameraImageUri = null;
 
-    // GPS Location Client and Distance Tracking
+    // gps
     private FusedLocationProviderClient fusedLocationClient;
     private float distanceToColomboKm = -1f;
     private float distanceToGalleKm = -1f;
@@ -108,7 +108,7 @@ public class BookRepairActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
 
-        // Initialize UI components
+        // init ui
         btnBack = findViewById(R.id.btnBack);
         pickerDevice = findViewById(R.id.pickerDevice);
         pickerService = findViewById(R.id.pickerService);
@@ -123,10 +123,10 @@ public class BookRepairActivity extends AppCompatActivity {
         layoutPhotoPlaceholder = findViewById(R.id.layoutPhotoPlaceholder);
         layoutRetakeOverlay = findViewById(R.id.layoutRetakeOverlay);
 
-        // Fetch picker options from Firestore
+        // firestore options
         fetchOptionsFromFirestore();
 
-        // Setup click listeners
+        // click listeners
         btnBack.setOnClickListener(v -> finish());
 
         pickerDevice.setOnClickListener(v -> showDevicePickerDialog());
@@ -142,7 +142,7 @@ public class BookRepairActivity extends AppCompatActivity {
 
         btnContinue.setOnClickListener(v -> saveBookingToFirestore());
 
-        // Check for edit mode parameters
+        // edit mode
         if (getIntent().hasExtra("booking_id")) {
             bookingId = getIntent().getStringExtra("booking_id");
             isEditMode = true;
@@ -155,7 +155,7 @@ public class BookRepairActivity extends AppCompatActivity {
             String preselectedCategory = getIntent().getStringExtra("preselected_category");
             selectedCost = getIntent().getDoubleExtra("preselected_cost", 0.0);
 
-            // Pre-populate UI picker displays
+            // set pickers
             pickerService.setText(selectedService + " (Est: LKR " + (int) selectedCost + ")");
 
             if (preselectedCategory != null) {
@@ -178,7 +178,7 @@ public class BookRepairActivity extends AppCompatActivity {
     }
 
     private void fetchOptionsFromFirestore() {
-        // 1. Fetch devices
+        // fetch devices
         db.collection("device_categories").get().addOnCompleteListener(task -> {
             if (task.isSuccessful() && task.getResult() != null && !task.getResult().isEmpty()) {
                 deviceList.clear();
@@ -187,7 +187,7 @@ public class BookRepairActivity extends AppCompatActivity {
                     if (name != null) deviceList.add(name);
                 }
             } else {
-                // Fallbacks in case Firestore collection is unpopulated
+                // fallbacks
                 deviceList.clear();
                 deviceList.add("iPhone / iOS Device");
                 deviceList.add("Android Smartphone");
@@ -196,7 +196,7 @@ public class BookRepairActivity extends AppCompatActivity {
             }
         });
 
-        // 2. Fetch services
+        // fetch services
         db.collection("service_prices").get().addOnCompleteListener(task -> {
             if (task.isSuccessful() && task.getResult() != null && !task.getResult().isEmpty()) {
                 serviceNames.clear();
@@ -210,7 +210,7 @@ public class BookRepairActivity extends AppCompatActivity {
                     }
                 }
             } else {
-                // Fallbacks
+                // fallbacks
                 serviceNames.clear();
                 servicePrices.clear();
                 serviceNames.add("Screen Replacement");
@@ -224,7 +224,7 @@ public class BookRepairActivity extends AppCompatActivity {
             }
         });
 
-        // 3. Fetch branches
+        // fetch branches
         db.collection("branches").get().addOnCompleteListener(task -> {
             if (task.isSuccessful() && task.getResult() != null && !task.getResult().isEmpty()) {
                 branchList.clear();
@@ -233,7 +233,7 @@ public class BookRepairActivity extends AppCompatActivity {
                     if (name != null) branchList.add(name);
                 }
             } else {
-                // Fallbacks
+                // fallbacks
                 branchList.clear();
                 branchList.add("Colombo");
                 branchList.add("Galle");
@@ -276,7 +276,7 @@ public class BookRepairActivity extends AppCompatActivity {
                         showPhotoPreview(selectedImageUri);
                     }
 
-                    // Pre-populate UI dropdown labels
+                    // dropdown labels
                     pickerDevice.setText(selectedDevice);
                     pickerService.setText(selectedService + " (Est: LKR " + (int) selectedCost + ")");
                     pickerBranch.setText(selectedBranch);
@@ -576,7 +576,7 @@ public class BookRepairActivity extends AppCompatActivity {
         String issueDesc = etIssueDescription.getText().toString().trim();
         String fullDescription = selectedService + (issueDesc.isEmpty() ? "" : " - " + issueDesc);
 
-        // Instantiate domain model
+        // model
         RepairAppointment appointment = new RepairAppointment(
                 bookingId,
                 clientName,
@@ -597,7 +597,7 @@ public class BookRepairActivity extends AppCompatActivity {
             db.collection("appointments").document(bookingId)
                     .set(appointment.toMap())
                     .addOnSuccessListener(aVoid -> {
-                        // Sync to local SQLite database
+                        // sqlite
                         dbHelper.addRepair(appointment.getRepairId(), appointment.getDeviceName(), appointment.getStatus(), appointment.getFormattedCost(), appointment.getDate());
                         Toast.makeText(BookRepairActivity.this, "Booking updated successfully!", Toast.LENGTH_LONG).show();
                         
@@ -615,7 +615,7 @@ public class BookRepairActivity extends AppCompatActivity {
                     .add(appointment.toMap())
                     .addOnSuccessListener(documentReference -> {
                         appointment.setDocumentId(documentReference.getId());
-                        // Sync to local SQLite database
+                        // sqlite
                         dbHelper.addRepair(appointment.getRepairId(), appointment.getDeviceName(), appointment.getStatus(), appointment.getFormattedCost(), appointment.getDate());
                         Toast.makeText(BookRepairActivity.this, "Booking created successfully!", Toast.LENGTH_LONG).show();
                         

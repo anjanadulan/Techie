@@ -25,9 +25,7 @@ public class SparePart {
         this.price = price;
     }
 
-    /**
-     * firestore
-     */
+    // firestore
     public static SparePart fromDocument(DocumentSnapshot doc) {
         if (doc == null || !doc.exists()) return null;
         SparePart part = new SparePart();
@@ -56,9 +54,7 @@ public class SparePart {
         return part;
     }
 
-    /**
-     * convert
-     */
+    // to map
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
         map.put("name", name);
@@ -78,7 +74,7 @@ public class SparePart {
         return quantity <= 2;
     }
 
-    // Getters and Setters
+    // getters setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 

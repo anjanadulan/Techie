@@ -43,7 +43,7 @@ public class AdminProfile extends AppCompatActivity {
         tvAdminName = findViewById(R.id.tvAdminName);
         tvAdminEmail = findViewById(R.id.tvAdminEmail);
 
-        // Load Admin Info
+        // load admin info
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             String email = currentUser.getEmail();
@@ -53,12 +53,12 @@ public class AdminProfile extends AppCompatActivity {
             tvAdminName.setText(name);
         }
 
-        // Back to Dashboard Button
+        // back to dash
         findViewById(R.id.btnBackToDashboard).setOnClickListener(v -> {
             finish();
         });
 
-        // Sign Out Button
+        // sign out btn
         findViewById(R.id.btnAdminSignOut).setOnClickListener(v -> {
             mAuth.signOut();
             Intent intent = new Intent(AdminProfile.this, MainActivity.class);
@@ -67,7 +67,7 @@ public class AdminProfile extends AppCompatActivity {
             finish();
         });
 
-        // Change pw
+        // change pw
         findViewById(R.id.btnAdminResetPassword).setOnClickListener(v -> showChangePasswordDialog());
     }
 

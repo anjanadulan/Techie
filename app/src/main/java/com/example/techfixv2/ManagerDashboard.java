@@ -32,13 +32,13 @@ public class ManagerDashboard extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
 
-        // Navigate to Admin Profile
+        // nav admin profile
         findViewById(R.id.btnAdminProfile).setOnClickListener(v -> {
             Intent intent = new Intent(ManagerDashboard.this, AdminProfile.class);
             startActivity(intent);
         });
 
-        // Setup click listeners for the 9 operational modules
+        // 9 operational modules
         setupModuleNavigation(R.id.manageAppointments, "appointments");
         setupModuleNavigation(R.id.manageTechnicians, "technicians");
         setupModuleNavigation(R.id.manageBranches, "branches");
@@ -53,7 +53,7 @@ public class ManagerDashboard extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Refresh all dashboard metrics, recent logs, and card descriptions
+        // refresh metrics
         loadDashboardMetrics();
         loadRecentActivity();
         loadModuleCardsMetrics();
@@ -140,7 +140,7 @@ public class ManagerDashboard extends AppCompatActivity {
     private void loadModuleCardsMetrics() {
         FirebaseFirestore fs = FirebaseFirestore.getInstance();
 
-        // 1. Appointments Card
+        // appointments card
         TextView tvDashboardAppointmentsMeta = findViewById(R.id.tvDashboardAppointmentsMeta);
         if (tvDashboardAppointmentsMeta != null) {
             fs.collection("appointments").get().addOnCompleteListener(task -> {
@@ -150,7 +150,7 @@ public class ManagerDashboard extends AppCompatActivity {
             });
         }
 
-        // 2. Technicians Card
+        // technicians card
         TextView tvDashboardTechniciansMeta = findViewById(R.id.tvDashboardTechniciansMeta);
         if (tvDashboardTechniciansMeta != null) {
             fs.collection("technicians").get().addOnCompleteListener(task -> {
@@ -168,7 +168,7 @@ public class ManagerDashboard extends AppCompatActivity {
             });
         }
 
-        // 3. Branches Card
+        // branches card
         TextView tvDashboardBranchesMeta = findViewById(R.id.tvDashboardBranchesMeta);
         if (tvDashboardBranchesMeta != null) {
             fs.collection("branches").get().addOnCompleteListener(task -> {
@@ -178,7 +178,7 @@ public class ManagerDashboard extends AppCompatActivity {
             });
         }
 
-        // 4. Categories Card
+        // categories card
         TextView tvDashboardCategoriesMeta = findViewById(R.id.tvDashboardCategoriesMeta);
         if (tvDashboardCategoriesMeta != null) {
             fs.collection("device_categories").get().addOnCompleteListener(task -> {
@@ -188,7 +188,7 @@ public class ManagerDashboard extends AppCompatActivity {
             });
         }
 
-        // 5. Prices Card
+        // prices card
         TextView tvDashboardPricesMeta = findViewById(R.id.tvDashboardPricesMeta);
         if (tvDashboardPricesMeta != null) {
             fs.collection("service_prices").get().addOnCompleteListener(task -> {
@@ -198,7 +198,7 @@ public class ManagerDashboard extends AppCompatActivity {
             });
         }
 
-        // 6. Parts Card & Top Stock Metric Counter
+        // parts card
         TextView tvDashboardPartsMeta = findViewById(R.id.tvDashboardPartsMeta);
         TextView tvDashboardLowStock = findViewById(R.id.tvDashboardLowStock);
         if (tvDashboardPartsMeta != null || tvDashboardLowStock != null) {
@@ -228,7 +228,7 @@ public class ManagerDashboard extends AppCompatActivity {
             });
         }
 
-        // 7. Images Card
+        // images card
         TextView tvDashboardImagesMeta = findViewById(R.id.tvDashboardImagesMeta);
         if (tvDashboardImagesMeta != null) {
             fs.collection("repair_images").get().addOnCompleteListener(task -> {
@@ -238,7 +238,7 @@ public class ManagerDashboard extends AppCompatActivity {
             });
         }
 
-        // 8. Payments Card
+        // payments card
         TextView tvDashboardPaymentsMeta = findViewById(R.id.tvDashboardPaymentsMeta);
         if (tvDashboardPaymentsMeta != null) {
             fs.collection("payments").get().addOnCompleteListener(task -> {

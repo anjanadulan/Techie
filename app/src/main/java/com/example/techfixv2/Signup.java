@@ -58,7 +58,7 @@ public class Signup extends AppCompatActivity {
         btnSignUpSubmit = findViewById(R.id.btnSignUpSubmit);
         btnSignUpSubmit.setOnClickListener(v -> handleSignUp());
 
-        // Navigate to Sign In Activity
+        // nav signin
         findViewById(R.id.txtLogin).setOnClickListener(v -> {
             Intent intent = new Intent(Signup.this, Signin.class);
             startActivity(intent);
@@ -99,13 +99,13 @@ public class Signup extends AppCompatActivity {
 
         btnSignUpSubmit.setEnabled(false);
 
-        // 1. Create User in Firebase Auth
+        // create user auth
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
                         String uid = mAuth.getCurrentUser().getUid();
 
-                        // 2. Save to Firestore
+                        // firestore
                         Map<String, Object> user = new HashMap<>();
                         user.put("fullName", fullName);
                         user.put("email", email);
@@ -113,12 +113,12 @@ public class Signup extends AppCompatActivity {
 
                         db.collection("users").document(uid).set(user)
                                 .addOnSuccessListener(aVoid -> {
-                                    // 3. Save to Local Database
+                                    // sqlite
                                     dbHelper.insertUser(fullName, email, "customer");
 
                                     Toast.makeText(Signup.this, "Account created successfully! Please sign in.", Toast.LENGTH_SHORT).show();
 
-                                    // 4. Redirect to Sign In Activity
+                                    // redirect signin
                                     Intent intent = new Intent(Signup.this, Signin.class);
                                     startActivity(intent);
                                     finish();

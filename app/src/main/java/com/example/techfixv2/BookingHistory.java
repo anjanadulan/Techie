@@ -67,10 +67,10 @@ public class BookingHistory extends AppCompatActivity {
         // Bind filter clicks
         setupFilterListeners();
 
-        // Load list
+        // load list
         loadFirestoreBookingHistory();
 
-        // Bottom Navigation click listener to go back to CustomerHome
+        // nav home
         findViewById(R.id.navHome).setOnClickListener(v -> {
             Intent intent = new Intent(BookingHistory.this, CustomerHome.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -78,7 +78,7 @@ public class BookingHistory extends AppCompatActivity {
             finish();
         });
 
-        // Bottom Navigation click listener to go to BookRepairActivity
+        // nav book repair
         findViewById(R.id.navBookRepair).setOnClickListener(v -> {
             Intent intent = new Intent(BookingHistory.this, BookRepairActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -86,7 +86,7 @@ public class BookingHistory extends AppCompatActivity {
             finish();
         });
 
-        // Bottom Navigation click listener to go to Services
+        // nav services
         findViewById(R.id.navServices).setOnClickListener(v -> {
             Intent intent = new Intent(BookingHistory.this, Services.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -94,7 +94,7 @@ public class BookingHistory extends AppCompatActivity {
             finish();
         });
 
-        // Bottom Navigation click listener to go to Profile
+        // nav profile
         findViewById(R.id.navProfile).setOnClickListener(v -> {
             Intent intent = new Intent(BookingHistory.this, UserProfile.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -126,7 +126,7 @@ public class BookingHistory extends AppCompatActivity {
     }
 
     private void updateFilterChipsUI() {
-        // Reset all to default state
+        // reset chips
         filterAll.setBackgroundResource(R.drawable.bg_customer_chip);
         filterAll.setTextColor(getResources().getColor(R.color.customer_muted));
         filterAll.setTypeface(null, android.graphics.Typeface.NORMAL);
@@ -139,7 +139,7 @@ public class BookingHistory extends AppCompatActivity {
         filterCompleted.setTextColor(getResources().getColor(R.color.customer_muted));
         filterCompleted.setTypeface(null, android.graphics.Typeface.NORMAL);
 
-        // Apply selected style to active one
+        // active chip highlight
         if ("All".equals(activeFilter)) {
             filterAll.setBackgroundResource(R.drawable.bg_customer_chip_selected);
             filterAll.setTextColor(getResources().getColor(R.color.white));
@@ -168,7 +168,7 @@ public class BookingHistory extends AppCompatActivity {
 
         repairHistoryList.removeAllViews();
 
-        // Fetch bookings matching user email
+        // fetch bookings
         db.collection("appointments")
                 .whereEqualTo("userEmail", email.trim().toLowerCase())
                 .get()
@@ -181,7 +181,7 @@ public class BookingHistory extends AppCompatActivity {
                             String status = doc.getString("status");
                             if (status == null) status = "Pending";
 
-                            // Filter checklist
+                            // filter check
                             if ("Active".equals(activeFilter) && "Completed".equalsIgnoreCase(status)) {
                                 continue;
                             }
@@ -231,7 +231,7 @@ public class BookingHistory extends AppCompatActivity {
                                 }
                             }
 
-                            // Badge backgrounds
+                            // badge style
                             if ("completed".equalsIgnoreCase(status)) {
                                 tvItemStatus.setBackgroundResource(R.drawable.bg_status_success);
                                 tvItemStatus.setTextColor(getResources().getColor(R.color.customer_success));
@@ -243,7 +243,7 @@ public class BookingHistory extends AppCompatActivity {
                                 tvItemStatus.setTextColor(getResources().getColor(R.color.customer_muted));
                             }
 
-                            // Setup Click actions
+                            // click actions
                             final String finalStatus = status;
                             final String finalDevice = device;
                             final String finalDesc = desc;
@@ -320,7 +320,7 @@ public class BookingHistory extends AppCompatActivity {
                 });
             }
         } else {
-            // Repair is In Progress or Completed
+            // status check
             if (tvTitle != null) tvTitle.setText("Repair & Invoice Details");
             if (tvMessage != null) {
                 tvMessage.setText(String.format("Status: %s • Assigned: %s Branch • Total: %s", status, (branch != null ? branch : "Colombo"), cost));
@@ -511,10 +511,10 @@ public class BookingHistory extends AppCompatActivity {
 
             btnPayConfirm.setEnabled(false);
 
-            // 1. Write payment record to Firestore "payments" collection
+            // firestore
             db.collection("payments").add(payment.toMap())
                     .addOnSuccessListener(docRef -> {
-                        // 2. Update appointment document with payment status
+                        // update status
                         Map<String, Object> updateMap = new HashMap<>();
                         updateMap.put("paymentStatus", "Paid");
                         updateMap.put("invoiceNo", generatedInvoice);
@@ -523,7 +523,7 @@ public class BookingHistory extends AppCompatActivity {
 
                         db.collection("appointments").document(docId).update(updateMap);
 
-                        // 3. Save to local SQLite database
+                        // sqlite
                         if (dbHelper != null) {
                             dbHelper.addPayment(generatedInvoice, docId, customerName, amount, method, "Paid", timestamp);
                         }
@@ -531,7 +531,7 @@ public class BookingHistory extends AppCompatActivity {
                         checkoutDialog.dismiss();
                         Toast.makeText(BookingHistory.this, "Payment successful! Invoice #" + generatedInvoice + " issued.", Toast.LENGTH_LONG).show();
 
-                        // 4. Show Digital Receipt & refresh list
+                        // receipt
                         showReceiptDialog(payment, device, desc);
                         loadFirestoreBookingHistory();
                     })

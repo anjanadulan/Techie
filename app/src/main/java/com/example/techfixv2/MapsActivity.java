@@ -35,16 +35,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationClient;
 
-    // Fixed TechFix Branch Coordinates
+    // branch coords
     private final LatLng colomboBranchCoords = new LatLng(6.9149, 79.8510);
     private final LatLng galleBranchCoords = new LatLng(6.0367, 80.2170);
 
-    // Marker references
+    // markers
     private Marker markerColombo;
     private Marker markerGalle;
     private Marker markerUser;
 
-    // UI elements
+    // ui
     private TextView tvGpsStatus;
     private TextView tvNearestBadge;
     private TextView tvNearestDistance;
@@ -54,7 +54,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private TextView tvDistancesOverview;
     private TextView btnBookAtBranch;
 
-    // Track active nearest selection
+    // nearest selection
     private String currentNearestBranch = "Colombo";
     private Location lastKnownUserLocation = null;
 
@@ -65,7 +65,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        // Bind Views
+        // views
         View btnBack = findViewById(R.id.btnBack);
         if (btnBack != null) {
             btnBack.setOnClickListener(v -> finish());
@@ -88,14 +88,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             });
         }
 
-        // Initialize Map Fragment
+        // map fragment
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
 
-        // CTA: Book at Selected Nearest Branch
+        // book branch
         btnBookAtBranch.setOnClickListener(v -> {
             Intent intent = new Intent(MapsActivity.this, BookRepairActivity.class);
             intent.putExtra("preselected_branch", currentNearestBranch);
@@ -107,11 +107,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Configure map UI settings
+        // map settings
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setCompassEnabled(true);
 
-        // Add markers for TechFix branches
+        // markers
         markerColombo = mMap.addMarker(new MarkerOptions()
                 .position(colomboBranchCoords)
                 .title("TechFix Colombo Center")
@@ -124,7 +124,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .snippet("Wakwella Road, Galle • Tel: 0912345678")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
 
-        // Handle marker click to show branch details in the bottom card
+        // marker click
         mMap.setOnMarkerClickListener(marker -> {
             if (marker.equals(markerColombo)) {
                 displayBranchDetails("Colombo");
@@ -135,7 +135,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return false;
         });
 
-        // Set initial view centered between Colombo and Galle
+        // initial camera
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         builder.include(colomboBranchCoords);
         builder.include(galleBranchCoords);
@@ -143,7 +143,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         mMap.setOnMapLoadedCallback(() -> {
             mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(initialBounds, 160));
-            // Trigger GPS location lookup once map is ready
+            // gps lookup
             checkLocationPermissionAndFetch();
         });
     }
@@ -153,7 +153,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             enableMapLocationAndFetch();
         } else {
-            // Request location permissions
+            // req loc permissions
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
                     LOCATION_PERMISSION_REQUEST_CODE);
@@ -164,7 +164,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (mMap != null) {
             try {
                 mMap.setMyLocationEnabled(true);
-                mMap.getUiSettings().setMyLocationButtonEnabled(false); // Handled by custom FAB
+                mMap.getUiSettings().setMyLocationButtonEnabled(false); // custom fab
             } catch (SecurityException ignored) {}
         }
         fetchUserLocationAndCalculateNearest();
@@ -179,12 +179,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         tvGpsStatus.setText("Acquiring GPS fix via FusedLocationProvider...");
 
-        // Try getting last known location first for instantaneous responsiveness
+        // last known loc
         fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
             if (location != null) {
                 processLocation(location);
             } else {
-                // If last location is null, request a fresh current location
+                // fresh loc
                 requestFreshLocation();
             }
         }).addOnFailureListener(e -> requestFreshLocation());
@@ -216,27 +216,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         lastKnownUserLocation = location;
         LatLng userLatLng = new LatLng(location.getLatitude(), location.getLongitude());
 
-        // Calculate distance to Colombo (6.9149, 79.8510)
+        // colombo dist
         float[] distResultsColombo = new float[1];
         Location.distanceBetween(location.getLatitude(), location.getLongitude(),
                 colomboBranchCoords.latitude, colomboBranchCoords.longitude, distResultsColombo);
         float distanceToColomboKm = distResultsColombo[0] / 1000f;
 
-        // Calculate distance to Galle (6.0367, 80.2170)
+        // galle dist
         float[] distResultsGalle = new float[1];
         Location.distanceBetween(location.getLatitude(), location.getLongitude(),
                 galleBranchCoords.latitude, galleBranchCoords.longitude, distResultsGalle);
         float distanceToGalleKm = distResultsGalle[0] / 1000f;
 
-        // Determine which branch is nearest
+        // check nearest
         boolean isColomboNearest = distanceToColomboKm <= distanceToGalleKm;
         currentNearestBranch = isColomboNearest ? "Colombo" : "Galle";
         float nearestDistKm = isColomboNearest ? distanceToColomboKm : distanceToGalleKm;
 
-        // Update GPS header status
+        // update status
         tvGpsStatus.setText(String.format("GPS Active • Nearest: %s (%.1f km)", currentNearestBranch, nearestDistKm));
 
-        // Add or update User Marker
+        // user marker
         if (markerUser != null) {
             markerUser.remove();
         }
@@ -246,10 +246,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .snippet(String.format("Nearest: %s Branch (%.1f km)", currentNearestBranch, nearestDistKm))
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
 
-        // Update Bottom Card
+        // update card
         updateNearestCardUI(currentNearestBranch, nearestDistKm, distanceToColomboKm, distanceToGalleKm);
 
-        // Adjust camera to frame both branches and user location smoothly
+        // camera bounds
         try {
             LatLngBounds.Builder builder = new LatLngBounds.Builder();
             builder.include(colomboBranchCoords);

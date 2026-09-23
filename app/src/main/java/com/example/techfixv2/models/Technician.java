@@ -24,9 +24,7 @@ public class Technician {
         this.mobileNumber = mobileNumber;
     }
 
-    /**
-     * firesrore
-     */
+    // firestore
     public static Technician fromDocument(DocumentSnapshot doc) {
         if (doc == null || !doc.exists()) return null;
         Technician tech = new Technician();
@@ -39,9 +37,7 @@ public class Technician {
         return tech;
     }
 
-    /**
-     * convert
-     */
+    // to map
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
         map.put("name", name);
@@ -65,7 +61,7 @@ public class Technician {
         return specialCategory.toLowerCase().contains(category.trim().toLowerCase());
     }
 
-    // Getters and Setters
+    // getters setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 

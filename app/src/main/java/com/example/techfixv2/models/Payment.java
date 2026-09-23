@@ -6,10 +6,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Domain model representing a customer payment and invoice transaction.
- * Fulfills Coursework Objective #4 (Payment Processing) & Deliverable #3 (Complex Data Models).
- */
+// encap
 public class Payment implements Serializable {
     private String invoiceNo;
     private String repairId;
@@ -23,7 +20,7 @@ public class Payment implements Serializable {
     private String cardLast4;
 
     public Payment() {
-        // Default constructor required for Firebase / serialization
+        // empty const
     }
 
     public Payment(String invoiceNo, String repairId, String customer, String customerEmail,
@@ -87,7 +84,7 @@ public class Payment implements Serializable {
         return String.format(Locale.US, "LKR %,.2f", amount);
     }
 
-    // Getters and Setters
+    // getters setters
     public String getInvoiceNo() { return invoiceNo; }
     public void setInvoiceNo(String invoiceNo) { this.invoiceNo = invoiceNo; }
 

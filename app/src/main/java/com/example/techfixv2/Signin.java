@@ -51,7 +51,7 @@ public class Signin extends AppCompatActivity {
 
         btnSignIn.setOnClickListener(v -> handleSignIn());
 
-        // Navigate to Sign Up Activity
+        // nav signup
         findViewById(R.id.txtSignup).setOnClickListener(v -> {
             Intent intent = new Intent(Signin.this, Signup.class);
             startActivity(intent);
@@ -78,13 +78,13 @@ public class Signin extends AppCompatActivity {
 
         btnSignIn.setEnabled(false);
 
-        // 1. Firebase Auth Sign In
+        // firebase auth
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
                         String uid = mAuth.getCurrentUser().getUid();
 
-                        // 2. Fetch User Role from Firestore by Email (immune to UID mismatches)
+                        // fetch role
                         db.collection("users").whereEqualTo("email", email).get()
                                 .addOnCompleteListener(docTask -> {
                                     btnSignIn.setEnabled(true);
@@ -99,7 +99,7 @@ public class Signin extends AppCompatActivity {
                                             if ("admin".equalsIgnoreCase(docRole)) {
                                                 role = "admin";
                                                 if (docName != null) name = docName;
-                                                break; // Prioritize admin and stop scanning
+                                                break; // admin match
                                             } else if (docRole != null) {
                                                 role = docRole;
                                                 if (docName != null) name = docName;
@@ -107,10 +107,10 @@ public class Signin extends AppCompatActivity {
                                         }
                                     }
 
-                                    // Save/Sync to Local Database
+                                    // sqlite
                                     dbHelper.insertUser(name, email, role);
 
-                                    // 3. Role-based Navigation
+                                    // role nav
                                     if ("admin".equalsIgnoreCase(role)) {
                                         Toast.makeText(Signin.this, "Welcome Admin!", Toast.LENGTH_SHORT).show();
                                         Intent intent = new Intent(Signin.this, ManagerDashboard.class);
