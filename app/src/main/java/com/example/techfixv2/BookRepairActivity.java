@@ -143,6 +143,13 @@ public class BookRepairActivity extends AppCompatActivity {
                 pickerDevice.setText(selectedDevice);
             }
         }
+
+        if (getIntent().hasExtra("preselected_branch")) {
+            selectedBranch = getIntent().getStringExtra("preselected_branch");
+            if (pickerBranch != null && selectedBranch != null) {
+                pickerBranch.setText(selectedBranch);
+            }
+        }
     }
 
     private void fetchOptionsFromFirestore() {

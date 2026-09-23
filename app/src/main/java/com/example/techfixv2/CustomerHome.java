@@ -251,7 +251,7 @@ public class CustomerHome extends AppCompatActivity {
                     List<DocumentSnapshot> techs = techTask.isSuccessful() && techTask.getResult() != null ?
                             techTask.getResult().getDocuments() : new ArrayList<>();
                             
-                    db.collection("parts").get().addOnCompleteListener(partsTask -> {
+                    db.collection("spare_parts").get().addOnCompleteListener(partsTask -> {
                         List<DocumentSnapshot> parts = partsTask.isSuccessful() && partsTask.getResult() != null ?
                                 partsTask.getResult().getDocuments() : new ArrayList<>();
                                 
