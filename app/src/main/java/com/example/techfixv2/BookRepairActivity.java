@@ -42,6 +42,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
 import com.google.android.gms.tasks.CancellationTokenSource;
 
+// Repair appointment booking and hardware sensor telemetry management
 public class BookRepairActivity extends AppCompatActivity {
 
     private DatabaseHelper dbHelper;
@@ -88,7 +89,7 @@ public class BookRepairActivity extends AppCompatActivity {
     private static final int LOCATION_PERMISSION_CODE = 202;
     private Uri cameraImageUri = null;
 
-    // gps
+    // FusedLocationProviderClient initialization for GPS hardware telemetry
     private FusedLocationProviderClient fusedLocationClient;
     private float distanceToColomboKm = -1f;
     private float distanceToGalleKm = -1f;
@@ -102,6 +103,7 @@ public class BookRepairActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_book_repair);
 
+        // FusedLocationProviderClient for real-time GPS telemetry
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         dbHelper = new DatabaseHelper(this);
@@ -432,6 +434,7 @@ public class BookRepairActivity extends AppCompatActivity {
         }
     }
 
+    // Runtime location permission verification for GPS nearest branch detection
     private void detectNearestBranchWithGps(boolean preselectedOnlyCalc) {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -441,6 +444,7 @@ public class BookRepairActivity extends AppCompatActivity {
             return;
         }
 
+        // GPS location tracking using FusedLocationProviderClient
         fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
             if (location != null) {
                 applyNearestBranch(location, preselectedOnlyCalc);
@@ -456,6 +460,7 @@ public class BookRepairActivity extends AppCompatActivity {
         });
     }
 
+    // Geodesic distance calculation to nearest branch using GPS
     private void applyNearestBranch(Location location, boolean preselectedOnlyCalc) {
         float[] resultsColombo = new float[1];
         Location.distanceBetween(location.getLatitude(), location.getLongitude(), COLOMBO_LAT, COLOMBO_LNG, resultsColombo);
@@ -469,6 +474,7 @@ public class BookRepairActivity extends AppCompatActivity {
             return;
         }
 
+        // Auto-selection of nearest branch based on GPS telemetry
         String nearestName = (distanceToColomboKm <= distanceToGalleKm) ? "Colombo" : "Galle";
         float nearestDist = Math.min(distanceToColomboKm, distanceToGalleKm);
 
@@ -485,6 +491,7 @@ public class BookRepairActivity extends AppCompatActivity {
         }
     }
 
+    // Camera hardware capture for device damage assessment
     private void openCamera() {
         try {
             ContentValues values = new ContentValues();
@@ -576,7 +583,7 @@ public class BookRepairActivity extends AppCompatActivity {
         String issueDesc = etIssueDescription.getText().toString().trim();
         String fullDescription = selectedService + (issueDesc.isEmpty() ? "" : " - " + issueDesc);
 
-        // model
+        // OOP Domain Model encapsulation using RepairAppointment
         RepairAppointment appointment = new RepairAppointment(
                 bookingId,
                 clientName,
@@ -594,10 +601,11 @@ public class BookRepairActivity extends AppCompatActivity {
         btnContinue.setEnabled(false);
 
         if (isEditMode) {
+            // Cloud Firestore real-time database synchronization for repair appointments
             db.collection("appointments").document(bookingId)
                     .set(appointment.toMap())
                     .addOnSuccessListener(aVoid -> {
-                        // sqlite
+                        // SQLite local database persistence for offline caching
                         dbHelper.addRepair(appointment.getRepairId(), appointment.getDeviceName(), appointment.getStatus(), appointment.getFormattedCost(), appointment.getDate());
                         Toast.makeText(BookRepairActivity.this, "Booking updated successfully!", Toast.LENGTH_LONG).show();
                         
@@ -611,11 +619,12 @@ public class BookRepairActivity extends AppCompatActivity {
                         btnContinue.setEnabled(true);
                     });
         } else {
+            // Cloud Firestore real-time database synchronization for repair appointments
             db.collection("appointments")
                     .add(appointment.toMap())
                     .addOnSuccessListener(documentReference -> {
                         appointment.setDocumentId(documentReference.getId());
-                        // sqlite
+                        // SQLite local database persistence for offline caching
                         dbHelper.addRepair(appointment.getRepairId(), appointment.getDeviceName(), appointment.getStatus(), appointment.getFormattedCost(), appointment.getDate());
                         Toast.makeText(BookRepairActivity.this, "Booking created successfully!", Toast.LENGTH_LONG).show();
                         

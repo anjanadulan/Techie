@@ -46,7 +46,7 @@ public class CustomerHome extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // req storage permission
+        // Runtime storage permission check for device media access
         checkStoragePermission();
 
         EdgeToEdge.enable(this);
@@ -281,13 +281,13 @@ public class CustomerHome extends AppCompatActivity {
                         }
                         btnAction.setOnClickListener(v -> dialog.dismiss());
 
-                        // domain models
+                        // Complex domain model 1-to-many aggregations (Branch, Technician, SparePart)
                         List<Branch> branchList = new ArrayList<>();
                         for (DocumentSnapshot bDoc : branches) {
                             Branch branch = Branch.fromDocument(bDoc);
                             if (branch == null) continue;
 
-                            // tech roster
+                            // 1-to-many aggregation: Branch contains assigned Technicians
                             for (DocumentSnapshot tDoc : techs) {
                                 Technician tech = Technician.fromDocument(tDoc);
                                 if (tech != null && branch.getName().equalsIgnoreCase(tech.getLocation())) {
@@ -295,7 +295,7 @@ public class CustomerHome extends AppCompatActivity {
                                 }
                             }
 
-                            // parts stock
+                            // 1-to-many aggregation: Branch contains SparePart inventory items
                             for (DocumentSnapshot pDoc : parts) {
                                 SparePart part = SparePart.fromDocument(pDoc);
                                 if (part != null && branch.getName().equalsIgnoreCase(part.getLocation())) {
@@ -358,11 +358,13 @@ public class CustomerHome extends AppCompatActivity {
         loadRepairedDevicesGallery();
     }
 
+    // Custom PagerAdapter implementation for recent completed repairs gallery (ViewPager)
     private void loadRepairedDevicesGallery() {
         ViewPager pager = findViewById(R.id.pagerRepairedDevices);
         TextView tvGalleryCounter = findViewById(R.id.tvGalleryCounter);
         if (pager == null) return;
 
+        // Cloud Firestore query for completed device showcase gallery
         FirebaseFirestore.getInstance().collection("repair_images")
                 .get()
                 .addOnCompleteListener(task -> {
@@ -375,7 +377,7 @@ public class CustomerHome extends AppCompatActivity {
                             }
                         }
                     } else {
-                        // fallbacks
+                        // Fallback sample repaired device data
                         devices.add(new RepairedDevice("1", "iPhone 13 Pro OLED Display", "Phone", "Colombo",
                                 "Cracked display replaced with genuine OEM panel. Restored 120Hz ProMotion touch response.", 18500, "", "Completed"));
                         devices.add(new RepairedDevice("2", "MacBook Pro M1 Keyboard & Cleaning", "Laptop", "Colombo",
@@ -383,12 +385,13 @@ public class CustomerHome extends AppCompatActivity {
                         devices.add(new RepairedDevice("3", "iPad Air 4 Battery Replacement", "Tablet", "Galle",
                                 "Swollen degraded battery replaced with new OEM cell. Battery health restored to 100%.", 12200, "", "Completed"));
 
-                        // seed firestore
+                        // Seed Cloud Firestore with initial showcase records
                         for (RepairedDevice d : devices) {
                             FirebaseFirestore.getInstance().collection("repair_images").add(d.toMap());
                         }
                     }
 
+                    // Custom PagerAdapter instance for interactive ViewPager carousel
                     RepairGalleryAdapter adapter = new RepairGalleryAdapter(CustomerHome.this, devices);
                     pager.setAdapter(adapter);
 

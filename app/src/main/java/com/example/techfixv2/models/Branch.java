@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// encap
+// OOP Domain Model Encapsulation for Service Branch
 public class Branch {
     private String id;
     private String name;
@@ -19,7 +19,7 @@ public class Branch {
     private double latitude;
     private double longitude;
 
-    // 1-to-many list
+    // 1-to-many domain model aggregation: Branch contains lists of Technicians and SpareParts
     private List<Technician> technicians = new ArrayList<>();
     private List<SparePart> spareParts = new ArrayList<>();
 
@@ -35,7 +35,7 @@ public class Branch {
         this.longitude = longitude;
     }
 
-    // firestore
+    // Cloud Firestore document serialization for Branch entity
     public static Branch fromDocument(DocumentSnapshot doc) {
         if (doc == null || !doc.exists()) return null;
         Branch branch = new Branch();
@@ -45,7 +45,7 @@ public class Branch {
         branch.setPhoneNumber(doc.getString("phoneNumber"));
         branch.setStatus(doc.getString("status"));
 
-        // coordinates
+        // Coordinates definition for TechFix service branches (Colombo and Galle)
         if ("Colombo".equalsIgnoreCase(branch.getName())) {
             branch.setLatitude(6.9149);
             branch.setLongitude(79.8510);
@@ -56,7 +56,7 @@ public class Branch {
         return branch;
     }
 
-    // to map
+    // Convert Branch object to Cloud Firestore document map
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
         map.put("name", name);
@@ -70,6 +70,7 @@ public class Branch {
         return "open".equalsIgnoreCase(status) || "active".equalsIgnoreCase(status);
     }
 
+    // Geodesic distance calculation to nearest branch using GPS
     public float getDistanceTo(double userLat, double userLng) {
         float[] results = new float[1];
         Location.distanceBetween(userLat, userLng, latitude, longitude, results);

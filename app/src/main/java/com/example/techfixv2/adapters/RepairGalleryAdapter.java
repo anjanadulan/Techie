@@ -18,7 +18,7 @@ import com.example.techfixv2.models.RepairedDevice;
 
 import java.util.List;
 
-// custom pager adapter
+// Custom PagerAdapter implementation for recent completed repairs gallery (ViewPager)
 public class RepairGalleryAdapter extends PagerAdapter {
 
     private final Context context;
@@ -44,6 +44,7 @@ public class RepairGalleryAdapter extends PagerAdapter {
         return view == object;
     }
 
+    // Inflate custom card layout item_repaired_device and bind RepairedDevice model data
     @NonNull
     @Override
     public Object instantiateItem(@NonNull ViewGroup container, int position) {

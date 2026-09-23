@@ -28,18 +28,20 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.CancellationTokenSource;
 
+// Google Maps API implementation and SupportMapFragment integration
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
 
     private GoogleMap mMap;
+    // FusedLocationProviderClient initialization for GPS hardware access
     private FusedLocationProviderClient fusedLocationClient;
 
-    // branch coords
+    // Coordinates definition for TechFix service branches (Colombo and Galle)
     private final LatLng colomboBranchCoords = new LatLng(6.9149, 79.8510);
     private final LatLng galleBranchCoords = new LatLng(6.0367, 80.2170);
 
-    // markers
+    // Google Maps markers for branch locations and user position
     private Marker markerColombo;
     private Marker markerGalle;
     private Marker markerUser;
@@ -54,7 +56,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private TextView tvDistancesOverview;
     private TextView btnBookAtBranch;
 
-    // nearest selection
+    // Nearest branch auto-selection state
     private String currentNearestBranch = "Colombo";
     private Location lastKnownUserLocation = null;
 
@@ -63,6 +65,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+        // FusedLocationProviderClient for real-time GPS telemetry
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         // views
@@ -107,11 +110,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // map settings
+        // Google Maps UI settings and zoom controls
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setCompassEnabled(true);
 
-        // markers
+        // Google Maps marker configuration for service branch locations
         markerColombo = mMap.addMarker(new MarkerOptions()
                 .position(colomboBranchCoords)
                 .title("TechFix Colombo Center")
@@ -124,7 +127,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .snippet("Wakwella Road, Galle • Tel: 0912345678")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
 
-        // marker click
+        // Interactive marker click listener for branch information display
         mMap.setOnMarkerClickListener(marker -> {
             if (marker.equals(markerColombo)) {
                 displayBranchDetails("Colombo");
@@ -135,7 +138,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return false;
         });
 
-        // initial camera
+        // Google Maps camera viewport animation to encompass both branches
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         builder.include(colomboBranchCoords);
         builder.include(galleBranchCoords);
@@ -143,7 +146,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         mMap.setOnMapLoadedCallback(() -> {
             mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(initialBounds, 160));
-            // gps lookup
+            // Runtime location permission verification for GPS tracking
             checkLocationPermissionAndFetch();
         });
     }
@@ -179,17 +182,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         tvGpsStatus.setText("Acquiring GPS fix via FusedLocationProvider...");
 
-        // last known loc
+        // GPS location tracking using FusedLocationProviderClient last known location
         fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
             if (location != null) {
                 processLocation(location);
             } else {
-                // fresh loc
+                // Request fresh GPS location update
                 requestFreshLocation();
             }
         }).addOnFailureListener(e -> requestFreshLocation());
     }
 
+    // Real-time GPS location acquisition with high accuracy
     private void requestFreshLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
             ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -216,24 +220,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         lastKnownUserLocation = location;
         LatLng userLatLng = new LatLng(location.getLatitude(), location.getLongitude());
 
-        // colombo dist
+        // Geodesic distance calculation to Colombo branch using GPS
         float[] distResultsColombo = new float[1];
         Location.distanceBetween(location.getLatitude(), location.getLongitude(),
                 colomboBranchCoords.latitude, colomboBranchCoords.longitude, distResultsColombo);
         float distanceToColomboKm = distResultsColombo[0] / 1000f;
 
-        // galle dist
+        // Geodesic distance calculation to Galle branch using GPS
         float[] distResultsGalle = new float[1];
         Location.distanceBetween(location.getLatitude(), location.getLongitude(),
                 galleBranchCoords.latitude, galleBranchCoords.longitude, distResultsGalle);
         float distanceToGalleKm = distResultsGalle[0] / 1000f;
 
-        // check nearest
+        // Auto-selection of nearest branch based on GPS telemetry
         boolean isColomboNearest = distanceToColomboKm <= distanceToGalleKm;
         currentNearestBranch = isColomboNearest ? "Colombo" : "Galle";
         float nearestDistKm = isColomboNearest ? distanceToColomboKm : distanceToGalleKm;
 
-        // update status
+        // Display nearest branch status and GPS telemetry
         tvGpsStatus.setText(String.format("GPS Active • Nearest: %s (%.1f km)", currentNearestBranch, nearestDistKm));
 
         // user marker

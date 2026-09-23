@@ -6,12 +6,14 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+// SQLite local database persistence for offline caching
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     public DatabaseHelper(Context context) {
         super(context, "TechFix.db", null, 2);
     }
 
+    // SQLite local database table creation for users, repairs and payments caching
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT, role TEXT)");
@@ -19,6 +21,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE IF NOT EXISTS payments (id INTEGER PRIMARY KEY AUTOINCREMENT, invoice_no TEXT, repair_id TEXT, customer TEXT, amount REAL, method TEXT, status TEXT, date TEXT)");
     }
 
+    // SQLite database schema upgrade and migration handling
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion < 2) {
@@ -26,7 +29,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // Insert to local
+    // Insert user record to SQLite for offline authentication caching
     public boolean insertUser(String name, String email, String role) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -38,7 +41,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result != -1;
     }
 
-    // Get role
+    // Retrieve user role from SQLite for offline authorization
     public String getUserRole(String email) {
         String cleanEmail = email != null ? email.trim().toLowerCase() : "";
         SQLiteDatabase db = this.getReadableDatabase();
@@ -54,7 +57,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return null;
     }
 
-    // Get unmae
+    // Retrieve user full name from SQLite for offline profile display
     public String getUserName(String email) {
         String cleanEmail = email != null ? email.trim().toLowerCase() : "";
         SQLiteDatabase db = this.getReadableDatabase();
@@ -70,7 +73,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return "User";
     }
 
-    // Insert repair local
+    // Insert repair appointment to SQLite for offline persistence and synchronization
     public boolean addRepair(String repairId, String device, String status, String cost, String date) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -84,13 +87,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result != -1;
     }
 
-    // Get all repairs offline
+    // Retrieve all cached repairs from SQLite for offline viewing
     public Cursor getAllRepairs() {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery("SELECT * FROM repairs ORDER BY id DESC", null);
     }
 
-    // Insert payment local
+    // Insert digital payment and invoice record to SQLite for offline audit
     public boolean addPayment(String invoiceNo, String repairId, String customer, double amount, String method, String status, String date) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -106,13 +109,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result != -1;
     }
 
-    // Get payment for repair
+    // Retrieve payment transaction for a specific repair from SQLite
     public Cursor getPaymentForRepair(String repairId) {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery("SELECT * FROM payments WHERE repair_id=? ORDER BY id DESC LIMIT 1", new String[]{repairId});
     }
 
-    // Get all payments offline
+    // Retrieve all payment transaction records from SQLite
     public Cursor getAllPayments() {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery("SELECT * FROM payments ORDER BY id DESC", null);

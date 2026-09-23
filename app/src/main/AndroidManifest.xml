@@ -2,10 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Hardware camera feature declaration for device damage assessment -->
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
 
+    <!-- Device hardware and storage runtime permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -76,10 +78,12 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+        <!-- Google API key implementation and maps configuration -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDxOfI2p4AjG8aXjxVN9t67FCDlJnjIFFY" />
 
+        <!-- Google Maps Activity for branch locator and GPS telemetry -->
         <activity
             android:name=".MapsActivity"
             android:exported="false"

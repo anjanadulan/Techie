@@ -99,13 +99,13 @@ public class Signup extends AppCompatActivity {
 
         btnSignUpSubmit.setEnabled(false);
 
-        // create user auth
+        // Firebase Authentication user account registration
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
                         String uid = mAuth.getCurrentUser().getUid();
 
-                        // firestore
+                        // Cloud Firestore user profile initialization with customer role
                         Map<String, Object> user = new HashMap<>();
                         user.put("fullName", fullName);
                         user.put("email", email);
@@ -113,7 +113,7 @@ public class Signup extends AppCompatActivity {
 
                         db.collection("users").document(uid).set(user)
                                 .addOnSuccessListener(aVoid -> {
-                                    // sqlite
+                                    // SQLite local database persistence for offline caching
                                     dbHelper.insertUser(fullName, email, "customer");
 
                                     Toast.makeText(Signup.this, "Account created successfully! Please sign in.", Toast.LENGTH_SHORT).show();

@@ -78,13 +78,13 @@ public class Signin extends AppCompatActivity {
 
         btnSignIn.setEnabled(false);
 
-        // firebase auth
+        // Firebase Authentication user sign-in handling
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
                         String uid = mAuth.getCurrentUser().getUid();
 
-                        // fetch role
+                        // Cloud Firestore role-based access control lookup
                         db.collection("users").whereEqualTo("email", email).get()
                                 .addOnCompleteListener(docTask -> {
                                     btnSignIn.setEnabled(true);
@@ -107,10 +107,10 @@ public class Signin extends AppCompatActivity {
                                         }
                                     }
 
-                                    // sqlite
+                                    // SQLite local database persistence for offline caching
                                     dbHelper.insertUser(name, email, role);
 
-                                    // role nav
+                                    // Role-based authorization and navigation (Customer vs Admin)
                                     if ("admin".equalsIgnoreCase(role)) {
                                         Toast.makeText(Signin.this, "Welcome Admin!", Toast.LENGTH_SHORT).show();
                                         Intent intent = new Intent(Signin.this, ManagerDashboard.class);

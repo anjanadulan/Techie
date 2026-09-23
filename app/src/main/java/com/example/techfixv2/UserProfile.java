@@ -78,16 +78,16 @@ public class UserProfile extends AppCompatActivity {
         tvLocationStatus = findViewById(R.id.tvLocationStatus);
         tvStorageStatus = findViewById(R.id.tvStorageStatus);
 
-        // load profile
+        // SQLite local database cache and profile data loading
         loadProfileData();
 
-        // refresh location
+        // Real-time GPS location telemetry refresh
         findViewById(R.id.btnRefreshLocation).setOnClickListener(v -> {
             Toast.makeText(this, "Acquiring real-time GPS fix...", Toast.LENGTH_SHORT).show();
             fetchCurrentLocation();
         });
 
-        // open map
+        // Google Maps integration navigation
         findViewById(R.id.btnOpenMap).setOnClickListener(v -> {
             Intent intent = new Intent(UserProfile.this, MapsActivity.class);
             startActivity(intent);
@@ -102,13 +102,13 @@ public class UserProfile extends AppCompatActivity {
         findViewById(R.id.btnViewBookingHistoryHeader).setOnClickListener(historyClick);
         findViewById(R.id.cardRepairOverview).setOnClickListener(historyClick);
 
-        // setup permissions
+        // Runtime permission manager setup for Camera, Location and Storage
         setupPermissionListeners();
 
         // change pw
         findViewById(R.id.btnAdminResetPassword).setOnClickListener(v -> showChangePasswordDialog());
 
-        // sign out btn
+        // Firebase Authentication session sign-out
         findViewById(R.id.btnProfileSignOut).setOnClickListener(v -> {
             mAuth.signOut();
             Intent intent = new Intent(UserProfile.this, MainActivity.class);
@@ -124,14 +124,16 @@ public class UserProfile extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // sync live state
+        // Synchronizing runtime permission badges with device permission states
         updatePermissionBadges();
+        // Refresh real-time GPS telemetry
         fetchCurrentLocation();
+        // Real-time Cloud Firestore repair metrics synchronization
         loadRepairOverview();
     }
 
+    // Local SQLite database lookup for offline profile caching
     private void loadProfileData() {
-        // load profile
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             String email = currentUser.getEmail();
@@ -142,8 +144,8 @@ public class UserProfile extends AppCompatActivity {
         }
     }
 
+    // Real-time Cloud Firestore aggregation of repair metrics and total expenditure
     private void loadRepairOverview() {
-        // fetch repairs
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null || user.getEmail() == null) return;
         String email = user.getEmail().trim().toLowerCase();
@@ -185,8 +187,8 @@ public class UserProfile extends AppCompatActivity {
                 });
     }
 
+    // Real-time GPS location telemetry using FusedLocationProviderClient
     private void fetchCurrentLocation() {
-        // gps location
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             tvCurrentLocationText.setText("GPS Permission required to acquire location");
@@ -205,8 +207,8 @@ public class UserProfile extends AppCompatActivity {
         }).addOnFailureListener(e -> requestFreshLocation());
     }
 
+    // High accuracy real-time GPS location request
     private void requestFreshLocation() {
-        // fresh loc
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
@@ -228,14 +230,14 @@ public class UserProfile extends AppCompatActivity {
                 });
     }
 
+    // Geodesic distance calculation and reverse geocoding for user location
     private void updateLocationUI(Location loc) {
-        // update ui
         double lat = loc.getLatitude();
         double lon = loc.getLongitude();
 
         String addressText = String.format(Locale.getDefault(), "%.4f° N, %.4f° E", lat, lon);
 
-        // geocoder
+        // Reverse geocoding using Android Geocoder API to resolve street and locality
         try {
             Geocoder geocoder = new Geocoder(this, Locale.getDefault());
             List<Address> addresses = geocoder.getFromLocation(lat, lon, 1);
@@ -251,15 +253,17 @@ public class UserProfile extends AppCompatActivity {
 
         tvCurrentLocationText.setText(addressText + String.format(Locale.getDefault(), " (%.4f, %.4f)", lat, lon));
 
-        // distance calc
+        // Geodesic distance calculation to Colombo branch using GPS
         float[] resultsColombo = new float[1];
         Location.distanceBetween(lat, lon, 6.9149, 79.8510, resultsColombo);
         float distColKm = resultsColombo[0] / 1000f;
 
+        // Geodesic distance calculation to Galle branch using GPS
         float[] resultsGalle = new float[1];
         Location.distanceBetween(lat, lon, 6.0367, 80.2170, resultsGalle);
         float distGalleKm = resultsGalle[0] / 1000f;
 
+        // Auto-detection of nearest service branch based on geodesic distance
         if (distColKm <= distGalleKm) {
             tvNearestBranchText.setText(String.format(Locale.getDefault(), "📍 Nearest Branch: Colombo Center · %.1f km away", distColKm));
         } else {
@@ -267,8 +271,8 @@ public class UserProfile extends AppCompatActivity {
         }
     }
 
+    // Runtime permission manager for Camera, Location and Storage hardware features
     private void setupPermissionListeners() {
-        // permissions
         findViewById(R.id.rowCameraPermission).setOnClickListener(v -> {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, PERMISSION_REQ_CAMERA);

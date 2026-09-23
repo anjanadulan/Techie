@@ -155,6 +155,7 @@ public class BookingHistory extends AppCompatActivity {
         }
     }
 
+    // Cloud Firestore real-time database synchronization for user repair history
     private void loadFirestoreBookingHistory() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) {
@@ -168,7 +169,7 @@ public class BookingHistory extends AppCompatActivity {
 
         repairHistoryList.removeAllViews();
 
-        // fetch bookings
+        // Cloud Firestore query for customer appointments
         db.collection("appointments")
                 .whereEqualTo("userEmail", email.trim().toLowerCase())
                 .get()
@@ -407,6 +408,7 @@ public class BookingHistory extends AppCompatActivity {
         dialog.show();
     }
 
+    // Digital invoicing and payment processing with mock card and cash gateway
     private void showPaymentDialog(String docId, String repairId, String device, String desc, double amount, String branch, String date) {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_payment_checkout, null);
         TextView tvInvoiceNo = dialogView.findViewById(R.id.tvCheckoutInvoiceNo);
@@ -428,6 +430,7 @@ public class BookingHistory extends AppCompatActivity {
         View btnPayConfirm = dialogView.findViewById(R.id.btnPayConfirm);
         View btnPayCancel = dialogView.findViewById(R.id.btnPayCancel);
 
+        // Digital invoice number generation for repair billing
         String generatedInvoice = "INV-2026-" + (int)(1000 + Math.random() * 9000);
         tvInvoiceNo.setText("Invoice: #" + generatedInvoice);
         tvDevice.setText(device != null ? device : "TechFix Repair Device");
@@ -453,6 +456,7 @@ public class BookingHistory extends AppCompatActivity {
 
         btnPayCancel.setOnClickListener(v -> checkoutDialog.dismiss());
 
+        // Process payment transaction and issue digital invoice
         btnPayConfirm.setOnClickListener(v -> {
             String method;
             String cardLast4 = "";
@@ -463,6 +467,7 @@ public class BookingHistory extends AppCompatActivity {
                 String expiry = etCardExpiry.getText().toString().trim();
                 String cvv = etCardCvv.getText().toString().trim();
 
+                // Mock card payment detail validation
                 if (holder.isEmpty()) {
                     Toast.makeText(BookingHistory.this, "Please enter cardholder name", Toast.LENGTH_SHORT).show();
                     return;
@@ -496,6 +501,7 @@ public class BookingHistory extends AppCompatActivity {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm a", Locale.US);
             String timestamp = sdf.format(new Date());
 
+            // OOP Domain Model encapsulation using Payment
             Payment payment = new Payment(
                     generatedInvoice,
                     docId,
@@ -511,10 +517,10 @@ public class BookingHistory extends AppCompatActivity {
 
             btnPayConfirm.setEnabled(false);
 
-            // firestore
+            // Cloud Firestore real-time synchronization for payment record
             db.collection("payments").add(payment.toMap())
                     .addOnSuccessListener(docRef -> {
-                        // update status
+                        // Update appointment payment status in Cloud Firestore
                         Map<String, Object> updateMap = new HashMap<>();
                         updateMap.put("paymentStatus", "Paid");
                         updateMap.put("invoiceNo", generatedInvoice);
@@ -523,7 +529,7 @@ public class BookingHistory extends AppCompatActivity {
 
                         db.collection("appointments").document(docId).update(updateMap);
 
-                        // sqlite
+                        // SQLite local database persistence for offline caching
                         if (dbHelper != null) {
                             dbHelper.addPayment(generatedInvoice, docId, customerName, amount, method, "Paid", timestamp);
                         }
@@ -531,7 +537,7 @@ public class BookingHistory extends AppCompatActivity {
                         checkoutDialog.dismiss();
                         Toast.makeText(BookingHistory.this, "Payment successful! Invoice #" + generatedInvoice + " issued.", Toast.LENGTH_LONG).show();
 
-                        // receipt
+                        // Custom material dialog for digital payment receipt
                         showReceiptDialog(payment, device, desc);
                         loadFirestoreBookingHistory();
                     })
