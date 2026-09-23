@@ -59,7 +59,7 @@ public class Technician {
         return lower.equals("on duty") || lower.equals("active") || lower.equals("available");
     }
 
-    
+
     public boolean canRepairCategory(String category) {
         if (category == null || specialCategory == null) return false;
         return specialCategory.toLowerCase().contains(category.trim().toLowerCase());

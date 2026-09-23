@@ -88,7 +88,8 @@ public class ManagementModuleActivity extends AppCompatActivity {
                  "technicians".equalsIgnoreCase(moduleKey) ||
                  "prices".equalsIgnoreCase(moduleKey) ||
                  "branches".equalsIgnoreCase(moduleKey) ||
-                 "categories".equalsIgnoreCase(moduleKey);
+                 "categories".equalsIgnoreCase(moduleKey) ||
+                 "images".equalsIgnoreCase(moduleKey);
 
         if (isCrud) {
             btnModuleAdd.setVisibility(View.VISIBLE);
@@ -343,6 +344,12 @@ public class ManagementModuleActivity extends AppCompatActivity {
                 title = "Bill: " + data.get("invoiceNo");
                 subtitle = "Customer: " + data.get("customer") + " · LKR: " + data.get("amount");
                 status = String.valueOf(data.get("paymentStatus"));
+                break;
+
+            case "images":
+                title = String.valueOf(data.get("name"));
+                subtitle = "Branch: " + data.get("location") + " · LKR: " + data.get("price") + " · " + data.get("description");
+                status = "Completed";
                 break;
 
             default:
@@ -631,6 +638,7 @@ public class ManagementModuleActivity extends AppCompatActivity {
             case "customer": return "Customer Name";
             case "amount": return "Amount (LKR)";
             case "paymentStatus": return "Payment Status";
+            case "imageUrl": return "Image URL / Device Photo URI";
             default: return databaseKey;
         }
     }
@@ -648,6 +656,8 @@ public class ManagementModuleActivity extends AppCompatActivity {
                 return new String[]{"name", "address", "phoneNumber", "status"};
             case "categories":
                 return new String[]{"categoryName", "location", "status"};
+            case "images":
+                return new String[]{"name", "category", "location", "description", "price", "imageUrl"};
             default:
                 return new String[]{"name", "description", "status"};
         }
@@ -683,6 +693,10 @@ public class ManagementModuleActivity extends AppCompatActivity {
         } else if ("payments".equals(collection)) {
             mockList.add(createPaymentMap("INV-1038", "Nimal Perera", 8500, "Paid"));
             mockList.add(createPaymentMap("INV-1041", "Sunil Silva", 15000, "Paid"));
+        } else if ("repair_images".equals(collection)) {
+            mockList.add(createImageMap("iPhone 13 Pro OLED Display", "Phone", "Colombo", "Cracked display replaced with genuine OEM panel. Restored 120Hz ProMotion touch response.", 18500, ""));
+            mockList.add(createImageMap("MacBook Pro M1 Keyboard & Cleaning", "Laptop", "Colombo", "Sticky scissor keys replaced and motherboard ultrasonic cleaned following tea spill.", 28500, ""));
+            mockList.add(createImageMap("iPad Air 4 Battery Replacement", "Tablet", "Galle", "Swollen degraded battery replaced with new OEM cell. Battery health restored to 100%.", 12200, ""));
         }
 
         if (mockList.isEmpty()) {
@@ -766,6 +780,18 @@ public class ManagementModuleActivity extends AppCompatActivity {
         map.put("customer", client);
         map.put("amount", amt);
         map.put("paymentStatus", status);
+        return map;
+    }
+
+    private Map<String, Object> createImageMap(String name, String cat, String loc, String desc, double price, String imgUrl) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("name", name);
+        map.put("category", cat);
+        map.put("location", loc);
+        map.put("description", desc);
+        map.put("price", price);
+        map.put("imageUrl", imgUrl);
+        map.put("status", "Completed");
         return map;
     }
 }

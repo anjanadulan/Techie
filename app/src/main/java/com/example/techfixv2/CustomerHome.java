@@ -34,6 +34,9 @@ import java.util.List;
 import com.example.techfixv2.models.Branch;
 import com.example.techfixv2.models.Technician;
 import com.example.techfixv2.models.SparePart;
+import com.example.techfixv2.models.RepairedDevice;
+import com.example.techfixv2.adapters.RepairGalleryAdapter;
+import androidx.viewpager.widget.ViewPager;
 
 public class CustomerHome extends AppCompatActivity {
 
@@ -351,6 +354,63 @@ public class CustomerHome extends AppCompatActivity {
         loadActiveRepairDetails();
         // Load dynamic popular services list
         loadPopularServices();
+        // Load recent completed repairs showcase using RepairGalleryAdapter
+        loadRepairedDevicesGallery();
+    }
+
+    private void loadRepairedDevicesGallery() {
+        ViewPager pager = findViewById(R.id.pagerRepairedDevices);
+        TextView tvGalleryCounter = findViewById(R.id.tvGalleryCounter);
+        if (pager == null) return;
+
+        FirebaseFirestore.getInstance().collection("repair_images")
+                .get()
+                .addOnCompleteListener(task -> {
+                    List<RepairedDevice> devices = new ArrayList<>();
+                    if (task.isSuccessful() && task.getResult() != null && !task.getResult().isEmpty()) {
+                        for (DocumentSnapshot doc : task.getResult().getDocuments()) {
+                            RepairedDevice device = RepairedDevice.fromDocument(doc);
+                            if (device != null) {
+                                devices.add(device);
+                            }
+                        }
+                    } else {
+                        // Fallback defaults if database collection is empty
+                        devices.add(new RepairedDevice("1", "iPhone 13 Pro OLED Display", "Phone", "Colombo",
+                                "Cracked display replaced with genuine OEM panel. Restored 120Hz ProMotion touch response.", 18500, "", "Completed"));
+                        devices.add(new RepairedDevice("2", "MacBook Pro M1 Keyboard & Cleaning", "Laptop", "Colombo",
+                                "Sticky scissor keys replaced and motherboard ultrasonic cleaned following tea spill.", 28500, "", "Completed"));
+                        devices.add(new RepairedDevice("3", "iPad Air 4 Battery Replacement", "Tablet", "Galle",
+                                "Swollen degraded battery replaced with new OEM cell. Battery health restored to 100%.", 12200, "", "Completed"));
+
+                        // Seed into Firestore so Admin can see them in Management module too!
+                        for (RepairedDevice d : devices) {
+                            FirebaseFirestore.getInstance().collection("repair_images").add(d.toMap());
+                        }
+                    }
+
+                    RepairGalleryAdapter adapter = new RepairGalleryAdapter(CustomerHome.this, devices);
+                    pager.setAdapter(adapter);
+
+                    if (tvGalleryCounter != null) {
+                        tvGalleryCounter.setText("1 of " + devices.size() + " ›");
+                    }
+
+                    pager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+                        @Override
+                        public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
+
+                        @Override
+                        public void onPageSelected(int position) {
+                            if (tvGalleryCounter != null) {
+                                tvGalleryCounter.setText((position + 1) + " of " + devices.size() + " ›");
+                            }
+                        }
+
+                        @Override
+                        public void onPageScrollStateChanged(int state) {}
+                    });
+                });
     }
 
     private void loadPopularServices() {
