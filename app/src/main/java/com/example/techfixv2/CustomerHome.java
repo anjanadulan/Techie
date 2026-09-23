@@ -358,7 +358,7 @@ public class CustomerHome extends AppCompatActivity {
         loadRepairedDevicesGallery();
     }
 
-    // Custom PagerAdapter implementation for recent completed repairs gallery (ViewPager)
+    // Custom PagerAdapter implementation for recent completed repairs gallery
     private void loadRepairedDevicesGallery() {
         ViewPager pager = findViewById(R.id.pagerRepairedDevices);
         TextView tvGalleryCounter = findViewById(R.id.tvGalleryCounter);
@@ -369,34 +369,29 @@ public class CustomerHome extends AppCompatActivity {
                 .get()
                 .addOnCompleteListener(task -> {
                     List<RepairedDevice> devices = new ArrayList<>();
-                    if (task.isSuccessful() && task.getResult() != null && !task.getResult().isEmpty()) {
+                    if (task.isSuccessful() && task.getResult() != null) {
                         for (DocumentSnapshot doc : task.getResult().getDocuments()) {
                             RepairedDevice device = RepairedDevice.fromDocument(doc);
                             if (device != null) {
                                 devices.add(device);
                             }
                         }
-                    } else {
-                        // Fallback sample repaired device data
-                        devices.add(new RepairedDevice("1", "iPhone 13 Pro OLED Display", "Phone", "Colombo",
-                                "Cracked display replaced with genuine OEM panel. Restored 120Hz ProMotion touch response.", 18500, "", "Completed"));
-                        devices.add(new RepairedDevice("2", "MacBook Pro M1 Keyboard & Cleaning", "Laptop", "Colombo",
-                                "Sticky scissor keys replaced and motherboard ultrasonic cleaned following tea spill.", 28500, "", "Completed"));
-                        devices.add(new RepairedDevice("3", "iPad Air 4 Battery Replacement", "Tablet", "Galle",
-                                "Swollen degraded battery replaced with new OEM cell. Battery health restored to 100%.", 12200, "", "Completed"));
-
-                        // Seed Cloud Firestore with initial showcase records
-                        for (RepairedDevice d : devices) {
-                            FirebaseFirestore.getInstance().collection("repair_images").add(d.toMap());
-                        }
                     }
 
-                    // Custom PagerAdapter instance for interactive ViewPager carousel
-                    RepairGalleryAdapter adapter = new RepairGalleryAdapter(CustomerHome.this, devices);
-                    pager.setAdapter(adapter);
+                    if (devices.isEmpty()) {
+                        pager.setVisibility(View.GONE);
+                        if (tvGalleryCounter != null) {
+                            tvGalleryCounter.setText("No repairs published");
+                        }
+                    } else {
+                        pager.setVisibility(View.VISIBLE);
+                        // Custom PagerAdapter instance for interactive ViewPager carousel
+                        RepairGalleryAdapter adapter = new RepairGalleryAdapter(CustomerHome.this, devices);
+                        pager.setAdapter(adapter);
 
-                    if (tvGalleryCounter != null) {
-                        tvGalleryCounter.setText("1 of " + devices.size() + " ›");
+                        if (tvGalleryCounter != null) {
+                            tvGalleryCounter.setText("1 of " + devices.size() + " ›");
+                        }
                     }
 
                     pager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {

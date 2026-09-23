@@ -170,17 +170,15 @@ public class ManagementModuleActivity extends AppCompatActivity {
                     refreshLayout.setRefreshing(false);
                     if (task.isSuccessful() && task.getResult() != null) {
                         loadedItems.clear();
-                        if (task.getResult().isEmpty()) {
-                            seedInitialData(collection);
-                        } else {
+                        if (!task.getResult().isEmpty()) {
                             for (QueryDocumentSnapshot doc : task.getResult()) {
                                 Map<String, Object> data = doc.getData();
                                 FirestoreItem item = parseDocumentToItem(doc.getId(), data);
                                 loadedItems.add(item);
                             }
-                            // render list
-                            renderList();
                         }
+                        // render list
+                        renderList();
                     } else {
                         String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
                         Toast.makeText(this, "Failed to load database: " + errorMsg, Toast.LENGTH_LONG).show();
@@ -661,137 +659,5 @@ public class ManagementModuleActivity extends AppCompatActivity {
             default:
                 return new String[]{"name", "description", "status"};
         }
-    }
-
-    private void seedInitialData(String collection) {
-        refreshLayout.setRefreshing(true);
-        ArrayList<Map<String, Object>> mockList = new ArrayList<>();
-
-        if ("spare_parts".equals(collection)) {
-            mockList.add(createPartMap("iPhone 12 Screen Panels", "iphone", "Colombo", 5, 12000));
-            mockList.add(createPartMap("MacBook Pro Keyboards", "laptop", "Colombo", 2, 8500));
-            mockList.add(createPartMap("iPad Pro Batteries", "tablet", "Galle", 1, 6500));
-        } else if ("technicians".equals(collection)) {
-            mockList.add(createTechMap("Nilantha Kumara", "Colombo", "laptop, tablet", "On Duty", "0771234567"));
-            mockList.add(createTechMap("Ruwan Silva", "Colombo", "iphone, android", "On Duty", "0777654321"));
-            mockList.add(createTechMap("Kasun Perera", "Galle", "laptop, iphone", "Off Duty", "0711122334"));
-        } else if ("service_prices".equals(collection)) {
-            mockList.add(createPriceMap("Device Diagnosis", "laptop", "1 hour", 1500, "active"));
-            mockList.add(createPriceMap("Keyboard Repair", "laptop", "3 hours", 8500, "active"));
-            mockList.add(createPriceMap("Screen Replace", "iphone", "2 hours", 12000, "active"));
-        } else if ("branches".equals(collection)) {
-            mockList.add(createBranchMap("Colombo", "Galle Road, Colombo 03", "0112345678", "open"));
-            mockList.add(createBranchMap("Galle", "Wakwella Road, Galle", "0912345678", "open"));
-        } else if ("device_categories".equals(collection)) {
-            mockList.add(createCategoryMap("laptop", "Colombo", "active"));
-            mockList.add(createCategoryMap("iphone", "Colombo", "active"));
-            mockList.add(createCategoryMap("android", "Galle", "active"));
-            mockList.add(createCategoryMap("tablet", "Galle", "active"));
-        } else if ("appointments".equals(collection)) {
-            mockList.add(createAppointmentMap("Nimal Perera", "user@gmail.com", "MacBook Air M1", "Keyboard replacement", 15000, "Pending"));
-            mockList.add(createAppointmentMap("Sunil Silva", "user@gmail.com", "iPhone 13 Pro", "OLED screen replacement", 35000, "In Progress"));
-        } else if ("payments".equals(collection)) {
-            mockList.add(createPaymentMap("INV-1038", "Nimal Perera", 8500, "Paid"));
-            mockList.add(createPaymentMap("INV-1041", "Sunil Silva", 15000, "Paid"));
-        } else if ("repair_images".equals(collection)) {
-            mockList.add(createImageMap("iPhone 13 Pro OLED Display", "Phone", "Colombo", "Cracked display replaced with genuine OEM panel. Restored 120Hz ProMotion touch response.", 18500, ""));
-            mockList.add(createImageMap("MacBook Pro M1 Keyboard & Cleaning", "Laptop", "Colombo", "Sticky scissor keys replaced and motherboard ultrasonic cleaned following tea spill.", 28500, ""));
-            mockList.add(createImageMap("iPad Air 4 Battery Replacement", "Tablet", "Galle", "Swollen degraded battery replaced with new OEM cell. Battery health restored to 100%.", 12200, ""));
-        }
-
-        if (mockList.isEmpty()) {
-            refreshLayout.setRefreshing(false);
-            return;
-        }
-
-        for (int i = 0; i < mockList.size(); i++) {
-            final int count = i;
-            db.collection(collection)
-                    .add(mockList.get(i))
-                    .addOnCompleteListener(t -> {
-                        if (count == mockList.size() - 1) {
-                            loadModuleData();
-                        }
-                    });
-        }
-    }
-
-    private Map<String, Object> createPartMap(String name, String cat, String loc, int qty, double price) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("name", name);
-        map.put("category", cat);
-        map.put("location", loc);
-        map.put("quantity", qty);
-        map.put("price", price);
-        return map;
-    }
-
-    private Map<String, Object> createTechMap(String name, String loc, String cat, String avail, String num) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("name", name);
-        map.put("location", loc);
-        map.put("specialCategory", cat);
-        map.put("availability", avail);
-        map.put("mobileNumber", num);
-        return map;
-    }
-
-    private Map<String, Object> createPriceMap(String name, String cat, String time, double price, String status) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("name", name);
-        map.put("category", cat);
-        map.put("estimatedTime", time);
-        map.put("estimatedPrice", price);
-        map.put("status", status);
-        return map;
-    }
-
-    private Map<String, Object> createBranchMap(String name, String addr, String tel, String status) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("name", name);
-        map.put("address", addr);
-        map.put("phoneNumber", tel);
-        map.put("status", status);
-        return map;
-    }
-
-    private Map<String, Object> createCategoryMap(String catName, String loc, String status) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("categoryName", catName);
-        map.put("location", loc);
-        map.put("status", status);
-        return map;
-    }
-
-    private Map<String, Object> createAppointmentMap(String client, String email, String device, String desc, double cost, String status) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("clientName", client);
-        map.put("userEmail", email);
-        map.put("deviceName", device);
-        map.put("description", desc);
-        map.put("cost", cost);
-        map.put("status", status);
-        return map;
-    }
-
-    private Map<String, Object> createPaymentMap(String inv, String client, double amt, String status) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("invoiceNo", inv);
-        map.put("customer", client);
-        map.put("amount", amt);
-        map.put("paymentStatus", status);
-        return map;
-    }
-
-    private Map<String, Object> createImageMap(String name, String cat, String loc, String desc, double price, String imgUrl) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("name", name);
-        map.put("category", cat);
-        map.put("location", loc);
-        map.put("description", desc);
-        map.put("price", price);
-        map.put("imageUrl", imgUrl);
-        map.put("status", "Completed");
-        return map;
     }
 }

@@ -144,11 +144,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         builder.include(galleBranchCoords);
         final LatLngBounds initialBounds = builder.build();
 
+        // Center camera immediately over Sri Lanka service centers
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(colomboBranchCoords, 9f));
         mMap.setOnMapLoadedCallback(() -> {
-            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(initialBounds, 160));
-            // Runtime location permission verification for GPS tracking
-            checkLocationPermissionAndFetch();
+            try {
+                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(initialBounds, 160));
+            } catch (Exception ignored) {}
         });
+
+        // Runtime location permission verification and GPS calculation immediately on load
+        checkLocationPermissionAndFetch();
     }
 
     private void checkLocationPermissionAndFetch() {
