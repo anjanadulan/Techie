@@ -32,9 +32,15 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
+import android.location.Location;
 import com.example.techfixv2.models.RepairAppointment;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
+import com.google.android.gms.tasks.CancellationTokenSource;
 
 public class BookRepairActivity extends AppCompatActivity {
 
@@ -79,12 +85,24 @@ public class BookRepairActivity extends AppCompatActivity {
     private static final int PICK_IMAGE_REQUEST = 102;
     private static final int CAMERA_IMAGE_REQUEST = 103;
     private static final int CAMERA_PERMISSION_CODE = 201;
+    private static final int LOCATION_PERMISSION_CODE = 202;
     private Uri cameraImageUri = null;
+
+    // GPS Location Client and Distance Tracking
+    private FusedLocationProviderClient fusedLocationClient;
+    private float distanceToColomboKm = -1f;
+    private float distanceToGalleKm = -1f;
+    private static final double COLOMBO_LAT = 6.9149;
+    private static final double COLOMBO_LNG = 79.8510;
+    private static final double GALLE_LAT = 6.0367;
+    private static final double GALLE_LNG = 80.2170;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_book_repair);
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         dbHelper = new DatabaseHelper(this);
         db = FirebaseFirestore.getInstance();
@@ -146,11 +164,16 @@ public class BookRepairActivity extends AppCompatActivity {
             }
         }
 
-        if (getIntent().hasExtra("preselected_branch")) {
+        boolean hasPreselectedBranch = getIntent().hasExtra("preselected_branch");
+        if (hasPreselectedBranch) {
             selectedBranch = getIntent().getStringExtra("preselected_branch");
             if (pickerBranch != null && selectedBranch != null) {
                 pickerBranch.setText(selectedBranch);
             }
+        }
+
+        if (!isEditMode) {
+            detectNearestBranchWithGps(hasPreselectedBranch);
         }
     }
 
@@ -298,12 +321,25 @@ public class BookRepairActivity extends AppCompatActivity {
             Toast.makeText(this, "Loading branches...", Toast.LENGTH_SHORT).show();
             return;
         }
-        String[] branches = branchList.toArray(new String[0]);
+        String[] displayBranches = new String[branchList.size()];
+        for (int i = 0; i < branchList.size(); i++) {
+            String bName = branchList.get(i);
+            if (bName.toLowerCase().contains("colombo") && distanceToColomboKm >= 0) {
+                String nearestTag = (distanceToColomboKm <= distanceToGalleKm) ? " - Nearest" : "";
+                displayBranches[i] = String.format(Locale.US, "%s (%.1f km%s)", bName, distanceToColomboKm, nearestTag);
+            } else if (bName.toLowerCase().contains("galle") && distanceToGalleKm >= 0) {
+                String nearestTag = (distanceToGalleKm < distanceToColomboKm) ? " - Nearest" : "";
+                displayBranches[i] = String.format(Locale.US, "%s (%.1f km%s)", bName, distanceToGalleKm, nearestTag);
+            } else {
+                displayBranches[i] = bName;
+            }
+        }
+
         new AlertDialog.Builder(this)
                 .setTitle("Select Service Branch")
-                .setItems(branches, (dialog, which) -> {
-                    selectedBranch = branches[which];
-                    pickerBranch.setText(selectedBranch);
+                .setItems(displayBranches, (dialog, which) -> {
+                    selectedBranch = branchList.get(which);
+                    pickerBranch.setText(displayBranches[which]);
                 }).show();
     }
 
@@ -389,6 +425,63 @@ public class BookRepairActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(this, "Camera permission is required to capture photos.", Toast.LENGTH_LONG).show();
             }
+        } else if (requestCode == LOCATION_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                detectNearestBranchWithGps(selectedBranch != null && !selectedBranch.isEmpty());
+            }
+        }
+    }
+
+    private void detectNearestBranchWithGps(boolean preselectedOnlyCalc) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                    LOCATION_PERMISSION_CODE);
+            return;
+        }
+
+        fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
+            if (location != null) {
+                applyNearestBranch(location, preselectedOnlyCalc);
+            } else {
+                CancellationTokenSource cts = new CancellationTokenSource();
+                fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cts.getToken())
+                        .addOnSuccessListener(this, freshLoc -> {
+                            if (freshLoc != null) {
+                                applyNearestBranch(freshLoc, preselectedOnlyCalc);
+                            }
+                        });
+            }
+        });
+    }
+
+    private void applyNearestBranch(Location location, boolean preselectedOnlyCalc) {
+        float[] resultsColombo = new float[1];
+        Location.distanceBetween(location.getLatitude(), location.getLongitude(), COLOMBO_LAT, COLOMBO_LNG, resultsColombo);
+        distanceToColomboKm = resultsColombo[0] / 1000f;
+
+        float[] resultsGalle = new float[1];
+        Location.distanceBetween(location.getLatitude(), location.getLongitude(), GALLE_LAT, GALLE_LNG, resultsGalle);
+        distanceToGalleKm = resultsGalle[0] / 1000f;
+
+        if (preselectedOnlyCalc) {
+            return;
+        }
+
+        String nearestName = (distanceToColomboKm <= distanceToGalleKm) ? "Colombo" : "Galle";
+        float nearestDist = Math.min(distanceToColomboKm, distanceToGalleKm);
+
+        for (String b : branchList) {
+            if (b.toLowerCase().contains(nearestName.toLowerCase())) {
+                nearestName = b;
+                break;
+            }
+        }
+
+        selectedBranch = nearestName;
+        if (pickerBranch != null) {
+            pickerBranch.setText(String.format(Locale.US, "%s (📍 Nearest: %.1f km)", nearestName, nearestDist));
         }
     }
 
