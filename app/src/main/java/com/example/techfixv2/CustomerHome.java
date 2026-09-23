@@ -31,6 +31,10 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.techfixv2.models.Branch;
+import com.example.techfixv2.models.Technician;
+import com.example.techfixv2.models.SparePart;
+
 public class CustomerHome extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
@@ -274,47 +278,59 @@ public class CustomerHome extends AppCompatActivity {
                         }
                         btnAction.setOnClickListener(v -> dialog.dismiss());
 
-                        StringBuilder sb = new StringBuilder();
+                        // Populate Domain Models and establish 1-to-many aggregations
+                        List<Branch> branchList = new ArrayList<>();
                         for (DocumentSnapshot bDoc : branches) {
-                            String bName = bDoc.getString("name");
-                            String bAddr = bDoc.getString("address");
-                            String bPhone = bDoc.getString("phoneNumber");
-                            String bStatus = bDoc.getString("status");
-                            
-                            sb.append("📍 ").append(bName != null ? bName : "Branch").append(" Branch\n")
-                              .append("Status: ").append(bStatus != null ? bStatus.toUpperCase() : "OPEN").append("\n")
-                              .append("Address: ").append(bAddr != null ? bAddr : "N/A").append("\n")
-                              .append("Phone: ").append(bPhone != null ? bPhone : "N/A").append("\n\n");
-                              
-                            // Technicians Roster
-                            sb.append("👨‍🔧 Roster Technicians:\n");
-                            boolean hasTech = false;
+                            Branch branch = Branch.fromDocument(bDoc);
+                            if (branch == null) continue;
+
+                            // Associate roster technicians located at this branch
                             for (DocumentSnapshot tDoc : techs) {
-                                String tLoc = tDoc.getString("location");
-                                if (bName != null && bName.equalsIgnoreCase(tLoc)) {
-                                    String tName = tDoc.getString("name");
-                                    String tAvail = tDoc.getString("availability");
-                                    sb.append(" - ").append(tName).append(" (").append(tAvail != null ? tAvail : "On Duty").append(")\n");
-                                    hasTech = true;
+                                Technician tech = Technician.fromDocument(tDoc);
+                                if (tech != null && branch.getName().equalsIgnoreCase(tech.getLocation())) {
+                                    branch.addTechnician(tech);
                                 }
                             }
-                            if (!hasTech) sb.append(" - No technicians registered\n");
-                            
-                            // Parts Stock
-                            sb.append("\n📦 Spare-Part Inventory:\n");
-                            boolean hasPart = false;
+
+                            // Associate spare parts stored at this branch
                             for (DocumentSnapshot pDoc : parts) {
-                                String pLoc = pDoc.getString("location");
-                                if (bName != null && bName.equalsIgnoreCase(pLoc)) {
-                                    String pName = pDoc.getString("name");
-                                    Object qtyVal = pDoc.get("quantity");
-                                    int qty = qtyVal != null ? (int) Double.parseDouble(String.valueOf(qtyVal)) : 0;
-                                    sb.append(" - ").append(pName).append(" (Qty: ").append(qty).append(")\n");
-                                    hasPart = true;
+                                SparePart part = SparePart.fromDocument(pDoc);
+                                if (part != null && branch.getName().equalsIgnoreCase(part.getLocation())) {
+                                    branch.addSparePart(part);
                                 }
                             }
-                            if (!hasPart) sb.append(" - Out of stock\n");
-                            
+
+                            branchList.add(branch);
+                        }
+
+                        StringBuilder sb = new StringBuilder();
+                        for (Branch b : branchList) {
+                            sb.append("📍 ").append(b.getName()).append(" Branch\n")
+                              .append("Status: ").append(b.getStatus().toUpperCase()).append("\n")
+                              .append("Address: ").append(b.getAddress()).append("\n")
+                              .append("Phone: ").append(b.getPhoneNumber()).append("\n\n");
+
+                            // Technicians Roster using Technician domain model
+                            sb.append("👨‍🔧 Roster Technicians:\n");
+                            if (b.getTechnicians().isEmpty()) {
+                                sb.append(" - No technicians registered\n");
+                            } else {
+                                for (Technician t : b.getTechnicians()) {
+                                    sb.append(" - ").append(t.getName()).append(" (").append(t.getAvailability()).append(")\n");
+                                }
+                            }
+
+                            // Parts Stock using SparePart domain model
+                            sb.append("\n📦 Spare-Part Inventory:\n");
+                            if (b.getSpareParts().isEmpty()) {
+                                sb.append(" - Out of stock\n");
+                            } else {
+                                for (SparePart p : b.getSpareParts()) {
+                                    String stockNote = p.isLowStock() ? " [Low Stock]" : "";
+                                    sb.append(" - ").append(p.getName()).append(" (Qty: ").append(p.getQuantity()).append(")").append(stockNote).append("\n");
+                                }
+                            }
+
                             sb.append("\n----------------------------------\n\n");
                         }
                         

@@ -16,11 +16,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT, role TEXT)");
         db.execSQL("CREATE TABLE repairs (id INTEGER PRIMARY KEY AUTOINCREMENT, repair_id TEXT, device TEXT, status TEXT, cost TEXT, date TEXT)");
-
-        // test codes. ((((((( deleteeeeeeeeeeeeeeeeeee)
-        db.execSQL("INSERT INTO repairs (repair_id, device, status, cost, date) VALUES ('#TF-1042', 'iPhone 13 Pro Screen', 'Completed', 'LKR 18,500', '2026-08-09')");
-        db.execSQL("INSERT INTO repairs (repair_id, device, status, cost, date) VALUES ('#TF-1038', 'MacBook Pro M1 Keyboard', 'In Progress', 'LKR 28,500', '2026-08-08')");
-        db.execSQL("INSERT INTO repairs (repair_id, device, status, cost, date) VALUES ('#TF-1011', 'iPad Air 4 Battery', 'Pending', 'LKR 12,200', '2026-08-05')");
     }
 
     @Override

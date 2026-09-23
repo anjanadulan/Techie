@@ -34,6 +34,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.example.techfixv2.models.RepairAppointment;
+
 public class BookRepairActivity extends AppCompatActivity {
 
     private DatabaseHelper dbHelper;
@@ -481,24 +483,29 @@ public class BookRepairActivity extends AppCompatActivity {
         String issueDesc = etIssueDescription.getText().toString().trim();
         String fullDescription = selectedService + (issueDesc.isEmpty() ? "" : " - " + issueDesc);
 
-        Map<String, Object> appointment = new HashMap<>();
-        appointment.put("clientName", clientName);
-        appointment.put("userEmail", email.trim().toLowerCase());
-        appointment.put("deviceName", selectedDevice);
-        appointment.put("description", fullDescription);
-        appointment.put("branch", selectedBranch);
-        appointment.put("date", selectedDate);
-        appointment.put("time", selectedTime);
-        appointment.put("cost", selectedCost);
-        appointment.put("status", "Pending");
-        appointment.put("photoUri", selectedImageUri != null ? selectedImageUri.toString() : "");
+        // Instantiate domain model
+        RepairAppointment appointment = new RepairAppointment(
+                bookingId,
+                clientName,
+                email.trim().toLowerCase(),
+                selectedDevice,
+                fullDescription,
+                selectedBranch,
+                selectedDate,
+                selectedTime,
+                selectedCost,
+                "Pending",
+                selectedImageUri != null ? selectedImageUri.toString() : ""
+        );
 
         btnContinue.setEnabled(false);
 
         if (isEditMode) {
             db.collection("appointments").document(bookingId)
-                    .set(appointment)
+                    .set(appointment.toMap())
                     .addOnSuccessListener(aVoid -> {
+                        // Sync to local SQLite database
+                        dbHelper.addRepair(appointment.getRepairId(), appointment.getDeviceName(), appointment.getStatus(), appointment.getFormattedCost(), appointment.getDate());
                         Toast.makeText(BookRepairActivity.this, "Booking updated successfully!", Toast.LENGTH_LONG).show();
                         
                         Intent intent = new Intent(BookRepairActivity.this, BookingHistory.class);
@@ -512,8 +519,11 @@ public class BookRepairActivity extends AppCompatActivity {
                     });
         } else {
             db.collection("appointments")
-                    .add(appointment)
+                    .add(appointment.toMap())
                     .addOnSuccessListener(documentReference -> {
+                        appointment.setDocumentId(documentReference.getId());
+                        // Sync to local SQLite database
+                        dbHelper.addRepair(appointment.getRepairId(), appointment.getDeviceName(), appointment.getStatus(), appointment.getFormattedCost(), appointment.getDate());
                         Toast.makeText(BookRepairActivity.this, "Booking created successfully!", Toast.LENGTH_LONG).show();
                         
                         Intent intent = new Intent(BookRepairActivity.this, BookingHistory.class);
