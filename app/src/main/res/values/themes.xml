@@ -13,12 +13,13 @@
     <style name="CustomerNavIcon">
         <item name="android:layout_width">22dp</item>
         <item name="android:layout_height">22dp</item>
+        <item name="android:tint">@color/customer_muted</item>
     </style>
     <style name="CustomerNavLabel">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginTop">2dp</item>
-        <item name="android:textColor">@color/customer_text</item>
+        <item name="android:textColor">@color/customer_muted</item>
         <item name="android:textSize">10sp</item>
     </style>
     <style name="CustomerFieldLabel">
@@ -162,13 +163,18 @@
         <item name="android:textColor">@color/management_muted</item>
         <item name="android:textSize">11sp</item>
     </style>
-    <!-- Base application theme. -->
-    <style
-        name="Base.Theme.TechFixV2"
-        parent="Theme.Material3.DayNight.NoActionBar"
-    >
-        <!-- Customize your light theme here. -->
+    <!-- Base application theme with Material Design 3 DayNight foundations. -->
+    <style name="Base.Theme.TechFixV2" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Light Theme Attributes adhering to Material 3 Design Specifications -->
         <item name="colorPrimary">@color/primary_blue</item>
+        <item name="android:windowBackground">@color/customer_bg</item>
+        <item name="android:colorBackground">@color/customer_bg</item>
+        <item name="colorSurface">@color/customer_surface</item>
+        <item name="colorOnSurface">@color/customer_text</item>
+        <item name="android:statusBarColor">@color/customer_bg</item>
+        <item name="android:navigationBarColor">@color/customer_bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
     </style>
 
     <style name="Theme.TechFixV2" parent="Base.Theme.TechFixV2" />

@@ -455,7 +455,7 @@ public class ManagementModuleActivity extends AppCompatActivity {
         // Service Center Branch
         String branch = data.containsKey("branch") && data.get("branch") != null ? 
                 String.valueOf(data.get("branch")) : "Colombo";
-        tvApptBranch.setText("📍 " + branch);
+        tvApptBranch.setText( branch);
 
         // Client credentials
         String client = data.containsKey("clientName") && data.get("clientName") != null ? 
@@ -517,11 +517,6 @@ public class ManagementModuleActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Display modern Material Design dialog for creating a new record in Cloud Firestore.
-     * Generates input form fields dynamically based on the current active module schema.
-     * Incorporates custom background drawables, validation rules, and asynchronous persistence.
-     */
     private void showAddDialog() {
         // Inflate custom modern card dialog layout
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_admin_form, null);

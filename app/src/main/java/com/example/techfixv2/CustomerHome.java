@@ -223,7 +223,7 @@ public class CustomerHome extends AppCompatActivity {
                     String phone = doc.getString("phoneNumber");
                     String status = doc.getString("status");
 
-                    sb.append("📍 ").append(name != null ? name : "Branch").append(" Branch\n")
+                    sb.append(name != null ? name : "Branch").append(" Branch\n")
                       .append("Address: ").append(address != null ? address : "N/A").append("\n")
                       .append("Contact: ").append(phone != null ? phone : "N/A").append("\n")
                       .append("Status: ").append(status != null ? status.toUpperCase() : "OPEN").append("\n\n");
@@ -308,13 +308,13 @@ public class CustomerHome extends AppCompatActivity {
 
                         StringBuilder sb = new StringBuilder();
                         for (Branch b : branchList) {
-                            sb.append("📍 ").append(b.getName()).append(" Branch\n")
+                            sb.append(b.getName()).append(" Branch\n")
                               .append("Status: ").append(b.getStatus().toUpperCase()).append("\n")
                               .append("Address: ").append(b.getAddress()).append("\n")
                               .append("Phone: ").append(b.getPhoneNumber()).append("\n\n");
 
                             // tech model
-                            sb.append("👨‍🔧 Roster Technicians:\n");
+                            sb.append("Roster Technicians:\n");
                             if (b.getTechnicians().isEmpty()) {
                                 sb.append(" - No technicians registered\n");
                             } else {
@@ -324,7 +324,7 @@ public class CustomerHome extends AppCompatActivity {
                             }
 
                             // parts model
-                            sb.append("\n📦 Spare-Part Inventory:\n");
+                            sb.append("\nSpare-Part Inventory:\n");
                             if (b.getSpareParts().isEmpty()) {
                                 sb.append(" - Out of stock\n");
                             } else {

@@ -487,7 +487,7 @@ public class BookRepairActivity extends AppCompatActivity {
 
         selectedBranch = nearestName;
         if (pickerBranch != null) {
-            pickerBranch.setText(String.format(Locale.US, "%s (📍 Nearest: %.1f km)", nearestName, nearestDist));
+            pickerBranch.setText(String.format(Locale.US, "%s (Nearest: %.1f km)", nearestName, nearestDist));
         }
     }
 

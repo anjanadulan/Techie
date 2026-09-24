@@ -1,39 +1,68 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <resources>
-    <!-- Base Color Overrides for Dark Mode -->
-    <color name="text_primary">#F3F4F6</color>
-    <color name="text_secondary">#9CA3AF</color>
-    <color name="input_outline">#374151</color>
-    <color name="social_icon_bg">#1F2937</color>
-    <color name="divider_color">#374151</color>
-    <color name="auth_text">#F3F4F6</color>
-    <color name="auth_muted">#9CA3AF</color>
-    <color name="auth_border">#374151</color>
-    <color name="auth_button">#FFFFFF</color>
-    <color name="auth_button_text">#050505</color>
-    <color name="auth_sky_start">#111827</color>
-    <color name="auth_sky_end">#1F2937</color>
-    <color name="auth_cloud_left">#15FFFFFF</color>
-    <color name="auth_cloud_center">#0DFFFFFF</color>
-    <color name="auth_cloud_right">#10FFFFFF</color>
+    <!-- Tech-Precision Hybrid Color Palette (Dark) -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="primary_blue">#5B84F0</color>
+    <color name="primary_blue_dark">#3E63C9</color>
+    <color name="header_gradient_start">#2F4FB0</color>
+    <color name="header_gradient_center">#253F94</color>
+    <color name="header_gradient_end">#182C6B</color>
+    <color name="text_primary">#F2F4F7</color>
+    <color name="text_secondary">#98A2B3</color>
+    <color name="input_outline">#475467</color>
+    <color name="social_icon_bg">#262B36</color>
+    <color name="divider_color">#2A303B</color>
+    <color name="auth_sky_start">#0B1E33</color>
+    <color name="auth_sky_end">#16405F</color>
+    <color name="auth_link">#4FC3F7</color>
+    <color name="auth_text">#F5F5F5</color>
+    <color name="auth_muted">#A0A4AB</color>
+    <color name="auth_border">#3A4048</color>
+    <color name="auth_button">#F5F5F5</color>
+    <color name="auth_button_text">#111111</color>
+    <color name="auth_cloud">#1AFFFFFF</color>
+    <color name="auth_cloud_left">#1AFFFFFF</color>
+    <color name="auth_cloud_center">#14FFFFFF</color>
+    <color name="auth_cloud_right">#18FFFFFF</color>
 
-    <!-- Customer Interface Overrides for Dark Mode -->
-    <color name="customer_bg">#121212</color>
-    <color name="customer_surface">#1F2937</color>
-    <color name="customer_text">#F3F4F6</color>
-    <color name="customer_muted">#9CA3AF</color>
-    <color name="customer_border">#374151</color>
-    
-    <color name="customer_blue_soft">#1E293B</color>
-    <color name="customer_orange_soft">#2D231E</color>
-    <color name="customer_danger_soft">#2D1F20</color>
-    <color name="customer_success_soft">#1C2D24</color>
+    <!-- Already dark in light theme, kept as-is -->
+    <color name="bg_charcoal">#1A1A2E</color>
+    <color name="bg_card_dark">#22223B</color>
+    <color name="bg_card_header">#16162A</color>
+    <color name="platinum_silver">#E0E1DD</color>
+    <color name="electric_purple">#7209B7</color>
+    <color name="electric_purple_dark">#560BAD</color>
+    <color name="electric_purple_light">#307209B7</color>
+    <color name="success_green">#4CAF50</color>
+    <color name="subtle_green">#2E4F4F</color>
+    <color name="warning_amber">#FFB703</color>
+    <color name="input_bg">#2C2C44</color>
 
-    <!-- Management/Admin Interface Overrides for Dark Mode -->
-    <color name="management_bg">#121212</color>
-    <color name="management_surface">#1F2937</color>
-    <color name="management_surface_high">#2D3748</color>
-    <color name="management_border">#374151</color>
-    <color name="management_text">#F3F4F6</color>
-    <color name="management_muted">#9CA3AF</color>
+    <color name="customer_text">#F2F4F7</color>
+    <color name="customer_muted">#98A2B3</color>
+    <color name="customer_orange">#FDB022</color>
+    <color name="customer_surface">#171C26</color>
+    <color name="customer_border">#3B4454</color>
+    <color name="customer_blue">#6B8CF0</color>
+    <color name="customer_blue_soft">#1A2545</color>
+    <color name="customer_orange_soft">#3A2A10</color>
+    <color name="customer_bg">#0F131A</color>
+    <color name="customer_danger_soft">#3B1A1A</color>
+    <color name="customer_success_soft">#0F2E20</color>
+    <color name="customer_danger">#F97066</color>
+    <color name="customer_success">#32D583</color>
+
+    <!-- Management reuses the customer visual language. -->
+    <color name="management_bg">#0F131A</color>
+    <color name="management_surface">#171C26</color>
+    <color name="management_surface_high">#1F2532</color>
+    <color name="management_border">#3B4454</color>
+    <color name="management_text">#F2F4F7</color>
+    <color name="management_muted">#98A2B3</color>
+    <color name="management_cyan">#6B8CF0</color>
+    <color name="management_blue">#6B8CF0</color>
+    <color name="management_green">#32D583</color>
+    <color name="management_amber">#FDB022</color>
+    <color name="management_red">#F97066</color>
 </resources>

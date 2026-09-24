@@ -40,7 +40,7 @@ public class BookingHistory extends AppCompatActivity {
 
     // Filter Chips
     private TextView filterAll, filterActive, filterCompleted;
-    private String activeFilter = "All"; // "All", "Active", "Completed"
+    private String activeFilter = "All";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -329,7 +329,7 @@ public class BookingHistory extends AppCompatActivity {
 
             if (btnOpt1 != null) {
                 if ("Paid".equalsIgnoreCase(paymentStatus)) {
-                    btnOpt1.setText("🧾 View Paid Invoice & Receipt");
+                    btnOpt1.setText("View Paid Invoice & Receipt");
                     btnOpt1.setOnClickListener(v -> {
                         dialog.dismiss();
                         FirebaseUser user = mAuth.getCurrentUser();
@@ -350,7 +350,7 @@ public class BookingHistory extends AppCompatActivity {
                         showReceiptDialog(p, device, desc);
                     });
                 } else {
-                    btnOpt1.setText("💳 Pay Invoice / Checkout (" + cost + ")");
+                    btnOpt1.setText("Pay Invoice / Checkout (" + cost + ")");
                     btnOpt1.setOnClickListener(v -> {
                         dialog.dismiss();
                         showPaymentDialog(docId, repairId, device, desc, costVal, branch, date);
@@ -359,7 +359,7 @@ public class BookingHistory extends AppCompatActivity {
             }
 
             if (btnOpt2 != null) {
-                btnOpt2.setText("📄 View Full Diagnostic Details");
+                btnOpt2.setText("View Full Diagnostic Details");
                 btnOpt2.setOnClickListener(v -> {
                     dialog.dismiss();
                     showDetailedInfoDialog(device, desc, branch, date, time, cost, status, paymentStatus, invoiceNo);

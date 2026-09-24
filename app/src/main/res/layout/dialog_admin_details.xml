@@ -95,7 +95,7 @@
                     android:id="@+id/ivDetailsImage"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="#F2F4F7"
+                    android:background="@color/social_icon_bg"
                     android:contentDescription="Record Preview Photo"
                     android:scaleType="centerCrop" />
             </com.google.android.material.card.MaterialCardView>

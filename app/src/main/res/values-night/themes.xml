@@ -1,9 +1,36 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.TechFixV2" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
+
+    <!-- Base application theme (dark). -->
+    <style
+        name="Base.Theme.TechFixV2"
+        parent="Theme.Material3.DayNight.NoActionBar"
+        >
+        <!-- Brand -->
         <item name="colorPrimary">@color/primary_blue</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/customer_blue_soft</item>
+        <item name="colorOnPrimaryContainer">@color/customer_blue</item>
+
+        <!-- Backgrounds and surfaces -->
+        <item name="android:windowBackground">@color/customer_bg</item>
+        <item name="android:colorBackground">@color/customer_bg</item>
+        <item name="colorSurface">@color/customer_surface</item>
+        <item name="colorOnBackground">@color/customer_text</item>
+        <item name="colorOnSurface">@color/customer_text</item>
+        <item name="colorOnSurfaceVariant">@color/customer_muted</item>
+        <item name="colorOutline">@color/customer_border</item>
+
+        <!-- Errors -->
+        <item name="colorError">@color/customer_danger</item>
+        <item name="colorErrorContainer">@color/customer_danger_soft</item>
+
+        <!-- System bars: light icons on dark background -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@color/customer_bg</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
     </style>
+
     <style name="Theme.TechFixV2" parent="Base.Theme.TechFixV2" />
     <style name="Theme.TechFix" parent="Base.Theme.TechFixV2" />
 </resources>

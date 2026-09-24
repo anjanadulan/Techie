@@ -62,7 +62,7 @@ public class RepairGalleryAdapter extends PagerAdapter {
         // set text
         tvRepairedDeviceName.setText(device.getName());
         tvRepairedDescription.setText(device.getDescription());
-        tvRepairedBranch.setText("📍 " + device.getLocation() + " Branch");
+        tvRepairedBranch.setText(device.getLocation() + " Branch");
         tvRepairedCost.setText(device.getFormattedPrice());
 
         // set image or placeholder

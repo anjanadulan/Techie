@@ -3,13 +3,8 @@
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
-    android:viewportHeight="24"
->
+    android:viewportHeight="24">
     <path
-        android:fillColor="@android:color/transparent"
-        android:strokeColor="@color/customer_text"
-        android:strokeWidth="1.8"
-        android:strokeLineCap="round"
-        android:pathData="M14.5,6.5a4,4 0,0 0,-5,5L3.5,17.5a2.1,2.1 0,0 0,3,3l6,-6a4,4 0,0 0,5,-5l-2.2,2.2 -3,-3z"
-    />
+        android:fillColor="@color/customer_text"
+        android:pathData="M22.7,19l-9.1,-9.1c0.9,-2.3 0.4,-5 -1.5,-6.9 -2,-2 -5,-2.4 -7.4,-1.3L7.9,4.9 4.9,7.9 1.7,4.7C0.6,7.1 1,10.1 3,12.1c1.9,1.9 4.6,2.4 6.9,1.5l9.1,9.1c0.4,0.4 1,0.4 1.4,0l2.3,-2.3c0.4,-0.4 0.4,-1.1 0,-1.4z"/>
 </vector>
