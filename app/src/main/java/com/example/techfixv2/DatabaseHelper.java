@@ -6,14 +6,13 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-// SQLite local database persistence for offline caching
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     public DatabaseHelper(Context context) {
         super(context, "TechFix.db", null, 2);
     }
 
-    // SQLite local database table creation for users, repairs and payments caching
+    // SQLite local database table creation
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT, role TEXT)");
@@ -29,7 +28,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // Insert user record to SQLite for offline authentication caching
+    // Offline Auth
     public boolean insertUser(String name, String email, String role) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -40,8 +39,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         long result = db.insertWithOnConflict("users", null, values, SQLiteDatabase.CONFLICT_REPLACE);
         return result != -1;
     }
-
-    // Retrieve user role from SQLite for offline authorization
     public String getUserRole(String email) {
         String cleanEmail = email != null ? email.trim().toLowerCase() : "";
         SQLiteDatabase db = this.getReadableDatabase();
@@ -57,7 +54,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return null;
     }
 
-    // Retrieve user full name from SQLite for offline profile display
+    // fullname
     public String getUserName(String email) {
         String cleanEmail = email != null ? email.trim().toLowerCase() : "";
         SQLiteDatabase db = this.getReadableDatabase();
@@ -73,7 +70,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return "User";
     }
 
-    // Insert repair appointment to SQLite for offline persistence and synchronization
+    // Insert repair appointment
     public boolean addRepair(String repairId, String device, String status, String cost, String date) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -87,13 +84,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result != -1;
     }
 
-    // Retrieve all cached repairs from SQLite for offline viewing
+    // Retrieve all cached repairs
     public Cursor getAllRepairs() {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery("SELECT * FROM repairs ORDER BY id DESC", null);
     }
 
-    // Insert digital payment and invoice record to SQLite for offline audit
+    // Insert digital payment invo
     public boolean addPayment(String invoiceNo, String repairId, String customer, double amount, String method, String status, String date) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -109,13 +106,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result != -1;
     }
 
-    // Retrieve payment transaction for a specific repair from SQLite
+    // Retrieve payment transaction
     public Cursor getPaymentForRepair(String repairId) {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery("SELECT * FROM payments WHERE repair_id=? ORDER BY id DESC LIMIT 1", new String[]{repairId});
     }
 
-    // Retrieve all payment transaction records from SQLite
+    // Retrieve all payment transaction records
     public Cursor getAllPayments() {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery("SELECT * FROM payments ORDER BY id DESC", null);
