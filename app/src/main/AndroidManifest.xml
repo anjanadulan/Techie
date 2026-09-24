@@ -78,10 +78,10 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
-        <!-- Google API key implementation and maps configuration -->
+        <!--  API Injection -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyDxOfI2p4AjG8aXjxVN9t67FCDlJnjIFFY" />
+            android:value="${MAPS_API_KEY}" />
 
         <!-- Google Maps Activity for branch locator and GPS telemetry -->
         <activity
