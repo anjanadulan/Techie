@@ -3,6 +3,7 @@ package com.example.techfixv2;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -80,6 +81,7 @@ public class UserProfile extends AppCompatActivity {
 
         // SQLite local database cache and profile data loading
         loadProfileData();
+        loadRepairOverview();
 
         // Real-time GPS location telemetry refresh
         findViewById(R.id.btnRefreshLocation).setOnClickListener(v -> {
@@ -144,46 +146,100 @@ public class UserProfile extends AppCompatActivity {
         }
     }
 
-    // Real-time Cloud Firestore aggregation of repair metrics and total expenditure
     private void loadRepairOverview() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null || user.getEmail() == null) return;
         String email = user.getEmail().trim().toLowerCase();
 
-        FirebaseFirestore.getInstance().collection("appointments")
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("appointments")
                 .whereEqualTo("userEmail", email)
                 .get()
                 .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && task.getResult() != null) {
-                        int active = 0;
-                        int completed = 0;
-                        double totalSpent = 0.0;
+                    int active = 0;
+                    int completed = 0;
+                    double apptPaidTotal = 0.0;
 
+                    if (task.isSuccessful() && task.getResult() != null) {
                         for (DocumentSnapshot doc : task.getResult().getDocuments()) {
                             String status = doc.getString("status");
-                            Object costVal = doc.get("cost");
-                            double cost = 0.0;
-                            if (costVal != null) {
-                                try {
-                                    cost = Double.parseDouble(String.valueOf(costVal));
-                                } catch (Exception ignored) {}
-                            }
 
+                            // Physical repair workflow lifecycle tracking
                             if ("Completed".equalsIgnoreCase(status)) {
                                 completed++;
-                                String payStatus = doc.getString("paymentStatus");
-                                if ("Paid".equalsIgnoreCase(payStatus)) {
-                                    totalSpent += cost;
-                                }
                             } else {
                                 active++;
+                            }
+
+                            // filter paid
+                            String payStatus = doc.getString("paymentStatus");
+                            if ("Paid".equalsIgnoreCase(payStatus)) {
+                                double amt = 0.0;
+                                Object paidVal = doc.get("paidAmount");
+                                if (paidVal != null) {
+                                    try {
+                                        amt = Double.parseDouble(String.valueOf(paidVal));
+                                    } catch (Exception ignored) {}
+                                }
+                                if (amt <= 0) {
+                                    Object costVal = doc.get("cost");
+                                    if (costVal != null) {
+                                        try {
+                                            amt = Double.parseDouble(String.valueOf(costVal));
+                                        } catch (Exception ignored) {}
+                                    }
+                                }
+                                apptPaidTotal += amt;
                             }
                         }
 
                         tvActiveCount.setText(String.valueOf(active));
                         tvCompletedCount.setText(String.valueOf(completed));
-                        tvTotalSpent.setText(String.format(Locale.getDefault(), "LKR %,d", (int) totalSpent));
+                        tvTotalSpent.setText(String.format(Locale.getDefault(), "LKR %,d", (int) apptPaidTotal));
                     }
+
+                    // cross verify
+                    final double finalApptTotal = apptPaidTotal;
+                    db.collection("payments")
+                            .whereEqualTo("customerEmail", email)
+                            .get()
+                            .addOnCompleteListener(paymentsTask -> {
+                                double ledgerTotal = 0.0;
+                                if (paymentsTask.isSuccessful() && paymentsTask.getResult() != null) {
+                                    for (DocumentSnapshot pDoc : paymentsTask.getResult().getDocuments()) {
+                                        String pStatus = pDoc.getString("paymentStatus");
+                                        if (pStatus == null || "Paid".equalsIgnoreCase(pStatus)) {
+                                            Object amtObj = pDoc.get("amount");
+                                            if (amtObj != null) {
+                                                try {
+                                                    ledgerTotal += Double.parseDouble(String.valueOf(amtObj));
+                                                } catch (Exception ignored) {}
+                                            }
+                                        }
+                                    }
+                                }
+
+                                double resolvedTotal = Math.max(finalApptTotal, ledgerTotal);
+
+                                // Offline SQLite fallback if network cache yielded no expenditure
+                                if (resolvedTotal <= 0 && dbHelper != null) {
+                                    try {
+                                        Cursor cursor = dbHelper.getAllPayments();
+                                        if (cursor != null) {
+                                            while (cursor.moveToNext()) {
+                                                int amtIdx = cursor.getColumnIndex("amount");
+                                                if (amtIdx != -1) {
+                                                    resolvedTotal += cursor.getDouble(amtIdx);
+                                                }
+                                            }
+                                            cursor.close();
+                                        }
+                                    } catch (Exception ignored) {}
+                                }
+
+                                tvTotalSpent.setText(String.format(Locale.getDefault(), "LKR %,d", (int) resolvedTotal));
+                            });
                 });
     }
 
